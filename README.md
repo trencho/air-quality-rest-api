@@ -1,1 +1,1 @@
-Flask API for training machine learning models used for predicting air quality
+Flask RESTful API for training machine learning models used for predicting air quality
