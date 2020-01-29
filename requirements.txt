@@ -1,0 +1,14 @@
+flask
+joblib
+lightgbm
+matplotlib
+numpy
+pandas
+pymongo
+requests
+seaborn
+scikit-learn
+scipy
+statsmodels
+tpot
+xgboost
