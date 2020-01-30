@@ -1,4 +1,5 @@
 import json
+import os
 import urllib
 
 import pandas as pd
@@ -8,15 +9,21 @@ from definitions import DATA_EXTERNAL_PATH
 from definitions import stations
 
 url = 'https://api.darksky.net/forecast/'
-api_key = '5f4ffc6a4d7b2b4ab25dd58454d3839a'
 parameters = '?exclude=currently,minutely,daily,alerts,flags&extend=hourly'
 
 day_in_secs = 82800
 
 
 def extract_json(station, timestamp):
+    dark_sky_env = os.environ.get('DarkSkyAPI')
+    if dark_sky_env is None:
+        print('Please set the environment variable DarkSkyAPI')
+        return
+
+    dark_sky_json = json.load(dark_sky_env)
+    private_key = dark_sky_json.get('private_key')
     coordinates = stations[station]
-    link = url + '/' + api_key + '/' + coordinates + ',' + timestamp
+    link = url + '/' + private_key + '/' + coordinates + ',' + timestamp
     request = link + parameters
 
     dataframe = pd.DataFrame()
@@ -29,7 +36,7 @@ def extract_json(station, timestamp):
             dataframe = dataframe.append(df, sort=True)
 
         timestamp += day_in_secs
-        link = url + '/' + api_key + '/' + coordinates + ',' + timestamp
+        link = url + '/' + private_key + '/' + coordinates + ',' + timestamp
         request = link + parameters
 
     dataframe.to_csv(DATA_EXTERNAL_PATH + '/weather/' + station + '.csv', index=False)

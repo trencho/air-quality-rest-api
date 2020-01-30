@@ -1,4 +1,7 @@
 import base64
+import json
+import os
+import sys
 
 import numpy as np
 import pandas as pd
@@ -30,8 +33,15 @@ from_test = '2017-03-15T02:00:00%2b01:00'
 to_test = '2017-03-19T12:00:00%2b01:00'
 
 get_url = 'https://skopje.pulse.eco/rest/dataRaw'
-username = 'trencho'
-password = 'test123'
+
+pulse_eco_env = os.environ.get('PulseEcoAPI')
+if pulse_eco_env is None:
+    print('Please set the environment variable PulseEcoAPI')
+    sys.exit(1)
+
+pulse_eco_json = json.load(pulse_eco_env)
+username = pulse_eco_json.get('username')
+password = pulse_eco_json.get('password')
 
 while from_timestamp < end_timestamp:
     for value_type in value_types:
