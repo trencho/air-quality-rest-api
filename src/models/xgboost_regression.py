@@ -33,12 +33,12 @@ class XGBoostRegressionModel:
 
         return y_pred
 
-    def save(self, station, pollutant):
-        with open(MODELS_PATH + '/' + station + '/' + pollutant + '/' + type(
-                self).__name__ + '/xgboost_regression_model.pkl', 'wb') as out_file:
+    def save(self, city_name, sensor, pollutant):
+        with open(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + type(self).__name__
+                  + '/xgboost_regression_model.pkl', 'wb') as out_file:
             pickle.dump(self.reg, out_file, pickle.HIGHEST_PROTOCOL)
 
-    def load(self, station, pollutant):
-        with open(MODELS_PATH + '/' + station + '/' + pollutant + '/' + type(
-                self).__name__ + '/xgboost_regression_model.pkl', 'rb') as in_file:
+    def load(self, city_name, sensor, pollutant):
+        with open(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + type(self).__name__
+                  + '/xgboost_regression_model.pkl', 'rb') as in_file:
             self.reg = pickle.load(in_file)

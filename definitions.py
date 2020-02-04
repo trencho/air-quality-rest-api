@@ -21,8 +21,23 @@ SRC_MODELS_PATH = path.join(SRC_PATH, 'models')
 SRC_PREPARATION_PATH = path.join(SRC_PATH, 'preparation')
 SRC_PROCESSING_PATH = path.join(SRC_PATH, 'processing')
 
+status_active = 'ACTIVE'
+
+HTTP_BAD_REQUEST = 400
+HTTP_NOT_FOUND = 404
+HTTP_OK = 200
+
+dark_sky_env_value = 'DARK_SKY_CREDENTIALS'
+pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
+
 stations = {'Centar': '42.0012,21.4288', 'GaziBaba': '42.0368,21.508', 'Karpos': '42.0066,21.3954',
             'Lisice': '41.9753,21.4917', 'Mrsevci': '42.0167,21.6525', 'Miladinovci': '41.9803,21.6498',
             'Kocani': '41.9164,22.4128', 'Kavadarci': '41.4331,22.0119', 'Kumanovo': '42.1322,21.7144',
             'Kicevo': '41.5261,20.9462', 'Lazaropole': '41.536,20.695', 'Tetovo': '42.0106,20.9714'}
+
 pollutants = ['CO', 'NO2', 'O3', 'PM25', 'PM10', 'SO2', 'CO2', 'AQI']
+
+# TODO: store cities in database when pulse.eco API creates an endpoint for fetching available cities
+cities = ['bitola', 'brasov', 'cluj-napoca', 'codlea', 'copenhagen', 'gostivar', 'grand-rapids', 'kichevo', 'kumanovo',
+          'nis', 'novoselo', 'ohrid', 'portland', 'shtip', 'skopje', 'sofia', 'strumica', 'targumures', 'tetovo',
+          'yambol', 'zagreb']
