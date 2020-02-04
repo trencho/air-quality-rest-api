@@ -1,3 +1,4 @@
+flasgger
 flask
 joblib
 lightgbm
