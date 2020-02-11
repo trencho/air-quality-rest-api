@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Aug  4 19:17:14 2019
-
-@author: atren
-"""
-
 import pandas as pd
 
 station_names = ['Centar', 'GaziBaba', 'Karpos', 'Kavadarci', 'Kicevo', 'Kocani', 'Kumanovo', 'Lisice', 'Miladinovci',
