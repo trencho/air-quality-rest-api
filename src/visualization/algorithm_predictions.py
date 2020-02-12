@@ -4,7 +4,7 @@ import warnings
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
+from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, algorithms
 
 warnings.filterwarnings(action='once')
 
@@ -18,16 +18,11 @@ def previous_value_overwrite(X):
 
 
 def draw_predictions(city_name, sensor, pollutant):
-    algorithms = {'DecisionTreeRegression': 'Decision Tree', 'DummyRegression': 'Dummy',
-                  'LightGBMRegression': 'LightGBM', 'LinearRegression': 'Linear',
-                  # 'LogisticRegression' : 'Logistic',
-                  'RandomForestRegression': 'Random Forest', 'SupportVectorRegression': 'Support Vector',
-                  'XGBRegression': 'XGBoost'}
-
     timestamp_01_01_2018 = 1514764800
     timestamp_01_11_2018 = 1541030400
 
-    dataset = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['id'] + '/combined_report.csv')
+    dataset = pd.read_csv(
+        DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/weather_pollution_report.csv')
 
     # test_dataset = dataset[dataset['time'] >= timestamp_01_01_2018]
     test_dataset = dataset[(dataset['time'] >= timestamp_01_01_2018) & (dataset['time'] <= timestamp_01_11_2018)]
@@ -37,15 +32,15 @@ def draw_predictions(city_name, sensor, pollutant):
 
     dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
     for algorithm in algorithms:
-        dataframe_errors = pd.read_csv(RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant
-                                       + '/' + algorithm + '/error.csv')
+        dataframe_errors = pd.read_csv(RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/'
+                                       + pollutant + '/' + algorithm + '/error.csv')
         dataframe_algorithms = dataframe_algorithms.append(
             [{'algorithm': algorithm, pollutant: dataframe_errors.iloc[0]['Mean Absolute Error']}],
             ignore_index=True)
 
     algorithm_index = dataframe_algorithms[pollutant].idxmin()
     dataframe_predictions = pd.read_csv(
-        RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' +
+        RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' +
         dataframe_algorithms.iloc[algorithm_index]['algorithm'] + '/prediction.csv')
 
     X_test = test_dataset.drop(columns=pollutant, errors='ignore')
@@ -73,7 +68,8 @@ def draw_predictions(city_name, sensor, pollutant):
     fig.tight_layout()
     plt.gcf().autofmt_xdate()
 
-    if not os.path.exists(RESULTS_PREDICTIONS_PATH + '/plots/' + city_name + '/' + sensor['id'] + '/' + pollutant):
-        os.makedirs(RESULTS_PREDICTIONS_PATH + '/plots/' + city_name + '/' + sensor['id'] + '/' + pollutant)
-    plt.savefig(RESULTS_PREDICTIONS_PATH + '/plots/' + city_name + '/' + sensor['id'] + '/' + pollutant
+    if not os.path.exists(
+            RESULTS_PREDICTIONS_PATH + '/plots/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant):
+        os.makedirs(RESULTS_PREDICTIONS_PATH + '/plots/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant)
+    plt.savefig(RESULTS_PREDICTIONS_PATH + '/plots/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant
                 + '/predictions.png', bbox_inches='tight')

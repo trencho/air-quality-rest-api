@@ -1,3 +1,4 @@
+import os
 import pickle
 
 from tpot import TPOTRegressor
@@ -10,7 +11,7 @@ class TPOTRegressionModel:
         self.reg = TPOTRegressor(verbosity=3,
                                  random_state=55,
                                  periodic_checkpoint_folder="intermediate_results",
-                                 n_jobs=-1,
+                                 n_jobs=os.cpu_count() / 2,
                                  warm_start=True,
                                  generations=20,
                                  population_size=80,
@@ -32,11 +33,11 @@ class TPOTRegressionModel:
         return y_pred
 
     def save(self, city_name, sensor, pollutant):
-        with open(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + type(self).__name__
+        with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + type(self).__name__
                   + '/tpot_regression_model.pkl', 'wb') as out_file:
             pickle.dump(self.reg, out_file, pickle.HIGHEST_PROTOCOL)
 
     def load(self, city_name, sensor, pollutant):
-        with open(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + type(self).__name__
+        with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + type(self).__name__
                   + '/tpot_regression_model.pkl', 'rb') as in_file:
             self.reg = pickle.load(in_file)

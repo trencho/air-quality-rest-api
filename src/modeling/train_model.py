@@ -2,13 +2,12 @@ import math
 import os
 import pickle
 
-import numpy as np
 import pandas as pd
-from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from definitions import pollutants
+from modeling import save_errors
 from src.models import make_model
 from src.processing import backward_elimination, generate_features
 from src.visualization import draw_errors, draw_predictions
@@ -20,7 +19,6 @@ regression_models = [
     'DummyRegressionModel',
     'LightGBMRegressionModel',
     'LinearRegressionModel',
-    # 'LogisticRegressionModel',
     'RandomForestRegressionModel',
     'SupportVectorRegressionModel',
     'TPOTRegressionModel',
@@ -30,32 +28,33 @@ regression_models = [
 
 def create_model_paths(city_name, sensor, pollutant, model_name):
     if not os.path.exists(
-            MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + model_name + '/'):
-        os.makedirs(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + model_name + '/')
+            MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + model_name + '/'):
+        os.makedirs(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + model_name + '/')
 
-    if not os.path.exists(RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/'
+    if not os.path.exists(RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/'
                           + model_name + '/'):
-        os.makedirs(
-            RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + model_name + '/')
+        os.makedirs(RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/'
+                    + model_name + '/')
 
-    if not os.path.exists(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/'
-                          + model_name + '/'):
-        os.makedirs(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/'
+    if not os.path.exists(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant
+                          + '/' + model_name + '/'):
+        os.makedirs(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/'
                     + model_name + '/')
 
 
 def check_model_lock(city_name, sensor, pollutant, model_name):
     return os.path.exists(
-        MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + model_name + '/.lock')
+        MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + model_name + '/.lock')
 
 
 def create_model_lock(city_name, sensor, pollutant, model_name):
-    with open(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + model_name + '/.lock', 'w'):
+    with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + model_name + '/.lock',
+              'w'):
         pass
 
 
 def remove_model_lock(city_name, sensor, pollutant, model_name):
-    os.remove(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + model_name + '/.lock')
+    os.remove(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + model_name + '/.lock')
 
 
 def split_dataset(dataset, pollutant):
@@ -109,7 +108,7 @@ def generate_regression_model(dataset, city_name, sensor, pollutant):
         y_pred = model.predict(X_test)
 
         df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
-        df.to_csv(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/'
+        df.to_csv(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/'
                   + model_name + '/prediction.csv', index=False)
 
         model_error = save_errors(model_name, city_name, sensor, pollutant, y_test, y_pred)
@@ -118,7 +117,7 @@ def generate_regression_model(dataset, city_name, sensor, pollutant):
 
         remove_model_lock(city_name, sensor, pollutant, model_name)
 
-    with open(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/best_regression_model.pkl',
+    with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/best_regression_model.pkl',
               'wb') as out_file:
         pickle.dump(best_model, out_file, pickle.HIGHEST_PROTOCOL)
 
@@ -138,10 +137,10 @@ def previous_value_overwrite(X, y):
 
 
 def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor, pollutant):
-    dt_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=-1, cv=5)
+    dt_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=os.cpu_count() / 2, cv=5)
     dt_cv.fit(X_train, y_train)
 
-    with open(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/'
+    with open(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/'
               + type(model).__name__ + '/HyperparameterOptimization.txt', 'w') as out_file:
         out_file.write('Best Hyperparameters::\n{}'.format(dt_cv.best_params_))
 
@@ -149,32 +148,15 @@ def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor, pollutant
 
 
 def save_selected_features(city_name, sensor, pollutant, selected_features):
-    with open(MODELS_PATH + '/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/selected_features.txt',
+    with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/selected_features.txt',
               'w') as out_file:
         out_file.write(str(selected_features))
 
 
-def save_errors(model_name, city_name, sensor, pollutant, y_test, y_pred):
-    df = pd.DataFrame({'Mean Absolute Error': [metrics.mean_absolute_error(y_test, y_pred)],
-                       'Mean Squared Error': [metrics.mean_squared_error(y_test, y_pred)],
-                       'Root Mean Squared Error': [np.sqrt(metrics.mean_squared_error(y_test, y_pred))]},
-                      columns=['Mean Absolute Error', 'Mean Squared Error', 'Root Mean Squared Error'])
-    df.to_csv(RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor['id'] + '/' + pollutant + '/' + model_name
-              + '/error.csv', index=False)
-
-    return metrics.mean_absolute_error(y_test, y_pred)
-
-
-def mean_absolute_percentage_error(y_true, y_pred):
-    y_true, y_pred = np.array(y_true), np.array(y_pred)
-    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
-
-
 def train(city_name, sensor, pollutant=None):
-    dataset = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['id'] + '/combined_report.csv')
+    dataset = pd.read_csv(
+        DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/weather_pollution_report.csv')
     if pollutant is not None:
-        if pollutant not in dataset.columns:
-            return
         generate_regression_model(dataset, city_name, sensor, pollutant)
     else:
         for pollutant in pollutants:

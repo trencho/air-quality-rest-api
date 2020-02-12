@@ -1,32 +1,36 @@
 import json
-import urllib
 
 import pandas as pd
-from pandas.io.json import json_normalize
+import requests
+from pandas import json_normalize
 
 from definitions import DATA_EXTERNAL_PATH
 
 url = 'https://api.darksky.net/forecast/'
 parameters = '?exclude=currently,minutely,daily,alerts,flags&extend=hourly'
 
+week_in_secs = 604800
 
-def extract_weather_json(dark_sky_env, city, sensor_id, coordinates, start_time, end_time):
+
+def extract_weather_json(dark_sky_env, city, sensor, start_time, end_time):
     dark_sky_json = json.load(dark_sky_env)
     private_key = dark_sky_json.get('private_key')
-    link = url + '/' + private_key + '/' + coordinates + ',' + start_time
+    link = url + '/' + private_key + '/' + sensor['position'] + ',' + start_time
     request = link + parameters
 
     dataframe = pd.DataFrame()
     while start_time < end_time:
-        with urllib.request.urlopen(request) as response:
-            data = json.load(response)
-        hourly = data.get('hourly')
-        if hourly is not None:
-            df = json_normalize(hourly['data'])
-            start_time = df['date'].iloc[-1]
-            dataframe = dataframe.append(df, sort=True)
+        with requests.get(request) as response:
+            try:
+                data = response.json()
+                hourly = data.get('hourly')
+                df = json_normalize(hourly['data'])
+                start_time = df['date'].iloc[-1]
+                dataframe = dataframe.append(df, sort=True)
+            except ValueError:
+                start_time += week_in_secs
 
-        link = url + '/' + private_key + '/' + coordinates + ',' + start_time
+        link = url + '/' + private_key + '/' + sensor['position'] + ',' + start_time
         request = link + parameters
 
-    dataframe.to_csv(DATA_EXTERNAL_PATH + '/' + city + '/' + sensor_id + '/weather_report.csv', index=False)
+    dataframe.to_csv(DATA_EXTERNAL_PATH + '/' + city + '/' + sensor['sensorId'] + '/weather_report.csv', index=False)

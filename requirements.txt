@@ -6,10 +6,13 @@ matplotlib
 numpy
 pandas
 pymongo
+pytz
 requests
 seaborn
 scikit-learn
 scipy
 statsmodels
+timezonefinder
 tpot
+tsfresh
 xgboost

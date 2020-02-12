@@ -1,3 +1,4 @@
+from datetime import date
 from os import path
 
 ROOT_DIR = path.dirname(path.abspath(__file__))
@@ -25,19 +26,19 @@ status_active = 'ACTIVE'
 
 HTTP_BAD_REQUEST = 400
 HTTP_NOT_FOUND = 404
-HTTP_OK = 200
 
 dark_sky_env_value = 'DARK_SKY_CREDENTIALS'
 pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
 
-stations = {'Centar': '42.0012,21.4288', 'GaziBaba': '42.0368,21.508', 'Karpos': '42.0066,21.3954',
-            'Lisice': '41.9753,21.4917', 'Mrsevci': '42.0167,21.6525', 'Miladinovci': '41.9803,21.6498',
-            'Kocani': '41.9164,22.4128', 'Kavadarci': '41.4331,22.0119', 'Kumanovo': '42.1322,21.7144',
-            'Kicevo': '41.5261,20.9462', 'Lazaropole': '41.536,20.695', 'Tetovo': '42.0106,20.9714'}
-
 pollutants = ['CO', 'NO2', 'O3', 'PM25', 'PM10', 'SO2', 'CO2', 'AQI']
 
-# TODO: store cities in database when pulse.eco API creates an endpoint for fetching available cities
-cities = ['bitola', 'brasov', 'cluj-napoca', 'codlea', 'copenhagen', 'gostivar', 'grand-rapids', 'kichevo', 'kumanovo',
-          'nis', 'novoselo', 'ohrid', 'portland', 'shtip', 'skopje', 'sofia', 'strumica', 'targumures', 'tetovo',
-          'yambol', 'zagreb']
+algorithms = {'DecisionTreeRegression': 'Decision Tree', 'DummyRegression': 'Dummy', 'LightGBMRegression': 'LightGBM',
+              'LinearRegression': 'Linear', 'RandomForestRegression': 'Random Forest',
+              'SupportVectorRegression': 'Support Vector', 'XGBRegression': 'XGBoost'}
+
+dummy_leap_year = 2000  # dummy leap year to allow input X-02-29 (leap day)
+seasons = [('winter', (date(dummy_leap_year, 1, 1), date(dummy_leap_year, 3, 20))),
+           ('spring', (date(dummy_leap_year, 3, 21), date(dummy_leap_year, 6, 20))),
+           ('summer', (date(dummy_leap_year, 6, 21), date(dummy_leap_year, 9, 22))),
+           ('autumn', (date(dummy_leap_year, 9, 23), date(dummy_leap_year, 12, 20))),
+           ('winter', (date(dummy_leap_year, 12, 21), date(dummy_leap_year, 12, 31)))]
