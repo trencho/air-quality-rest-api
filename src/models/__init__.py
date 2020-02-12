@@ -12,7 +12,6 @@ __all__ = [
     "DummyRegressionModel",
     "LightGBMRegressionModel",
     "LinearRegressionModel",
-    # "LogisticRegressionModel",
     "RandomForestRegressionModel",
     "SupportVectorRegressionModel",
     "TPOTRegressionModel",

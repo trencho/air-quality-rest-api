@@ -3,8 +3,9 @@ import pandas as pd
 from scipy import stats
 from sklearn.impute import SimpleImputer
 
-import src.processing.calculate_aqi as ca
-from definitions import stations, pollutants
+from definitions import pollutants, DATA_EXTERNAL_PATH
+from processing import calculate_aqi, calculate_co_aqi, calculate_no2_aqi, calculate_o3_aqi, calculate_pm25_aqi, \
+    calculate_pm10_aqi, calculate_so2_aqi
 
 
 def drop_numerical_outliers(df, z_thresh=3):
@@ -15,12 +16,10 @@ def drop_numerical_outliers(df, z_thresh=3):
     df.drop(df.index[~constrains], inplace=True)
 
 
-timestamp_2018 = 1514764800
-
-for station_name in stations:
-    weather_data = pd.read_csv('D:/Downloads/NAPMMU/Datasets/Weather/weather_report_' + station_name + '.csv')
-    pollution_data = pd.read_csv('D:/Downloads/NAPMMU/Datasets/Pollution/pollution_report_' + station_name + '.csv')
-    combined_report_csv = 'D:/Downloads/NAPMMU/Datasets/combined_report_' + station_name + '.csv'
+def merge(city_name, sensor_id):
+    weather_data = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_report.csv')
+    pollution_data = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/pollution_report.csv')
+    combined_report_csv = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_pollution_report.csv'
 
     dataframe = pd.merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
 
@@ -63,6 +62,7 @@ for station_name in stations:
         if column not in dataframe.columns:
             pollutants_wo_AQI.remove(column)
 
+    timestamp_2018 = 1514764800
     test_dataset = dataframe[dataframe['time'] >= timestamp_2018]
     y_test = test_dataset[pollutants_wo_AQI]
     drop_columns_std = y_test[pollutants_wo_AQI].std()[y_test[pollutants_wo_AQI].std() == 0].index.values
@@ -72,13 +72,13 @@ for station_name in stations:
     dataframe.drop(drop_columns_std, axis=1, inplace=True)
 
     dataframe['AQI'] = dataframe.apply(
-        lambda row: ca.calculate_aqi(ca.calculate_co_aqi(row['CO']) if 'CO' in dataframe.columns else 0,
-                                     ca.calculate_no2_aqi(row['NO2']) if 'NO2' in dataframe.columns else 0,
-                                     ca.calculate_o3_aqi(row['O3']) if 'O3' in dataframe.columns else 0,
-                                     ca.calculate_pm25_aqi(row['PM25']) if 'PM25' in dataframe.columns else 0,
-                                     ca.calculate_pm10_aqi(row['PM10']) if 'PM10' in dataframe.columns else 0,
-                                     ca.calculate_so2_aqi(row['SO2']) if 'SO2' in dataframe.columns else 0) if row[
-                                                                                                                   'AQI'] is not None else
+        lambda row: calculate_aqi(calculate_co_aqi(row['CO']) if 'CO' in dataframe.columns else 0,
+                                  calculate_no2_aqi(row['NO2']) if 'NO2' in dataframe.columns else 0,
+                                  calculate_o3_aqi(row['O3']) if 'O3' in dataframe.columns else 0,
+                                  calculate_pm25_aqi(row['PM25']) if 'PM25' in dataframe.columns else 0,
+                                  calculate_pm10_aqi(row['PM10']) if 'PM10' in dataframe.columns else 0,
+                                  calculate_so2_aqi(row['SO2']) if 'SO2' in dataframe.columns else 0) if row[
+                                                                                                             'AQI'] is not None else
         row['AQI'], axis=1)
 
     #    dataframe = dataframe[(np.abs(stats.zscore(dataframe[df_columns])) < 3).all(axis=1)]

@@ -1,64 +1,78 @@
-import base64
 import json
+from datetime import datetime
 
-import numpy as np
 import pandas as pd
 import requests
+from pytz import timezone
+from timezonefinder import TimezoneFinder
 
 from definitions import DATA_EXTERNAL_PATH
 from definitions import pollutants
 
+week_increment = 604800
+time_format = '%Y-%m-%d %H:%M:%S%z'
+custom_time_format = '%Y-%m-%dT%H:%M:%S%z'
 
-def extract_pollution_json(pulse_eco_env, city, sensor_id, start_time, end_time):
+
+def format_datetime(timestamp, tz):
+    dt = datetime.fromtimestamp(timestamp)
+    dt = tz.localize(dt)
+    dt = dt.strftime(custom_time_format)
+    dt = dt.replace("+", "%2")
+    dt = dt[:25] + ':' + dt[25:]
+    return dt
+
+
+def replace_last_occurrence(s, old, new):
+    li = s.rsplit(old, 1)  # Split only once
+    return new.join(li)
+
+
+def extract_pollution_json(pulse_eco_env, city, sensor, start_timestamp, end_timestamp):
     url = 'https://' + city + '.pulse.eco/rest/dataRaw'
     pulse_eco_json = json.load(pulse_eco_env)
     username = pulse_eco_json.get('username')
     password = pulse_eco_json.get('password')
+    # session = requests.Session()
+    # session.auth = (username, password)
 
-    week_increment = 604800
-    timezone = '%2b02:00'
+    tf = TimezoneFinder()
+    sensor_position = sensor['position'].split(',')
+    latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
+    sensor_loc = tf.timezone_at(lng=longitude, lat=latitude)
+    sensor_tz = timezone(sensor_loc)
 
-    from_datetime = '2015-01-01T00:00:00%2b02:00'
-    from_timestamp = 1420070400
-    to_datetime = '2015-01-08T00:00:00%2b02:00'
-    to_timestamp = 1420675200
+    from_timestamp = start_timestamp
+    from_datetime = format_datetime(from_timestamp, sensor_tz)
 
-    end_datetime = '2019-01-01T00:00:00%2b02:00'
-    end_timestamp = 1546304400
-
-    format_time = '%Y-%m-%dT%H:%M:%S%z'
+    to_timestamp = start_timestamp + week_increment
+    to_datetime = format_datetime(to_timestamp, sensor_tz)
 
     df = pd.DataFrame()
-
-    pollution_data = DATA_EXTERNAL_PATH + '/' + city + '/' + sensor_id + '/pollution_report.csv'
-
-    # from_test = '2017-03-15T02:00:00%2b01:00'
-    # to_test = '2017-03-19T12:00:00%2b01:00'
-
     while from_timestamp < end_timestamp:
         for pollutant in pollutants:
-            parameters = {'sensorId': sensor_id, 'type': pollutant, 'from': from_datetime, 'to': to_datetime}
-            auth_str = '%s:%s' % (username, password)
-            b64_auth_str = base64.b64encode(auth_str)
+            parameters = {'sensorId': sensor['sensor_id'], 'type': pollutant, 'from': from_datetime, 'to': to_datetime}
+            with requests.Session() as session:
+                session.auth = (username, password)
+                pollution_response = session.get(url=url, params=parameters)
+                try:
+                    pollution_json = pollution_response.json()
+                    df.append(pollution_json, ignore_index=True, sort=True)
+                except ValueError:
+                    print('Response did not return JSON')
+            # pollution_json = session.get(url, params=parameters).json()
 
-            headers = {'Authorization': 'Basic %s' % b64_auth_str.decode()}
+        from_timestamp += week_increment
+        from_datetime = format_datetime(from_timestamp, sensor_tz)
+        to_timestamp += week_increment
+        to_datetime = format_datetime(to_timestamp, sensor_tz)
 
-            pollution_request = requests.get(url, params=parameters, headers=headers)
-            print(pollution_request.request.headers)
-            pollution_json = requests.get(url, params=parameters, headers=headers).json()
+    df.rename(columns={'stamp': 'time'}, inplace=True)
+    df['time'] = df['time'].replace('T', ' ')
+    df['time'] = df['time'].apply(lambda x: replace_last_occurrence(x, ':', ''), axis=1)
+    df['time'] = datetime.strptime(df['time'], time_format)
+    df['time'] = datetime.timestamp(df['time'])
+    df.sort_values(by='time')
 
-            requests.get('https://' + city + '.pulse.eco/rest/dataRaw', json=parameters, headers=headers).text()
-
-            df.append(pollution_json, ignore_index=True, sort=True)
-
-            from_timestamp += week_increment
-            from_datetime = pd.to_datetime(from_timestamp).isoformat()
-            from_datetime = from_datetime.replace(from_datetime[19:], timezone)
-            to_timestamp += week_increment
-            to_datetime = pd.to_datetime(to_timestamp).isoformat()
-            to_datetime = to_datetime.replace(to_datetime[19:], timezone)
-
-            # df.stamp = pd.to_datetime(df.time).isoformat().astype(np.int64) // 10**9
-            df['stamp'] = pd.to_datetime(df['time'], format=format_time).astype(np.int64) // 10 ** 9
-            df.sort_values(by='stamp')
-            df.to_csv(pollution_data, index=False)
+    pollution_data = DATA_EXTERNAL_PATH + '/' + city + '/' + sensor['sensor_id'] + '/pollution_report.csv'
+    df.to_csv(pollution_data, index=False)
