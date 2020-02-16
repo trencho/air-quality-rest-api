@@ -30,7 +30,8 @@ HTTP_NOT_FOUND = 404
 dark_sky_env_value = 'DARK_SKY_CREDENTIALS'
 pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
 
-pollutants = ['CO', 'NO2', 'O3', 'PM25', 'PM10', 'SO2', 'CO2', 'AQI']
+pollutants = {'co': 'CO', 'no2': 'NO2', 'o3': 'O3', 'pm25': 'PM2.5', 'pm10': 'PM10', 'so2': 'SO2', 'co2': 'CO2',
+              'aqi': 'AQI'}
 
 algorithms = {'DecisionTreeRegression': 'Decision Tree', 'DummyRegression': 'Dummy', 'LightGBMRegression': 'LightGBM',
               'LinearRegression': 'Linear', 'RandomForestRegression': 'Random Forest',

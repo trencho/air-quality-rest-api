@@ -222,6 +222,7 @@ def fetch_data(city_name=None):
     else:
         start_hour = hour_rounder(datetime.fromtimestamp(start_time))
         start_time = datetime.timestamp(start_hour)
+    start_time = int(start_time)
 
     end_time = request.args.get('endTime', default=current_timestamp, type=int)
     if end_time <= start_time:
@@ -251,7 +252,7 @@ def fetch_data(city_name=None):
 
 @app.route('/forecast/pollutant/<string:pollutant>', methods=['GET'])
 def forecast(pollutant):
-    if pollutant not in pollutants:
+    if pollutant not in pollutants.keys():
         message = 'Value cannot be predicted because the pollutant is missing or is invalid.'
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
@@ -331,10 +332,10 @@ def history(city_name, sensor_id, measurement=None):
 
     dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_pollution_report.csv')
     if measurement is None:
-        measurements = []
-        for pollutant in pollutants:
+        measurements = dict()
+        for pollutant in pollutants.keys():
             if pollutant in dataframe.columns:
-                measurements.append(pollutant)
+                measurements.update({pollutant: pollutants[pollutant]})
         message = measurements
         return make_response(jsonify(message))
 
@@ -357,7 +358,7 @@ def train_sensors():
         return make_response(jsonify(error_message=message), status_code)
 
     pollutant = request.args.get('pollutant', default=None, type=str)
-    if pollutant is not None and pollutant not in pollutants:
+    if pollutant is not None and pollutant not in pollutants.keys():
         message = 'Data cannot be trained because the pollutant is missing or is invalid.'
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
