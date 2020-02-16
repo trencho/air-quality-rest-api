@@ -12,6 +12,7 @@ def get_season(time):
     dt = datetime.fromtimestamp(time)
     dt = dt.date()
     dt = dt.replace(year=dummy_leap_year)
+
     return next(season for season, (start, end) in seasons if start <= dt <= end)
 
 

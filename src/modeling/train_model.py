@@ -159,7 +159,7 @@ def train(city_name, sensor, pollutant=None):
     if pollutant is not None:
         generate_regression_model(dataset, city_name, sensor, pollutant)
     else:
-        for pollutant in pollutants:
+        for pollutant in pollutants.keys():
             if pollutant not in dataset.columns:
                 return
             generate_regression_model(dataset, city_name, sensor, pollutant)

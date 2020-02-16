@@ -19,7 +19,6 @@ def drop_numerical_outliers(df, z_thresh=3):
 def merge(city_name, sensor_id):
     weather_data = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_report.csv')
     pollution_data = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/pollution_report.csv')
-    combined_report_csv = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_pollution_report.csv'
 
     dataframe = pd.merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
 
@@ -56,8 +55,8 @@ def merge(city_name, sensor_id):
         else:
             dataframe.drop(columns=column)
 
-    pollutants_wo_AQI = pollutants.copy()
-    pollutants_wo_AQI.remove('AQI')
+    pollutants_wo_AQI = pollutants.copy().keys()
+    pollutants_wo_AQI.remove('aqi')
     for column in pollutants_wo_AQI:
         if column not in dataframe.columns:
             pollutants_wo_AQI.remove(column)
@@ -99,6 +98,7 @@ def merge(city_name, sensor_id):
     #    # use ix to reorder
     #    dataframe = dataframe.ix[:, cols]
 
+    combined_report_csv = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_pollution_report.csv'
     dataframe.to_csv(combined_report_csv, index=False)
 
 # import pandas as pd

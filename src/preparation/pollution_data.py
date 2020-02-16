@@ -1,40 +1,36 @@
 import json
+import os
+import traceback
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 import requests
+from pandas import json_normalize
 from pytz import timezone
 from timezonefinder import TimezoneFinder
 
 from definitions import DATA_EXTERNAL_PATH
 from definitions import pollutants
 
-week_increment = 604800
-time_format = '%Y-%m-%d %H:%M:%S%z'
-custom_time_format = '%Y-%m-%dT%H:%M:%S%z'
+week_in_seconds = 604800
 
 
 def format_datetime(timestamp, tz):
     dt = datetime.fromtimestamp(timestamp)
     dt = tz.localize(dt)
-    dt = dt.strftime(custom_time_format)
-    dt = dt.replace("+", "%2")
-    dt = dt[:25] + ':' + dt[25:]
+    dt = dt.isoformat()
+    dt = dt.replace('+', '%2b')
     return dt
 
 
-def replace_last_occurrence(s, old, new):
-    li = s.rsplit(old, 1)  # Split only once
-    return new.join(li)
+def extract_pollution_json(pulse_eco_env, city_name, sensor, start_timestamp, end_timestamp):
+    url = 'https://' + city_name + '.pulse.eco/rest/dataRaw'
 
-
-def extract_pollution_json(pulse_eco_env, city, sensor, start_timestamp, end_timestamp):
-    url = 'https://' + city + '.pulse.eco/rest/dataRaw'
-    pulse_eco_json = json.load(pulse_eco_env)
+    with open(pulse_eco_env) as pulse_eco_file:
+        pulse_eco_json = json.load(pulse_eco_file)
     username = pulse_eco_json.get('username')
     password = pulse_eco_json.get('password')
-    # session = requests.Session()
-    # session.auth = (username, password)
 
     tf = TimezoneFinder()
     sensor_position = sensor['position'].split(',')
@@ -45,34 +41,41 @@ def extract_pollution_json(pulse_eco_env, city, sensor, start_timestamp, end_tim
     from_timestamp = start_timestamp
     from_datetime = format_datetime(from_timestamp, sensor_tz)
 
-    to_timestamp = start_timestamp + week_increment
+    to_timestamp = start_timestamp + week_in_seconds
     to_datetime = format_datetime(to_timestamp, sensor_tz)
 
-    df = pd.DataFrame()
+    dataframe = pd.DataFrame()
     while from_timestamp < end_timestamp:
-        for pollutant in pollutants:
-            parameters = {'sensorId': sensor['sensor_id'], 'type': pollutant, 'from': from_datetime, 'to': to_datetime}
-            with requests.Session() as session:
-                session.auth = (username, password)
-                pollution_response = session.get(url=url, params=parameters)
+        for pollutant in pollutants.keys():
+            parameters = 'sensorId=' + sensor['sensorId'] + '&' + 'type=' + pollutant + '&' + 'from=' + from_datetime \
+                         + '&' + 'to=' + to_datetime
+            with requests.get(url=url, params=parameters, auth=(username, password)) as pollution_response:
                 try:
                     pollution_json = pollution_response.json()
-                    df.append(pollution_json, ignore_index=True, sort=True)
+                    dataframe = dataframe.append(json_normalize(pollution_json), ignore_index=True)
                 except ValueError:
-                    print('Response did not return JSON')
-            # pollution_json = session.get(url, params=parameters).json()
+                    print(pollution_response)
+                    print(traceback.format_exc())
 
-        from_timestamp += week_increment
+        dataframe.sort_values(by='stamp', inplace=True)
+        dataframe['stamp'] = pd.to_datetime(dataframe['stamp'])
+        last_datetime = dataframe['stamp'].iloc[-1]
+        last_timestamp = datetime.timestamp(last_datetime)
+        from_timestamp = last_timestamp
         from_datetime = format_datetime(from_timestamp, sensor_tz)
-        to_timestamp += week_increment
+        to_timestamp += week_in_seconds
         to_datetime = format_datetime(to_timestamp, sensor_tz)
 
-    df.rename(columns={'stamp': 'time'}, inplace=True)
-    df['time'] = df['time'].replace('T', ' ')
-    df['time'] = df['time'].apply(lambda x: replace_last_occurrence(x, ':', ''), axis=1)
-    df['time'] = datetime.strptime(df['time'], time_format)
-    df['time'] = datetime.timestamp(df['time'])
-    df.sort_values(by='time')
+    if not dataframe.empty:
+        dataframe['stamp'] = pd.to_datetime(dataframe['stamp'])
+        dataframe['stamp'] = dataframe['stamp'].values.astype(np.int64) // 10 ** 9
+        dataframe['value'] = pd.to_numeric(dataframe['value'])
+        dataframe.sort_values(by='stamp', inplace=True)
 
-    pollution_data = DATA_EXTERNAL_PATH + '/' + city + '/' + sensor['sensor_id'] + '/pollution_report.csv'
-    df.to_csv(pollution_data, index=False)
+    pollution_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/pollution_report.csv'
+    if os.path.exists(pollution_data_path):
+        pollution_data = pd.read_csv(pollution_data_path)
+        pollution_data.append(dataframe, ignore_index=True, sort=True)
+        pollution_data.to_csv(pollution_data_path, index=False)
+    else:
+        dataframe.to_csv(pollution_data_path, index=False)
