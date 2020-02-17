@@ -36,6 +36,7 @@ def extract_weather_json(dark_sky_env, city_name, sensor, start_time, end_time):
             except ValueError:
                 print(weather_response)
                 print(traceback.format_exc())
+                start_time += hour_in_secs
 
         link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
 
