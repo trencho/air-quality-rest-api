@@ -11,7 +11,7 @@ class TPOTRegressionModel:
         self.reg = TPOTRegressor(verbosity=3,
                                  random_state=55,
                                  periodic_checkpoint_folder="intermediate_results",
-                                 n_jobs=os.cpu_count() / 2,
+                                 n_jobs=os.cpu_count() // 2,
                                  warm_start=True,
                                  generations=20,
                                  population_size=80,
