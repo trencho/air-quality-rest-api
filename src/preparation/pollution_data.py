@@ -63,9 +63,13 @@ def extract_pollution_json(pulse_eco_env, city_name, sensor, start_timestamp, en
             dataframe['stamp'] = pd.to_datetime(dataframe['stamp'])
             last_datetime = dataframe['stamp'].iloc[-1]
             last_timestamp = datetime.timestamp(last_datetime)
-            from_timestamp = last_timestamp
+            if from_timestamp < last_timestamp:
+                from_timestamp = last_timestamp
+                to_timestamp += week_in_seconds
+            else:
+                from_timestamp += hour_in_secs
+                to_timestamp += hour_in_secs
             from_datetime = format_datetime(from_timestamp, sensor_tz)
-            to_timestamp += week_in_seconds
             to_datetime = format_datetime(to_timestamp, sensor_tz)
         else:
             from_timestamp += hour_in_secs

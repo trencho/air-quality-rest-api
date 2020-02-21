@@ -9,7 +9,7 @@ from pandas import json_normalize
 from definitions import DATA_EXTERNAL_PATH
 
 url = 'https://api.darksky.net/forecast'
-params = {'exclude': 'currently,minutely,daily,alerts,flags', 'extend': 'hourly'}
+params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
 
 hour_in_secs = 3600
 
@@ -27,8 +27,9 @@ def extract_weather_json(dark_sky_env, city_name, sensor, start_time, end_time):
                 weather_json = weather_response.json()
                 hourly = weather_json.get('hourly')
                 df = json_normalize(hourly['data'])
+                df.sort_values(by='time', inplace=True)
                 last_timestamp = df['time'].iloc[-1]
-                if start_time != last_timestamp:
+                if start_time < last_timestamp:
                     start_time = last_timestamp
                 else:
                     start_time += hour_in_secs
