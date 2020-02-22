@@ -8,14 +8,14 @@ from .tpot_regression import TPOTRegressionModel
 from .xgboost_regression import XGBoostRegressionModel
 
 __all__ = [
-    "DecisionTreeRegressionModel",
-    "DummyRegressionModel",
-    "LightGBMRegressionModel",
-    "LinearRegressionModel",
-    "RandomForestRegressionModel",
-    "SupportVectorRegressionModel",
-    "TPOTRegressionModel",
-    "XGBoostRegressionModel"
+    'DecisionTreeRegressionModel',
+    'DummyRegressionModel',
+    'LightGBMRegressionModel',
+    'LinearRegressionModel',
+    'RandomForestRegressionModel',
+    'SupportVectorRegressionModel',
+    'TPOTRegressionModel',
+    'XGBoostRegressionModel'
 ]
 
 

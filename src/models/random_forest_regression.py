@@ -12,13 +12,14 @@ class RandomForestRegressionModel:
         max_depth.append(None)
 
         self.reg = RandomForestRegressor()
-        self.param_grid = {'n_estimators': [int(x) for x in np.linspace(start=200, stop=2000, num=10)],
-                           'max_depth': max_depth,
-                           'min_samples_split': [2, 5, 10],
-                           'min_samples_leaf': [1, 2, 4],
-                           'max_features': ['auto', 'sqrt'],
-                           'bootstrap': [True, False]
-                           }
+        self.param_grid = {
+            'n_estimators': [int(x) for x in np.linspace(start=200, stop=2000, num=10)],
+            'max_depth': max_depth,
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4],
+            'max_features': ['auto', 'sqrt'],
+            'bootstrap': [True, False]
+        }
 
     def get_params(self):
         return self.reg.get_params()

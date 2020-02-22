@@ -2,22 +2,15 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 
-def min_max_scaling(dataframe):
+def value_scaling(dataframe, scale='robust'):
+    if scale == 'min_max':
+        scaler = MinMaxScaler()
+    elif scale == 'robust':
+        scaler = RobustScaler()
+    elif scale == 'standard':
+        scaler = StandardScaler()
+
     dataframe_columns = dataframe.columns
-    dataframe = MinMaxScaler().fit_transform(dataframe)
-
-    return pd.DataFrame(dataframe, columns=dataframe_columns)
-
-
-def robust_scaling(dataframe):
-    dataframe_columns = dataframe.columns
-    dataframe = RobustScaler().fit_transform(dataframe)
-
-    return pd.DataFrame(dataframe, columns=dataframe_columns)
-
-
-def standard_scaling(dataframe):
-    dataframe_columns = dataframe.columns
-    dataframe = StandardScaler().fit_transform(dataframe)
+    dataframe = scaler.fit_transform(dataframe)
 
     return pd.DataFrame(dataframe, columns=dataframe_columns)

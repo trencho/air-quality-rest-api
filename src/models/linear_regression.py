@@ -8,10 +8,11 @@ from definitions import MODELS_PATH
 class LinearRegressionModel:
     def __init__(self):
         self.reg = LinearRegression()
-        self.param_grid = {'fit_intercept': [True, False],
-                           'normalize': [True, False],
-                           'copy_X': [True, False]
-                           }
+        self.param_grid = {
+            'fit_intercept': [True, False],
+            'normalize': [True, False],
+            'copy_X': [True, False]
+        }
 
     def get_params(self):
         return self.reg.get_params()

@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from definitions import RESULTS_ERRORS_PATH, algorithms
+from definitions import RESULTS_ERRORS_PATH
+from definitions import algorithms
 
 warnings.filterwarnings(action='once')
 
@@ -14,15 +15,16 @@ def draw_errors(city_name, sensor, pollutant):
     error_types = ['Mean Absolute Error', 'Mean Squared Error', 'Root Mean Squared Error']
 
     large, med, small = 22, 16, 12
-    params = {'legend.fontsize': med,
-              'figure.figsize': (16, 10),
-              'axes.labelsize': med,
-              'axes.titlesize': med,
-              'xtick.labelsize': med,
-              'ytick.labelsize': med,
-              'figure.titlesize': large,
-              'xtick.major.pad': 8
-              }
+    params = {
+        'legend.fontsize': med,
+        'figure.figsize': (16, 10),
+        'axes.labelsize': med,
+        'axes.titlesize': med,
+        'xtick.labelsize': med,
+        'ytick.labelsize': med,
+        'figure.titlesize': large,
+        'xtick.major.pad': 8
+    }
     plt.rcParams.update(params)
     plt.style.use('seaborn-whitegrid')
     sns.set_style("white")

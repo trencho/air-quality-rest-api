@@ -8,9 +8,10 @@ from definitions import MODELS_PATH
 class DummyRegressionModel:
     def __init__(self):
         self.reg = DummyRegressor()
-        self.param_grid = {'strategy': ['mean', 'median', 'quantile'],
-                           'quantile': [0.0, 0.5, 1.0]
-                           }
+        self.param_grid = {
+            'strategy': ['mean', 'median', 'quantile'],
+            'quantile': [0.0, 0.5, 1.0]
+        }
 
     def get_params(self):
         return self.reg.get_params()

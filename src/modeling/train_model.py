@@ -3,24 +3,15 @@ import os
 import pickle
 
 import pandas as pd
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants
+from definitions import algorithms as regression_models
 from modeling import save_errors
+from processing import value_scaling
 from src.models import make_model
 from src.processing import backward_elimination, generate_features
 from src.visualization import draw_errors, draw_predictions
-
-regression_models = [
-    'DecisionTreeRegressionModel',
-    'DummyRegressionModel',
-    'LightGBMRegressionModel',
-    'LinearRegressionModel',
-    'RandomForestRegressionModel',
-    'SupportVectorRegressionModel',
-    'TPOTRegressionModel',
-    'XGBoostRegressionModel'
-]
 
 
 def create_model_paths(city_name, sensor, pollutant, model_name):
@@ -60,7 +51,7 @@ def split_dataset(dataset, pollutant):
     test_dataset = dataset.iloc[validation_split:]
 
     X_train = train_dataset.drop(columns=pollutants.keys(), errors='ignore')
-    # X_train = min_max_scaling(X_train)
+    X_train = value_scaling(X_train)
     y_train = train_dataset[pollutant]
 
     X_train, y_train = previous_value_overwrite(X_train, y_train)
@@ -69,7 +60,7 @@ def split_dataset(dataset, pollutant):
     X_train = X_train[selected_features]
 
     X_test = test_dataset.drop(columns=pollutants.keys(), errors='ignore')
-    # X_test = min_max_scaling(X_test)
+    X_test = value_scaling(X_test)
 
     y_test = test_dataset[pollutant]
 
@@ -134,7 +125,8 @@ def previous_value_overwrite(X, y):
 
 
 def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor, pollutant):
-    dt_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=os.cpu_count() // 2, cv=5)
+    # dt_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=os.cpu_count() // 2, cv=5)
+    dt_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
     dt_cv.fit(X_train, y_train)
 
     with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/'

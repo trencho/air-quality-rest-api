@@ -9,16 +9,17 @@ from definitions import MODELS_PATH
 class XGBoostRegressionModel:
     def __init__(self):
         self.reg = XGBRegressor()
-        self.param_grid = {'n_jobs': [os.cpu_count() // 2],
-                           'objective': ['reg:squarederror'],
-                           'learning_rate': [.03, 0.05, .07],
-                           'max_depth': [5, 6, 7],
-                           'min_child_weight': [4],
-                           'verbosity ': [0],
-                           'subsample': [0.7],
-                           'colsample_bytree': [0.7],
-                           'n_estimators': [500]
-                           }
+        self.param_grid = {
+            'n_jobs': [os.cpu_count() // 2],
+            'objective': ['reg:squarederror'],
+            'learning_rate': [.03, 0.05, .07],
+            'max_depth': [5, 6, 7],
+            'min_child_weight': [4],
+            'verbosity ': [0],
+            'subsample': [0.7],
+            'colsample_bytree': [0.7],
+            'n_estimators': [500]
+        }
 
     def get_params(self):
         return self.reg.get_params()
