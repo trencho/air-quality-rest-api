@@ -8,14 +8,15 @@ from definitions import MODELS_PATH
 class LightGBMRegressionModel:
     def __init__(self):
         self.reg = lgb.LGBMRegressor()
-        self.param_grid = {'num_leaves': (6, 50),
-                           'min_child_samples': (100, 500),
-                           'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
-                           'subsample': (0.2, 0.8),
-                           'colsample_bytree': (0.4, 0.6),
-                           'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
-                           'reg_lambda': [0, 1e-1, 1, 5, 10, 20, 50, 100]
-                           }
+        self.param_grid = {
+            'num_leaves': (6, 50),
+            'min_child_samples': (100, 500),
+            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+            'subsample': (0.2, 0.8),
+            'colsample_bytree': (0.4, 0.6),
+            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+            'reg_lambda': [0, 1e-1, 1, 5, 10, 20, 50, 100]
+        }
 
     def get_params(self):
         return self.reg.get_params()

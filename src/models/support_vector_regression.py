@@ -12,10 +12,11 @@ class SupportVectorRegressionModel:
         max_depth.append(None)
 
         self.reg = SVR()
-        self.param_grid = {'kernel': ['rbf'],
-                           'gamma': [1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.01, 0.1, 0.2, 0.5, 0.6, 0.9],
-                           'C': [1, 10, 100, 1000, 10000]
-                           }
+        self.param_grid = {
+            'kernel': ['rbf'],
+            'gamma': [1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.01, 0.1, 0.2, 0.5, 0.6, 0.9],
+            'C': [1, 10, 100, 1000, 10000]
+        }
 
     def get_params(self):
         return self.reg.get_params()

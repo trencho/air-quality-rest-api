@@ -33,7 +33,7 @@ def generate_calendar_features(dataframe):
     dataframe['dayOfWeek'] = dataframe['time'].dt.dayofweek
     dataframe['dayOfYear'] = dataframe['time'].dt.dayofyear
     dataframe['weekOfYear'] = dataframe['time'].dt.weekofyear
-    dataframe['isWeekend'] = dataframe['time'].apply(lambda x: 1 if pd.to_datetime(x).weekday() in (5, 6) else 0)
+    dataframe['isWeekend'] = dataframe['time'].apply(lambda x: 0 if pd.to_datetime(x).weekday() in (5, 6) else 1)
     dataframe['season'] = dataframe['time'].apply(get_season)
     dataframe['season'] = dataframe['season'].astype('category')
 

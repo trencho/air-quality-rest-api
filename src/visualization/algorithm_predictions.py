@@ -4,7 +4,8 @@ import warnings
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, algorithms
+from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
+from definitions import algorithms
 
 warnings.filterwarnings(action='once')
 
@@ -18,17 +19,12 @@ def previous_value_overwrite(X):
 
 
 def draw_predictions(city_name, sensor, pollutant):
-    timestamp_01_01_2018 = 1514764800
-    timestamp_01_11_2018 = 1541030400
-
     dataset = pd.read_csv(
         DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/weather_pollution_report.csv')
+    validation_split = len(dataset) * 3 // 4
 
-    # test_dataset = dataset[dataset['time'] >= timestamp_01_01_2018]
-    test_dataset = dataset[(dataset['time'] >= timestamp_01_01_2018) & (dataset['time'] <= timestamp_01_11_2018)]
+    test_dataset = dataset.iloc[validation_split:]
     test_dataset.reset_index(drop=True, inplace=True)
-    first_index = test_dataset.index[0]
-    last_index = test_dataset.index[-1]
 
     dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
     for algorithm in algorithms:
@@ -44,11 +40,12 @@ def draw_predictions(city_name, sensor, pollutant):
         dataframe_algorithms.iloc[algorithm_index]['algorithm'] + '/prediction.csv')
 
     X_test = test_dataset.drop(columns=pollutant, errors='ignore')
-    # X_test = previous_value_overwrite(X_test)
+    X_test = previous_value_overwrite(X_test)
     x = X_test['time']
     x = pd.to_datetime(x, unit='s').dt.normalize()
-    y1 = dataframe_predictions.ix[first_index:last_index, 'Actual']
-    y2 = dataframe_predictions.ix[first_index:last_index, 'Predicted']
+
+    y1 = dataframe_predictions['Actual']
+    y2 = dataframe_predictions['Predicted']
 
     # Plot Line (Left Y Axis)
     fig, ax = plt.subplots(1, 1, figsize=(16, 10), dpi=80)

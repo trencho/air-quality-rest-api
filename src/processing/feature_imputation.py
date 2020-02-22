@@ -85,10 +85,9 @@ def distance_matrix(data, numeric_distance="euclidean", categorical_distance="ja
         data_numeric = (data_numeric - data_numeric.mean()) / (data_numeric.max() - data_numeric.min())
         data_categorical = data.iloc[:, [not x for x in is_numeric]]
 
-    # Replace missing values with column mean for numeric values and mode for categorical ones. With the mode, it
-    # triggers a warning: "SettingWithCopyWarning: A value is trying to be set on a copy of a slice from a DataFrame"
-    # but the value are properly replaced
-    if is_mixed_type:
+        # Replace missing values with column mean for numeric values and mode for categorical ones. With the mode,
+        # it triggers a warning: "SettingWithCopyWarning: A value is trying to be set on a copy of a slice from a
+        # DataFrame" but the value are properly replaced
         data_numeric.fillna(data_numeric.mean(), inplace=True)
         for x in data_categorical:
             data_categorical[x].fillna(data_categorical[x].mode()[0], inplace=True)

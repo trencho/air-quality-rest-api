@@ -8,12 +8,13 @@ from definitions import MODELS_PATH
 class DecisionTreeRegressionModel:
     def __init__(self):
         self.reg = DecisionTreeRegressor()
-        self.param_grid = {'criterion': ['mse', 'mae'],
-                           'max_depth': [2, 6, 8],
-                           'min_samples_split': [10, 20, 40],
-                           'min_samples_leaf': [20, 40, 100],
-                           'max_leaf_nodes': [5, 20, 100]
-                           }
+        self.param_grid = {
+            'criterion': ['mse', 'mae'],
+            'max_depth': [2, 6, 8],
+            'min_samples_split': [10, 20, 40],
+            'min_samples_leaf': [20, 40, 100],
+            'max_leaf_nodes': [5, 20, 100]
+        }
 
     def get_params(self):
         return self.reg.get_params()
