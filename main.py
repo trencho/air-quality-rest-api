@@ -1,10 +1,9 @@
 import json
 import os
 import pickle
-from datetime import datetime, timedelta
+from datetime import datetime
 from threading import Thread
 
-import joblib
 import pandas as pd
 import pymongo
 import requests
@@ -42,13 +41,13 @@ def check_city(city_name):
 def check_environment_variables():
     dark_sky_env = os.environ.get(dark_sky_env_value)
     if dark_sky_env is None:
-        message = 'Please set the environment variable \'DARK_SKY_CREDENTIALS\''
+        message = 'The environment variable \'' + dark_sky_env_value + '\' is not set'
         status_code = HTTP_BAD_REQUEST
         return make_response(jsonify(error_message=message), status_code)
 
     pulse_eco_env = os.environ.get(pulse_eco_env_value)
     if pulse_eco_env is None:
-        message = 'Please set the environment variable \'PULSE_ECO_CREDENTIALS\''
+        message = 'The environment variable \'' + pulse_eco_env_value + '\' is not set'
         status_code = HTTP_BAD_REQUEST
         return make_response(jsonify(error_message=message), status_code)
 
@@ -73,12 +72,13 @@ def fetch_city_data(dark_sky_env, pulse_eco_env, city_name, start_time, end_time
                                         args=(dark_sky_env, city_name, sensor, start_time, end_time))
         threads.append(extract_weather_thread)
         extract_weather_thread.start()
+
         extract_pollution_thread = Thread(target=extract_pollution_json,
                                           args=(pulse_eco_env, city_name, sensor, start_time, end_time))
         threads.append(extract_pollution_thread)
         extract_pollution_thread.start()
 
-        Thread(target=merge_city_data, args=(threads, city_name, sensor['sensorId'])).start()
+        Thread(target=merge_city_sensor_data, args=(threads, city_name, sensor['sensorId'])).start()
 
 
 def forecast_sensor(dark_sky_env, sensor, start_time):
@@ -133,18 +133,11 @@ def fetch_sensors(city_name):
 
 
 def forecast_city_sensor(dark_sky_env, city_name, sensor, pollutant, timestamp):
-    if not os.path.exists(
-            MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/best_regression_model.pkl'):
-        train_city_sensors(city_name, sensor, pollutant)
-        message = 'Value cannot be predicted because the model is not trained yet. Try again later.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
-
-    model = joblib.load(
-        MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/best_regression_model.pkl')
-    with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/selected_features.txt',
-              'rb') as in_file:
-        model_features = pickle.load(in_file)
+    load_model = load_regression_model(city_name, sensor['sensorId'], pollutant)
+    if isinstance(load_model, tuple):
+        model, model_features = load_model
+    elif isinstance(load_model, Response):
+        return load_model
 
     features_dict = dict()
     forecast_data = forecast_sensor(dark_sky_env, sensor, timestamp)
@@ -194,12 +187,30 @@ def forecast_city_sensor(dark_sky_env, city_name, sensor, pollutant, timestamp):
     return forecast_result
 
 
-def hour_rounder(t):
-    # Rounds to nearest hour by adding a timedelta hour if minute >= 30
-    return t.replace(second=0, microsecond=0, minute=0, hour=t.hour) + timedelta(hours=t.minute // 30)
+def next_hour(t):
+    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour + 1)
 
 
-def merge_city_data(threads, city_name, sensor_id):
+def load_regression_model(city_name, sensor, pollutant):
+    if not os.path.exists(
+            MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/best_regression_model.pkl'):
+        train_city_sensors(city_name, sensor, pollutant)
+        message = 'Value cannot be predicted because the model is not trained yet. Try again later.'
+        status_code = HTTP_NOT_FOUND
+        return make_response(jsonify(error_message=message), status_code)
+
+    with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/best_regression_model.pkl',
+              'rb') as in_file:
+        model = pickle.load(in_file)
+
+    with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/selected_features.txt',
+              'rb') as in_file:
+        model_features = pickle.load(in_file)
+
+    return model, model_features
+
+
+def merge_city_sensor_data(threads, city_name, sensor_id):
     for thread in threads:
         thread.join()
     Thread(target=merge, args=(city_name, sensor_id)).start()
@@ -258,13 +269,13 @@ def fetch_data(city_name=None):
     elif isinstance(check_env, Response):
         return check_env
 
-    current_hour = hour_rounder(datetime.now())
+    current_hour = next_hour(datetime.now())
     current_timestamp = datetime.timestamp(current_hour)
     start_time = request.args.get('startTime', default=None, type=int)
     if start_time is None:
         start_time = current_timestamp
     else:
-        start_hour = hour_rounder(datetime.fromtimestamp(start_time))
+        start_hour = next_hour(datetime.fromtimestamp(start_time))
         start_time = datetime.timestamp(start_hour)
     start_time = int(start_time)
 
@@ -295,25 +306,25 @@ def fetch_data(city_name=None):
     return make_response(jsonify(success=message))
 
 
-@app.route('/forecast/pollutant/<string:pollutant>', methods=['GET'])
-def forecast(pollutant):
+@app.route('/forecast/pollutant/<pollutant_name>', methods=['GET'])
+def forecast(pollutant_name):
     check_env = check_environment_variables()
     if isinstance(check_env, tuple):
         dark_sky_env, pulse_eco_env = check_env
     elif isinstance(check_env, Response):
         return check_env
 
-    if pollutant not in pollutants.keys():
+    if pollutant_name not in pollutants:
         message = 'Value cannot be predicted because the pollutant is missing or is invalid.'
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    next_hour = hour_rounder(datetime.now())
-    next_hour_timestamp = int(datetime.timestamp(next_hour))
+    next_hour_time = next_hour(datetime.now())
+    next_hour_timestamp = int(datetime.timestamp(next_hour_time))
     timestamp = request.args.get('timestamp', default=next_hour_timestamp, type=int)
     if timestamp < next_hour_timestamp:
         message = ('Cannot forecast pollutant because the timestamp is in the past. '
-                   'Request the history endpoint for past values.')
+                   'Send a GET request to the history endpoint for past values.')
         status_code = HTTP_BAD_REQUEST
         return make_response(jsonify(error_message=message), status_code)
 
@@ -324,12 +335,6 @@ def forecast(pollutant):
         return make_response(jsonify(error_message=message), status_code)
 
     city_name = request.args.get('cityName', default=None, type=str)
-    city = check_city(city_name)
-    if city_name is not None and city is None:
-        message = 'Value cannot be predicted because the city is missing or is invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
-
     sensor_id = request.args.get('sensorId', default=None, type=str)
     forecast_results = list()
     if city_name is None:
@@ -342,7 +347,8 @@ def forecast(pollutant):
         for city in cities:
             sensors = fetch_sensors(city['cityName'])
             for sensor in sensors:
-                forecast_result = forecast_city_sensor(dark_sky_env, city['cityName'], sensor, pollutant, timestamp)
+                forecast_result = forecast_city_sensor(dark_sky_env, city['cityName'], sensor, pollutant_name,
+                                                       timestamp)
                 if isinstance(forecast_result, Response):
                     return forecast_result
 
@@ -350,10 +356,16 @@ def forecast(pollutant):
 
         return make_response(jsonify(forecast_results))
 
+    city = check_city(city_name)
+    if city is None:
+        message = 'Value cannot be predicted because the city is missing or is invalid.'
+        status_code = HTTP_NOT_FOUND
+        return make_response(jsonify(error_message=message), status_code)
+
     if sensor_id is None:
         sensors = fetch_sensors(city['cityName'])
         for sensor in sensors:
-            forecast_result = forecast_city_sensor(dark_sky_env, city['cityName'], sensor, pollutant, timestamp)
+            forecast_result = forecast_city_sensor(dark_sky_env, city['cityName'], sensor, pollutant_name, timestamp)
             if isinstance(forecast_result, Response):
                 return forecast_result
 
@@ -367,7 +379,7 @@ def forecast(pollutant):
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    forecast_result = forecast_city_sensor(dark_sky_env, city_name, sensor, pollutant, timestamp)
+    forecast_result = forecast_city_sensor(dark_sky_env, city_name, sensor, pollutant_name, timestamp)
     if isinstance(forecast_result, Response):
         return forecast_result
 
@@ -376,10 +388,10 @@ def forecast(pollutant):
     return make_response(jsonify(forecast_results))
 
 
-@app.route('/history/city/<string:city_name>/sensor/<string:sensor_id>/measurement/', methods=['GET'])
-@app.route('/history/city/<string:city_name>/sensor/<string:sensor_id>/measurement/<string:measurement>',
+@app.route('/history/city/<string:city_name>/sensor/<string:sensor_id>/pollutant/', methods=['GET'])
+@app.route('/history/city/<string:city_name>/sensor/<string:sensor_id>/pollutant/<pollutant_name>',
            methods=['GET'])
-def history(city_name, sensor_id, measurement=None):
+def history(city_name, sensor_id, pollutant_name=None):
     city = check_city(city_name)
     if city is None:
         message = 'Cannot return historical data because the city is missing or is invalid.'
@@ -393,9 +405,9 @@ def history(city_name, sensor_id, measurement=None):
         return make_response(jsonify(error_message=message), status_code)
 
     dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_pollution_report.csv')
-    if measurement is None:
+    if pollutant_name is None:
         measurements = list()
-        for pollutant in pollutants.keys():
+        for pollutant in pollutants:
             if pollutant in dataframe.columns:
                 measurement_dict = dict()
                 measurement_dict['name'] = pollutants[pollutant]
@@ -404,13 +416,13 @@ def history(city_name, sensor_id, measurement=None):
         message = measurements
         return make_response(jsonify(message))
 
-    if measurement not in dataframe.columns:
-        message = 'Cannot return historical data because the measurement is missing or is invalid.'
+    if pollutant_name not in dataframe.columns:
+        message = 'Cannot return historical data because the pollutant is missing or is invalid.'
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
     dataframe['time'] = dataframe['time'] * 1000
-    return make_response(dataframe[['time', measurement]].to_json(orient='values'))
+    return make_response(dataframe[['time', pollutant_name]].to_json(orient='values'))
 
 
 @app.route('/train', methods=['GET'])
@@ -428,8 +440,8 @@ def train_data():
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    pollutant = request.args.get('pollutant', default=None, type=str)
-    if pollutant is not None and pollutant not in pollutants.keys():
+    pollutant_name = request.args.get('pollutant', default=None, type=str)
+    if pollutant_name is not None and pollutant_name not in pollutants:
         message = 'Data cannot be trained because the pollutant is missing or is invalid.'
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
@@ -438,33 +450,33 @@ def train_data():
         cities = fetch_cities()
         for city in cities:
             sensors = fetch_sensors(city['cityName'])
-            if pollutant is None:
-                for sensor in sensors:
-                    for pollutant in pollutants.keys():
+            for sensor in sensors:
+                if pollutant_name is None:
+                    for pollutant in pollutants:
                         train_city_sensors(city['cityName'], sensor, pollutant)
-            else:
-                for sensor in sensors:
-                    train_city_sensors(city['cityName'], sensor, pollutant)
+                else:
+                    train_city_sensors(city['cityName'], sensor, pollutant_name)
     else:
         if sensor_id is None:
             sensors = fetch_sensors(city['cityName'])
             for sensor in sensors:
-                if pollutant is None:
+                if pollutant_name is None:
                     for pollutant in pollutants:
                         train_city_sensors(city['cityName'], sensor, pollutant)
                 else:
-                    train_city_sensors(city['cityName'], sensor, pollutant)
+                    train_city_sensors(city['cityName'], sensor, pollutant_name)
         else:
             sensor = check_sensor(city_name, sensor_id)
             if sensor is None:
                 message = 'Data cannot be trained because the sensor is missing or is invalid.'
                 status_code = HTTP_NOT_FOUND
                 return make_response(jsonify(error_message=message), status_code)
-            if pollutant is None:
+
+            if pollutant_name is None:
                 for pollutant in pollutants:
                     train_city_sensors(city['cityName'], sensor, pollutant)
             else:
-                train_city_sensors(city['cityName'], sensor, pollutant)
+                train_city_sensors(city['cityName'], sensor, pollutant_name)
 
     message = 'Training initialized...'
     return make_response(jsonify(success=message))

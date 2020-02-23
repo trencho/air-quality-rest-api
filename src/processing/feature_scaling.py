@@ -3,10 +3,9 @@ from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 
 def value_scaling(dataframe, scale='robust'):
+    scaler = RobustScaler()
     if scale == 'min_max':
         scaler = MinMaxScaler()
-    elif scale == 'robust':
-        scaler = RobustScaler()
     elif scale == 'standard':
         scaler = StandardScaler()
 

@@ -19,7 +19,7 @@ for station_name in station_names:
 
         dataframe_collection[value] = df_type
 
-    for key in dataframe_collection.keys():
+    for key in dataframe_collection:
         if dataframe.empty:
             dataframe = dataframe.append(dataframe_collection[key], ignore_index=True)
         else:

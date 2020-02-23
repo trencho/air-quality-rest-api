@@ -1,6 +1,5 @@
 import pickle
 
-import numpy as np
 from sklearn.svm import SVR
 
 from definitions import MODELS_PATH
@@ -8,9 +7,6 @@ from definitions import MODELS_PATH
 
 class SupportVectorRegressionModel:
     def __init__(self):
-        max_depth = [int(x) for x in np.linspace(10, 110, num=11)]
-        max_depth.append(None)
-
         self.reg = SVR()
         self.param_grid = {
             'kernel': ['rbf'],

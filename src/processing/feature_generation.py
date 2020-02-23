@@ -86,9 +86,6 @@ def generate_tsfresh_features(dataframe, target):
 def generate_features(dataframe, pollutant):
     dataframe = dataframe.copy()
 
-    # dataframe['prevValue'] = dataframe[pollutant].shift(1)
-    # dataframe['prevValue'].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
-
     dataframe = generate_calendar_features(dataframe)
     # dataframe = generate_tsfresh_features(dataframe, pollutant)
 

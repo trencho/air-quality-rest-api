@@ -26,7 +26,7 @@ def extract_weather_json(dark_sky_env, city_name, sensor, start_time, end_time):
             try:
                 weather_json = weather_response.json()
                 hourly = weather_json.get('hourly')
-                df = json_normalize(hourly['data'])
+                df = json_normalize(hourly.get('data'))
                 df.sort_values(by='time', inplace=True)
                 last_timestamp = df['time'].iloc[-1]
                 if start_time < last_timestamp:
