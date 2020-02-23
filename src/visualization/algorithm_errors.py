@@ -11,7 +11,7 @@ from definitions import algorithms
 warnings.filterwarnings(action='once')
 
 
-def draw_errors(city_name, sensor, pollutant):
+def draw_errors(city, sensor, pollutant):
     error_types = ['Mean Absolute Error', 'Mean Squared Error', 'Root Mean Squared Error']
 
     large, med, small = 22, 16, 12
@@ -33,8 +33,8 @@ def draw_errors(city_name, sensor, pollutant):
         dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
         for algorithm in algorithms:
             dataframe_errors = pd.read_csv(
-                RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/'
-                + algorithm + '/error.csv')
+                RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/' +
+                algorithm + '/error.csv')
             dataframe_algorithms = dataframe_algorithms.append(
                 [{'algorithm': algorithms[algorithm], pollutant: dataframe_errors.iloc[0][error_type]}],
                 ignore_index=True)
@@ -53,14 +53,15 @@ def draw_errors(city_name, sensor, pollutant):
 
         y_lim = dataframe_algorithms[pollutant].max() + 10 - (dataframe_algorithms[pollutant].max() % 10)
         # Title, Label, Ticks and Ylim
-        ax.set_title(city_name + ' - ' + sensor['description'], fontdict={'size': 22})
+        ax.set_title(city['siteName'] + ' - ' + sensor['description'], fontdict={'size': 22})
         ax.set_ylabel(error_type, fontsize=22)
         ax.set_ylim(ymin=0, ymax=y_lim)
         plt.xticks(dataframe_algorithms.index, dataframe_algorithms['algorithm'], horizontalalignment='center',
                    fontsize=22, rotation=30)
 
         fig.tight_layout()
-        if not os.path.exists(RESULTS_ERRORS_PATH + '/plots/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant):
-            os.makedirs(RESULTS_ERRORS_PATH + '/plots/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant)
-        plt.savefig(RESULTS_ERRORS_PATH + '/plots/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/'
-                    + error_type + '.png', bbox_inches='tight')
+        if not os.path.exists(
+                RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant):
+            os.makedirs(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
+        plt.savefig(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant +
+                    '/' + error_type + '.png', bbox_inches='tight')
