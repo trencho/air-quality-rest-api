@@ -47,7 +47,7 @@ def extract_pollution_json(pulse_eco_env, city_name, sensor, start_timestamp, en
 
     dataframe = pd.DataFrame()
     while from_timestamp < end_timestamp:
-        for pollutant in pollutants.keys():
+        for pollutant in pollutants:
             parameters = 'sensorId=' + sensor['sensorId'] + '&' + 'type=' + pollutant + '&' + 'from=' + from_datetime \
                          + '&' + 'to=' + to_datetime
             with requests.get(url=url, params=parameters, auth=(username, password)) as pollution_response:
