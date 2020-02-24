@@ -5,11 +5,11 @@ from datetime import datetime
 from threading import Thread
 
 import pandas as pd
-import pymongo
 import requests
 from flasgger import Swagger
 from flask import Flask, jsonify, make_response, Response, request
 from flask_cors import CORS
+from flask_pymongo import PyMongo
 
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
@@ -25,8 +25,8 @@ from processing.feature_generation import encode_categorical_data
 app = Flask(__name__)
 CORS(app)
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/local'
+mongo = PyMongo(app)
 swagger = Swagger(app)
-mongo = pymongo
 
 
 def check_city(city_name):
@@ -61,6 +61,10 @@ def check_sensor(city_name, sensor_id):
             return sensor
 
     return None
+
+
+def current_hour(t):
+    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour)
 
 
 def fetch_city_data(dark_sky_env, pulse_eco_env, city_name, start_time, end_time):
@@ -221,7 +225,7 @@ def train_city_sensors(city, sensor, pollutant):
 
 
 @app.route('/city/', methods=['GET'])
-@app.route('/city/<string:city_name>', methods=['GET'])
+@app.route('/city/<string:city_name>/', methods=['GET'])
 def fetch_city(city_name=None):
     if city_name is None:
         message = fetch_cities()
@@ -269,22 +273,18 @@ def fetch_data(city_name=None):
     elif isinstance(check_env, Response):
         return check_env
 
-    current_hour = next_hour(datetime.now())
-    current_timestamp = datetime.timestamp(current_hour)
-    start_time = request.args.get('startTime', default=None, type=int)
-    if start_time is None:
-        start_time = current_timestamp
-    else:
-        start_hour = next_hour(datetime.fromtimestamp(start_time))
-        start_time = datetime.timestamp(start_hour)
-    start_time = int(start_time)
+    current_datetime = current_hour(datetime.now())
+    current_timestamp = int(datetime.timestamp(current_datetime))
+    start_time = request.args.get('startTime', default=current_timestamp, type=int)
 
-    end_time = request.args.get('endTime', default=current_timestamp, type=int)
+    next_hour_datetime = next_hour(current_datetime)
+    next_hour_timestamp = int(datetime.timestamp(next_hour_datetime))
+    end_time = request.args.get('endTime', default=next_hour_timestamp, type=int)
+
     if end_time <= start_time:
         message = 'Specify end timestamp larger than the current hour\'s timestamp.'
         status_code = HTTP_BAD_REQUEST
         return make_response(jsonify(error_message=message), status_code)
-    end_time = int(end_time)
 
     if city_name is None:
         cities = fetch_cities()
@@ -325,12 +325,6 @@ def forecast(pollutant_name):
     if timestamp < next_hour_timestamp:
         message = ('Cannot forecast pollutant because the timestamp is in the past. '
                    'Send a GET request to the history endpoint for past values.')
-        status_code = HTTP_BAD_REQUEST
-        return make_response(jsonify(error_message=message), status_code)
-
-    day_in_secs = 86400
-    if timestamp > next_hour_timestamp + day_in_secs:
-        message = 'Cannot forecast pollutant because the timestamp is larger than the next 24 hours.'
         status_code = HTTP_BAD_REQUEST
         return make_response(jsonify(error_message=message), status_code)
 
@@ -389,8 +383,7 @@ def forecast(pollutant_name):
 
 
 @app.route('/history/city/<string:city_name>/sensor/<string:sensor_id>/pollutant/', methods=['GET'])
-@app.route('/history/city/<string:city_name>/sensor/<string:sensor_id>/pollutant/<pollutant_name>',
-           methods=['GET'])
+@app.route('/history/city/<string:city_name>/sensor/<string:sensor_id>/pollutant/<pollutant_name>/', methods=['GET'])
 def history(city_name, sensor_id, pollutant_name=None):
     city = check_city(city_name)
     if city is None:
@@ -458,7 +451,7 @@ def train_data():
                     train_city_sensors(city, sensor, pollutant_name)
     else:
         if sensor_id is None:
-            sensors = fetch_sensors(city)
+            sensors = fetch_sensors(city['cityName'])
             for sensor in sensors:
                 if pollutant_name is None:
                     for pollutant in pollutants:
