@@ -1,0 +1,14 @@
+summary: Returns json data of all available sensors for a specific city
+description: 'Searches for available sensors in a city and returns a detailed list of all the sensors as an array of
+json objects.'
+parameters:
+  - in: path
+    name: city_name
+    description: Name of the city
+    required: true
+    type: string
+responses:
+  200:
+    description: Returned json data of all available sensors for the specified city.
+  404:
+    description: Cannot return sensor data because some of the parameters are invalid.

@@ -1,0 +1,26 @@
+summary: Fetch weather and pollution data for the queried city
+description: 'Fetches detailed weather and pollution data for the city from the passed path parameter and between 2
+timestamps. The start timestamp can be passed as a query parameter otherwise the start timestamp will be the current
+timestamp. The end timestamp can be passed as a query parameter otherwise the end timestamp will be the current
+timestamp.'
+parameters:
+  - in: path
+    name: city_name
+    description: Name of the city
+    required: true
+    type: string
+  - in: query
+    name: start_time
+    description: The initial start time to fetch the data
+    required: false
+    type: integer
+  - in: query
+    name: end_time
+    description: The end time until to fetch the data
+    required: false
+    type: integer
+responses:
+  200:
+    description: Started the operation to fetch weather and pollution data from external APIs.
+  404:
+    description: Cannot fetch weather and pollution data because some of the parameters are either invalid or missing.

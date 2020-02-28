@@ -1,0 +1,16 @@
+summary: Fetch weather and pollution data for all available cities
+description: Fetches detailed data for all available cities which have active sensors that collection pollution data.
+parameters:
+  - in: query
+    name: start_time
+    description: The initial start time to fetch the data
+    required: false
+    type: integer
+  - in: query
+    name: end_time
+    description: The end time until to fetch the data
+    required: false
+    type: integer
+responses:
+  200:
+    description: Started the operation to fetch weather and pollution data from external APIs for all available cities.

@@ -1,0 +1,19 @@
+summary: Returns json data of all available pollutants for a specific sensor
+description: 'Searches for available pollutants in a city for a specific sensor and returns the list of pollutant names
+as a json object.'
+parameters:
+  - in: path
+    name: city_name
+    description: Name of the city
+    required: true
+    type: string
+  - in: path
+    name: sensor_id
+    description: Id of the sensor
+    required: true
+    type: string
+responses:
+  200:
+    description: Returned json data of the predicted pollutant for a specific timestamp.
+  404:
+    description: Cannot return available pollutants because some of the parameters are either missing or invalid.

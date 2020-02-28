@@ -1,0 +1,25 @@
+summary: Returns a json object of the forecasted pollutant
+description: 'Fetches forecasted data of the pollutant passed in the route for a specified city and all available
+sensors. If a timestamp query parameter is present the models will predict for that hour, otherwise if the parameter is
+missing the prediction will be for the next upcoming hour.'
+parameters:
+  - in: path
+    name: pollutant_name
+    description: Name of the pollutant
+    required: true
+    type: string
+  - in: path
+    name: city_name
+    description: Name of the city
+    required: true
+    type: string
+  - in: query
+    name: timestamp
+    description: Timestamp to predict
+    required: false
+    type: integer
+responses:
+  200:
+    description: Returned json data of the predicted pollutant for a specific timestamp.
+  404:
+    description: Value cannot be predicted because some of the parameters are invalid.

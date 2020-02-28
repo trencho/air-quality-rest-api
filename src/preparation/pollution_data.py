@@ -10,6 +10,7 @@ from pandas import json_normalize
 from pytz import timezone
 from timezonefinder import TimezoneFinder
 
+from api.config import mongo
 from definitions import DATA_EXTERNAL_PATH
 from definitions import pollutants
 
@@ -88,5 +89,10 @@ def extract_pollution_json(pulse_eco_env, city_name, sensor, start_timestamp, en
         pollution_data = pd.read_csv(pollution_data_path)
         pollution_data.append(dataframe, ignore_index=True, sort=True)
         pollution_data.to_csv(pollution_data_path, index=False)
+
+        pollution_records = pollution_data.T.to_json()
     else:
         dataframe.to_csv(pollution_data_path, index=False)
+        pollution_records = dataframe.T.to_json()
+
+    mongo.air_quality.pollution.insert_many(pollution_records)
