@@ -1,0 +1,24 @@
+summary: Returns historical data for a specific pollutant
+description: 'Returns historical data for a specific city and sensor which have pollutant data available for the
+pollutant passed as a path parameter.'
+parameters:
+  - in: path
+    name: city_name
+    description: Name of the city
+    required: true
+    type: string
+  - in: path
+    name: sensor_id
+    description: Id of the sensor
+    required: true
+    type: string
+  - in: path
+    name: pollutant
+    description: Name of the pollutant
+    required: true
+    type: string
+responses:
+  200:
+    description: Returned historical data for the specified pollutant.
+  400:
+    description: Cannot return historical data because some of the parameters are invalid.

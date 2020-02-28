@@ -1,0 +1,13 @@
+summary: Returns a json object of the queried city
+description: Fetches detailed data for the city from the passed path parameter.
+parameters:
+  - in: path
+    name: city_name
+    description: Name of the city
+    required: true
+    type: string
+responses:
+  200:
+    description: Returned json data with details for the specified city.
+  404:
+    description: Cannot return data because the city is either invalid or missing.

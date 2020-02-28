@@ -1,0 +1,12 @@
+summary: Initializes training of regression models for predicting pollutants
+description: 'Initializes an operation for training regression models for all pollutants or a specified pollutant from
+the query parameter.'
+parameters:
+  - in: query
+    name: pollutant
+    description: Name of the pollutant
+    required: false
+    type: string
+responses:
+  200:
+    description: Initialized training operation for the predicted pollutant.

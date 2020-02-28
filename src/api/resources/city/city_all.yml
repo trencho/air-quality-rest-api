@@ -1,0 +1,5 @@
+summary: Returns a json object of all available cities
+description: Fetches detailed data for each available city which has sensors collecting pollution data.
+responses:
+  200:
+    description: Returned json data with details for all cities.
