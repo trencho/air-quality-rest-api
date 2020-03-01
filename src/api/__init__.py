@@ -177,7 +177,7 @@ def forecast_city_sensor(dark_sky_env, city, sensor, pollutant, timestamp):
 
 
 def next_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour + 1)
+    return t.replace(microsecond=0, second=0, minute=0, hour=0 if t.hour == 23 else t.hour + 1)
 
 
 def load_regression_model(city, sensor, pollutant):
