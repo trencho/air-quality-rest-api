@@ -12,9 +12,10 @@ forecast = Blueprint('forecast', __name__)
 
 
 @forecast.route('/pollutants/<string:pollutant_name>/forecast', endpoint='forecast_all', methods=['GET'])
-@forecast.route('/pollutants/<string:pollutant_name>/cities/<string:city_name>/forecast', methods=['GET'])
-@forecast.route('/pollutants/<string:pollutant_name>/cities/<string:city_name>/sensors/<string:sensor_id>/forecast',
+@forecast.route('/pollutants/<string:pollutant_name>/cities/<string:city_name>/forecast', endpoint='forecast_city',
                 methods=['GET'])
+@forecast.route('/pollutants/<string:pollutant_name>/cities/<string:city_name>/sensors/<string:sensor_id>/forecast',
+                endpoint='forecast_city_sensor', methods=['GET'])
 @swag_from('forecast_all.yml', endpoint='forecast.forecast_all', methods=['GET'])
 @swag_from('forecast_city.yml', endpoint='forecast.forecast_city', methods=['GET'])
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
