@@ -1,3 +1,6 @@
+tags:
+  - city
+#    description: Data for all cities or a specific city
 summary: Returns a json object of the queried city
 description: Fetches detailed data for the city from the passed path parameter.
 parameters:

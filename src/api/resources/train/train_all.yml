@@ -1,3 +1,6 @@
+tags:
+  - train
+#    description: Train regression models for predicting pollutants
 summary: Initializes training of regression models for predicting pollutants
 description: 'Initializes an operation for training regression models for all pollutants or a specified pollutant from
 the query parameter.'

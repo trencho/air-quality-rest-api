@@ -1,9 +1,12 @@
+tags:
+  - train
+#    description: Train regression models for predicting pollutants
 summary: Initializes training of regression models for predicting pollutants
 description: 'Initializes an operation for training regression models for all pollutants or a specified pollutant from
 the query parameter for a specified city as a path parameter.'
 parameters:
   - in: path
-    name: city
+    name: city_name
     description: Name of the city
     required: true
     type: string

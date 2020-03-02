@@ -1,3 +1,6 @@
+tags:
+  - history
+#    description: Historical data for a specified pollutant
 summary: Returns historical data for a specific pollutant
 description: 'Returns historical data for a specific city and sensor which have pollutant data available for the
 pollutant passed as a path parameter.'
