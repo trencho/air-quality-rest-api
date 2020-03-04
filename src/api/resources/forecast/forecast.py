@@ -46,8 +46,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
         for city in cities:
             sensors = fetch_sensors(city['cityName'])
             for sensor in sensors:
-                forecast_result = forecast_city_sensor(dark_sky_env, city, sensor, pollutant_name,
-                                                       timestamp)
+                forecast_result = forecast_city_sensor(dark_sky_env, city, sensor, pollutant_name, timestamp)
                 if isinstance(forecast_result, Response):
                     return forecast_result
 

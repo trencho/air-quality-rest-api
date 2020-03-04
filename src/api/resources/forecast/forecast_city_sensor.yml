@@ -29,5 +29,5 @@ parameters:
 responses:
   200:
     description: Returned json data of the predicted pollutant for a specific timestamp.
-  404:
+  400:
     description: Value cannot be predicted because some of the parameters are invalid.
