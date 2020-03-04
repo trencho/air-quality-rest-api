@@ -8,17 +8,17 @@ from definitions import MODELS_PATH
 
 class TPOTRegressionModel:
     def __init__(self):
-        self.reg = TPOTRegressor(
-            verbosity=3,
-            random_state=55,
-            periodic_checkpoint_folder="intermediate_results",
-            n_jobs=os.cpu_count() // 2,
-            warm_start=True,
-            generations=20,
-            population_size=80,
-            early_stop=8
-        )
-        self.param_grid = {}
+        self.reg = TPOTRegressor()
+        self.param_grid = {
+            'verbosity': [3],
+            'random_state': [55],
+            'periodic_checkpoint_folder': ['intermediate_results'],
+            'n_jobs': [os.cpu_count() // 2],
+            'warm_start': [True],
+            'generations': [20],
+            'population_size': [80],
+            'early_stop': [8]
+        }
 
     def get_params(self):
         return self.reg.get_params()
