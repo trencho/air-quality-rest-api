@@ -83,7 +83,7 @@ def generate_tsfresh_features(dataframe, target):
     return dataframe
 
 
-def generate_features(dataframe, pollutant):
+def generate_features(dataframe):
     dataframe = dataframe.copy()
 
     dataframe = generate_calendar_features(dataframe)
