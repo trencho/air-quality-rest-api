@@ -52,22 +52,20 @@ def check_sensor(city_name, sensor_id):
     return None
 
 
-def fetch_city_data(dark_sky_env, pulse_eco_env, city_name, start_time, end_time):
-    sensors = fetch_sensors(city_name)
-    for sensor in sensors:
-        threads = list()
+def fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time):
+    threads = list()
 
-        extract_weather_thread = Thread(target=extract_weather_json,
-                                        args=(dark_sky_env, city_name, sensor, start_time, end_time))
-        threads.append(extract_weather_thread)
-        extract_weather_thread.start()
+    extract_weather_thread = Thread(target=extract_weather_json,
+                                    args=(dark_sky_env, city_name, sensor, start_time, end_time))
+    threads.append(extract_weather_thread)
+    extract_weather_thread.start()
 
-        extract_pollution_thread = Thread(target=extract_pollution_json,
-                                          args=(pulse_eco_env, city_name, sensor, start_time, end_time))
-        threads.append(extract_pollution_thread)
-        extract_pollution_thread.start()
+    extract_pollution_thread = Thread(target=extract_pollution_json,
+                                      args=(pulse_eco_env, city_name, sensor, start_time, end_time))
+    threads.append(extract_pollution_thread)
+    extract_pollution_thread.start()
 
-        Thread(target=merge_city_sensor_data, args=(threads, city_name, sensor['sensorId'])).start()
+    Thread(target=merge_city_sensor_data, args=(threads, city_name, sensor['sensorId'])).start()
 
 
 def forecast_sensor(dark_sky_env, sensor, start_time):

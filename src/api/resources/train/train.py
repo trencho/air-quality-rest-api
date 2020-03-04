@@ -15,12 +15,6 @@ train = Blueprint('train', __name__)
 @swag_from('train_city.yml', endpoint='train.train_city', methods=['GET'])
 @swag_from('train_city_sensor.yml', endpoint='train.train_city_sensor', methods=['GET'])
 def train_data(city_name=None, sensor_id=None):
-    city = check_city(city_name)
-    if city_name is not None and city is None:
-        message = 'Data cannot be trained because the city is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
-
     pollutant_name = request.args.get('pollutant', default=None, type=str)
     if pollutant_name is not None and pollutant_name not in pollutants:
         message = 'Data cannot be trained because the pollutant is either missing or invalid.'
@@ -37,27 +31,33 @@ def train_data(city_name=None, sensor_id=None):
                         train_city_sensors(city, sensor, pollutant)
                 else:
                     train_city_sensors(city, sensor, pollutant_name)
-    else:
-        if sensor_id is None:
-            sensors = fetch_sensors(city['cityName'])
-            for sensor in sensors:
-                if pollutant_name is None:
-                    for pollutant in pollutants:
-                        train_city_sensors(city, sensor, pollutant)
-                else:
-                    train_city_sensors(city, sensor, pollutant_name)
-        else:
-            sensor = check_sensor(city_name, sensor_id)
-            if sensor is None:
-                message = 'Data cannot be trained because the sensor is either missing or invalid.'
-                status_code = HTTP_NOT_FOUND
-                return make_response(jsonify(error_message=message), status_code)
 
+    city = check_city(city_name)
+    if city is None:
+        message = 'Data cannot be trained because the city is either missing or invalid.'
+        status_code = HTTP_NOT_FOUND
+        return make_response(jsonify(error_message=message), status_code)
+
+    if sensor_id is None:
+        sensors = fetch_sensors(city['cityName'])
+        for sensor in sensors:
             if pollutant_name is None:
                 for pollutant in pollutants:
                     train_city_sensors(city, sensor, pollutant)
             else:
                 train_city_sensors(city, sensor, pollutant_name)
+    else:
+        sensor = check_sensor(city_name, sensor_id)
+        if sensor is None:
+            message = 'Data cannot be trained because the sensor is either missing or invalid.'
+            status_code = HTTP_NOT_FOUND
+            return make_response(jsonify(error_message=message), status_code)
+
+        if pollutant_name is None:
+            for pollutant in pollutants:
+                train_city_sensors(city, sensor, pollutant)
+        else:
+            train_city_sensors(city, sensor, pollutant_name)
 
     message = 'Training initialized...'
     return make_response(jsonify(success=message))

@@ -18,3 +18,5 @@ parameters:
 responses:
   200:
     description: Initialized training operation for the predicted pollutant.
+  400:
+    description: Cannot train regression models because some of the parameters are invalid.
