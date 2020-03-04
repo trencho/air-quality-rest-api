@@ -1,16 +1,16 @@
 import pickle
 
-from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
 
 from definitions import MODELS_PATH
 
 
-class SupportVectorRegressionModel:
+class MLPRegressionModel:
     def __init__(self):
-        self.reg = SVR()
+        self.reg = MLPRegressor()
         self.param_grid = {
-            'gamma': [1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.01, 0.1, 0.2, 0.5, 0.6, 0.9],
-            'C': [1, 10, 100, 1000, 10000]
+            'hidden_layer_sizes': [i for i in range(1, 15)],
+            'max_iter': [1000]
         }
 
     def get_params(self):
@@ -29,10 +29,10 @@ class SupportVectorRegressionModel:
 
     def save(self, city_name, sensor, pollutant):
         with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + type(self).__name__
-                  + '/support_vector_regression_model.pkl', 'wb') as out_file:
+                  + '/mlp_regression_model.pkl', 'wb') as out_file:
             pickle.dump(self.reg, out_file, pickle.HIGHEST_PROTOCOL)
 
     def load(self, city_name, sensor, pollutant):
         with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + type(self).__name__
-                  + '/support_vector_regression_model.pkl', 'rb') as in_file:
+                  + '/mlp_regression_model.pkl', 'rb') as in_file:
             self.reg = pickle.load(in_file)
