@@ -1,13 +1,13 @@
 import pickle
 
-import lightgbm as lgb
+from lightgbm import LGBMRegressor
 
 from definitions import MODELS_PATH
 
 
 class LightGBMRegressionModel:
     def __init__(self):
-        self.reg = lgb.LGBMRegressor()
+        self.reg = LGBMRegressor()
         self.param_grid = {
             'num_leaves': (6, 50),
             'min_child_samples': (100, 500),

@@ -109,7 +109,7 @@ def save_best_regression_model(city_name, sensor, pollutant, best_model):
 
 
 def generate_regression_model(dataset, city, sensor, pollutant):
-    dataframe = generate_features(dataset, pollutant)
+    dataframe = generate_features(dataset)
 
     X_train, X_test, y_train, y_test = split_dataset(dataframe, pollutant)
 
