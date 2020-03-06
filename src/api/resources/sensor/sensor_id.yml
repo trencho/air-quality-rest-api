@@ -17,5 +17,5 @@ parameters:
 responses:
   200:
     description: Returned json data of the selected sensor for the specified city.
-  400:
-    description: Cannot return data because some of the parameters are invalid.
+  404:
+    description: Cannot return sensor data because the city or sensor are either missing or invalid.

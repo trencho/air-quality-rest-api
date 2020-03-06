@@ -12,4 +12,6 @@ parameters:
     type: string
 responses:
   200:
-    description: Initialized training operation for the predicted pollutant.
+    description: Initialized training operation for all cities and available sensors.
+  404:
+    description: Cannot train data because the pollutant is either missing or invalid.

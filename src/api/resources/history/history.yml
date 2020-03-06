@@ -23,5 +23,5 @@ parameters:
 responses:
   200:
     description: Returned historical data for the specified pollutant.
-  400:
-    description: Cannot return historical data because some of the parameters are invalid.
+  404:
+    description: Cannot return historical data because the city, sensor or pollutant are either missing or invalid.

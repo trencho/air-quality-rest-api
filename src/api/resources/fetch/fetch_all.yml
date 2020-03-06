@@ -17,3 +17,5 @@ parameters:
 responses:
   200:
     description: Started the operation to fetch weather and pollution data from external APIs for all available cities.
+  400:
+    description: Cannot fetch weather and pollution data because some of the parameters are invalid.
