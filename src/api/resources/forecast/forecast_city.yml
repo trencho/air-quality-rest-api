@@ -26,3 +26,5 @@ responses:
     description: Returned json data of the predicted pollutant for a specific timestamp.
   400:
     description: Value cannot be predicted because some of the parameters are invalid.
+  404:
+    description: Value cannot be predicted because the city or pollutant are either missing or invalid.
