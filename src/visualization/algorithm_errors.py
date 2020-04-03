@@ -65,3 +65,4 @@ def draw_errors(city, sensor, pollutant):
             os.makedirs(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
         plt.savefig(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant +
                     '/' + error_type + '.png', bbox_inches='tight')
+        plt.close(fig)
