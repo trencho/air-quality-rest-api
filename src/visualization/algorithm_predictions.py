@@ -70,3 +70,4 @@ def draw_predictions(city, sensor, pollutant):
             RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
     plt.savefig(RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant +
                 '/predictions.png', bbox_inches='tight')
+    plt.close(fig)
