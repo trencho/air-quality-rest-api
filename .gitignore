@@ -203,5 +203,6 @@ fabric.properties
 
 # Project
 data
-!./data/raw/.gitkeep
+!./data/*/.gitkeep
+models
 results
