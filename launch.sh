@@ -1,35 +1,35 @@
 #!/bin/bash
 
 if [ ! -f /debug0 ]; then
-    touch /debug0
+  touch /debug0
 
-    if [ -e requirements_os.txt ]; then
-        apt-get install -y $(cat requirements_os.txt)
-    fi
-    if [ -e requirements.txt ]; then
-        pip3 install -r requirements.txt
-    fi
+  if [ -e requirements_os.txt ]; then
+    apt-get install -y $(cat requirements_os.txt)
+  fi
+  if [ -e requirements.txt ]; then
+    pip3 install -r requirements.txt
+  fi
 
-    while getopts 'hd' flag; do
-        case "${flag}" in
-            h)
-                echo "options:"
-                echo "-h  show brief help"
-                echo "-d  debug mode, no nginx or uwsgi, direct start with 'python3 app/app.py'"
-                exit 0
-                ;;
-            d)
-                echo "Debug!"
-                touch /debug1
-                ;;
-        esac
-    done
+  while getopts 'hd' flag; do
+    case "${flag}" in
+    h)
+      echo "options:"
+      echo "-h  show brief help"
+      echo "-d  debug mode, no nginx or uwsgi, direct start with 'python3 app/app.py'"
+      exit 0
+      ;;
+    d)
+      echo "Debug!"
+      touch /debug1
+      ;;
+    esac
+  done
 fi
 
 if [ -e /debug1 ]; then
-    echo "Running app in debug mode!"
-    python3 src/api/app.py
+  echo "Running app in debug mode!"
+  python3 src/api/app.py
 else
-    echo "Running app in production mode!"
-    nginx && uwsgi --ini /app.ini
+  echo "Running app in production mode!"
+  nginx && uwsgi --ini /src/api/uwsgi.ini
 fi
