@@ -5,13 +5,12 @@ import pickle
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants
-from definitions import algorithms as regression_models
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
+from definitions import algorithms as regression_models, pollutants
 from modeling import save_errors, save_results
-from processing import value_scaling
-from src.models import make_model
-from src.processing import backward_elimination, generate_features
-from src.visualization import draw_errors, draw_predictions
+from models import make_model
+from processing import backward_elimination, generate_features, value_scaling
+from visualization import draw_errors, draw_predictions
 
 
 def previous_value_overwrite(X, y):
