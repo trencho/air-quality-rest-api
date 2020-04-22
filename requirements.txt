@@ -1,5 +1,7 @@
 flasgger
 flask
+flask_cors
+flask_pymongo
 joblib
 lightgbm
 matplotlib
