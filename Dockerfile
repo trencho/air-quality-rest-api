@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:19.10
 
 MAINTAINER Aleksandar Trenchevski <atrenchevski@gmail.com>
 
@@ -20,5 +20,7 @@ RUN adduser --disabled-password --gecos '' nginx \
   && chown -R nginx:nginx /src/api \
   && chmod 777 /run/ -R \
   && chmod 777 /root/ -R
+
+ENV PYTHONPATH "/src"
 
 ENTRYPOINT [ "/bin/bash", "/launch.sh"]
