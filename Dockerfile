@@ -8,7 +8,7 @@ RUN apt-get update -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY ./requirements.txt /requirements.txt
-#COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
 WORKDIR /
 
