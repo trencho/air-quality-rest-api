@@ -1,7 +1,19 @@
-version: '1'
+version: '3.7'
 services:
-  app:
-    restart: always
-    build: .
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
     ports:
-      - '5000:5000'
+      - 80:80
+
+  flask:
+    container_name: flask
+    build:
+      context: .
+      dockerfile: docker/flask/Dockerfile
+    environment:
+      - APP_NAME=air-quality-rest-api
+    expose:
+      - 5000
