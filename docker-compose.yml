@@ -1,18 +1,20 @@
 version: '3.7'
 services:
   nginx:
-    container_name: nginx
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
+    container_name: nginx
+    depends_on:
+      - flask
     ports:
       - 80:80
 
   flask:
-    container_name: flask
     build:
       context: .
       dockerfile: docker/flask/Dockerfile
+    container_name: flask
     environment:
       - APP_NAME=air-quality-rest-api
     expose:
