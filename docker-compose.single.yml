@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: flask
+    environment:
+      - APP_NAME=air-quality-rest-api
+    ports:
+      - 80:80
