@@ -9,7 +9,6 @@ RUN apt-get update -y && \
 
 COPY ./requirements.txt /requirements.txt
 
-EXPOSE 5000
 WORKDIR /
 
 # Install the dependencies

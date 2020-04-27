@@ -8,4 +8,4 @@ services:
     environment:
       - APP_NAME=air-quality-rest-api
     ports:
-      - 80:80
+      - 5000:80
