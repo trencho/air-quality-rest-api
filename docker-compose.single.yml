@@ -3,9 +3,16 @@ services:
   flask:
     build:
       context: .
-      dockerfile: docker/Dockerfile
-    container_name: flask
+      dockerfile: 'docker/Dockerfile'
+    container_name: 'flask'
     environment:
       - APP_NAME=air-quality-rest-api
+    networks:
+      network:
+        aliases:
+          - aqra
     ports:
-      - 5000:80
+      - '5000:80'
+networks:
+  network:
+    driver: 'bridge'
