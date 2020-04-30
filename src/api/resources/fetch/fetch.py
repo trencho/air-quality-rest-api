@@ -3,8 +3,8 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
-from api import check_city, check_environment_variables, fetch_cities, fetch_city_data, next_hour, fetch_sensors, \
-    check_sensor
+from api.resources import check_city, check_environment_variables, fetch_cities, fetch_city_data, next_hour, \
+    fetch_sensors, check_sensor
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 
 fetch = Blueprint('fetch', __name__)

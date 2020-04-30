@@ -1,5 +1,4 @@
-from api.config import create_app
-from api.resources import register_blueprints
+from api.config import create_app, register_blueprints
 
 app = create_app()
 register_blueprints(app)

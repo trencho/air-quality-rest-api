@@ -3,7 +3,7 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
-from api import check_city, check_environment_variables, check_sensor, fetch_cities, fetch_sensors, \
+from api.resources import check_city, check_environment_variables, check_sensor, fetch_cities, fetch_sensors, \
     forecast_city_sensor, next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 from definitions import pollutants
