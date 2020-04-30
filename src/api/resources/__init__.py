@@ -6,12 +6,17 @@ from .pollutant import pollutant
 from .sensor import sensor
 from .train import train
 
+__all__ = [
+    'city',
+    'fetch',
+    'forecast',
+    'history',
+    'pollutant',
+    'sensor',
+    'train'
+]
+
 
 def register_blueprints(app):
-    app.register_blueprint(city)
-    app.register_blueprint(fetch)
-    app.register_blueprint(forecast)
-    app.register_blueprint(history)
-    app.register_blueprint(pollutant)
-    app.register_blueprint(sensor)
-    app.register_blueprint(train)
+    for blueprint in __all__:
+        app.register_blueprint(globals()[blueprint])
