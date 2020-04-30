@@ -2,7 +2,7 @@ import pandas as pd
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response
 
-from api import check_city, check_sensor
+from api.resources import check_city, check_sensor
 from definitions import HTTP_NOT_FOUND, DATA_EXTERNAL_PATH
 from definitions import pollutants
 

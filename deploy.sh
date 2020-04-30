@@ -19,6 +19,6 @@ else
   tag_number=$3
 fi
 
-docker build -f ./Dockerfile -t ${tag_name}:${tag_number} .
-docker tag ${tag_name}:${tag_number} ${username}/${tag_name}
-docker push ${username}/${tag_name}
+docker build -f ./Dockerfile -t "${tag_name}":"${tag_number}" .
+docker tag "${tag_name}":"${tag_number}" "${username}"/"${tag_name}"
+docker push "${username}"/"${tag_name}"

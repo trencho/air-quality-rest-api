@@ -1,7 +1,7 @@
 from flasgger.utils import swag_from
 from flask import Blueprint, jsonify, make_response
 
-from api import check_city, fetch_cities
+from api.resources import check_city, fetch_cities
 from definitions import HTTP_NOT_FOUND
 
 city = Blueprint('city', __name__)

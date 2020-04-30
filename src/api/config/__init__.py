@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from .db import mongo
+from .routes import register_blueprints
 from .swagger import swagger
 
 

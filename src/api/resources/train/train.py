@@ -1,7 +1,7 @@
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
 
-from api import check_city, check_sensor, fetch_cities, fetch_sensors, train_city_sensors
+from api.resources import check_city, check_sensor, fetch_cities, fetch_sensors, train_city_sensors
 from definitions import HTTP_NOT_FOUND, pollutants
 
 train = Blueprint('train', __name__)

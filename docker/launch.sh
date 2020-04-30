@@ -4,7 +4,7 @@ if [ ! -f /debug0 ]; then
   touch /debug0
 
   if [ -e requirements_os.txt ]; then
-    apt-get install -y $(cat requirements_os.txt)
+    apt-get install -y "$(cat requirements_os.txt)"
   fi
   if [ -e requirements.txt ]; then
     pip3 install -r requirements.txt
@@ -22,6 +22,7 @@ if [ ! -f /debug0 ]; then
       echo "Debug!"
       touch /debug1
       ;;
+    *) ;;
     esac
   done
 fi
