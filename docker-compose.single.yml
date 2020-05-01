@@ -21,7 +21,7 @@ services:
     ports:
       - 5000:80
     volumes:
-      - apidata:/var/api
+      - flaskdata: /var/api
 
   mongodb:
     image: mongo:latest
@@ -34,14 +34,14 @@ services:
       MONGODB_DATA_DIR: /data/db
       MONDODB_LOG_DIR: /dev/null
     volumes:
-      - mongodbdata:/data/db
+      - mongodbdata: /data/db
     networks:
       - network
 networks:
   network:
     driver: bridge
 volumes:
-  apidata:
+  flaskdata:
     driver: local
   mongodbdata:
     driver: local
