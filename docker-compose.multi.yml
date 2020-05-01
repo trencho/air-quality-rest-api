@@ -14,7 +14,7 @@ services:
     ports:
       - 5000:80
     volumes:
-      - nginxdata:/var/log/nginx
+      - nginxdata: /var/log/nginx
 
   flask:
     build:
@@ -37,7 +37,7 @@ services:
         aliases:
           - aqra
     volumes:
-      - apidata:/var/api
+      - flaskdata: /var/api
 
   mongodb:
     image: mongo:latest
@@ -52,14 +52,14 @@ services:
     networks:
       - network
     volumes:
-      - mongodbdata:/data/db
+      - mongodbdata: /data/db
 networks:
   network:
     driver: bridge
 volumes:
   nginxdata:
     driver: local
-  apidata:
+  flaskdata:
     driver: local
   mongodbdata:
     driver: local
