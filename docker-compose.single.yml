@@ -3,16 +3,45 @@ services:
   flask:
     build:
       context: .
-      dockerfile: 'docker/Dockerfile'
-    container_name: 'flask'
+      dockerfile: docker/Dockerfile
+    container_name: flask
+    depends_on:
+      - mongodb
     environment:
-      - APP_NAME=air-quality-rest-api
+      APP_ENV: prod
+      APP_NAME: air-quality-rest-api
+      MONGODB_DATABASE: air-quality
+      MONGODB_USERNAME: flaskuser
+      MONGODB_PASSWORD: your_mongodb_password
+      MONGODB_HOSTNAME: mongodb
     networks:
       network:
         aliases:
           - aqra
     ports:
-      - '5000:80'
+      - 5000:80
+    volumes:
+      - apidata:/var/api
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    command: mongod --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodbuser
+      MONGO_INITDB_ROOT_PASSWORD: your_mongodb_root_password
+      MONGO_INITDB_DATABASE: air-quality
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+    volumes:
+      - mongodbdata:/data/db
+    networks:
+      - network
 networks:
   network:
-    driver: 'bridge'
+    driver: bridge
+volumes:
+  apidata:
+    driver: local
+  mongodbdata:
+    driver: local

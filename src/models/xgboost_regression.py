@@ -11,7 +11,6 @@ class XGBoostRegressionModel:
         self.reg = XGBRegressor()
         self.param_grid = {
             'n_jobs': [os.cpu_count() // 2],
-            'objective': ['reg:squarederror'],
             'learning_rate': [.03, 0.05, .07],
             'max_depth': [5, 6, 7],
             'min_child_weight': [4],

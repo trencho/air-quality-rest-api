@@ -1,13 +1,12 @@
 import json
-import os
 import traceback
 
 import pandas as pd
 import requests
 from pandas import json_normalize
 
-from api.config import mongo
 from definitions import DATA_EXTERNAL_PATH
+from preparation import save_dataframe
 
 url = 'https://api.darksky.net/forecast'
 params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
@@ -43,14 +42,4 @@ def extract_weather_json(dark_sky_env, city_name, sensor, start_time, end_time):
         link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
 
     weather_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/weather_report.csv'
-    if os.path.exists(weather_data_path):
-        weather_data = pd.read_csv(weather_data_path)
-        weather_data.append(dataframe, ignore_index=True, sort=True)
-        weather_data.to_csv(weather_data_path, index=False)
-
-        weather_records = weather_data.T.to_json()
-    else:
-        dataframe.to_csv(weather_data_path, index=False)
-        weather_records = dataframe.T.to_json()
-
-    mongo.air_quality.weather.insert_many(weather_records)
+    save_dataframe(dataframe, 'weather', weather_data_path)
