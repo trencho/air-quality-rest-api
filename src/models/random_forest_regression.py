@@ -35,12 +35,12 @@ class RandomForestRegressionModel:
 
         return y_pred
 
-    def save(self, city_name, sensor, pollutant):
-        with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + type(self).__name__
+    def save(self, city_name, sensor_id, pollutant):
+        with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(self).__name__
                   + '/random_forest_regression_model.pkl', 'wb') as out_file:
             pickle.dump(self.reg, out_file, pickle.HIGHEST_PROTOCOL)
 
-    def load(self, city_name, sensor, pollutant):
-        with open(MODELS_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/' + pollutant + '/' + type(self).__name__
+    def load(self, city_name, sensor_id, pollutant):
+        with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(self).__name__
                   + '/random_forest_regression_model.pkl', 'rb') as in_file:
             self.reg = pickle.load(in_file)
