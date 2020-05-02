@@ -15,6 +15,7 @@ from definitions import dummy_leap_year, seasons
 from definitions import status_active
 from modeling import train
 from preparation import extract_pollution_json, extract_weather_json
+from preparation.handle_data import create_data_paths
 from processing import encode_categorical_data, merge
 
 
@@ -53,6 +54,8 @@ def check_sensor(city_name, sensor_id):
 
 
 def fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time):
+    create_data_paths(city_name, sensor['sensorId'])
+
     threads = list()
 
     extract_weather_thread = Thread(target=extract_weather_json,
@@ -176,7 +179,8 @@ def forecast_city_sensor(dark_sky_env, city, sensor, pollutant, timestamp):
 
 
 def next_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0, hour=0 if t.hour == 23 else t.hour + 1)
+    return t.replace(microsecond=0, second=0, minute=0, hour=0 if t.hour == 23 else t.hour + 1,
+                     day=t.day + 1 if t.hour == 23 else t.day)
 
 
 def load_regression_model(city, sensor, pollutant):

@@ -30,11 +30,11 @@ def fetch_data(city_name=None, sensor_id=None):
 
     current_datetime = current_hour(datetime.now())
     current_timestamp = int(datetime.timestamp(current_datetime))
-    start_time = request.args.get('startTime', default=current_timestamp, type=int)
+    start_time = request.args.get('start_time', default=current_timestamp, type=int)
 
     next_hour_datetime = next_hour(current_datetime)
     next_hour_timestamp = int(datetime.timestamp(next_hour_datetime))
-    end_time = request.args.get('endTime', default=next_hour_timestamp, type=int)
+    end_time = request.args.get('end_time', default=next_hour_timestamp, type=int)
 
     if end_time <= start_time:
         message = 'Specify end timestamp larger than the current hour\'s timestamp.'
@@ -62,8 +62,8 @@ def fetch_data(city_name=None, sensor_id=None):
         for sensor in sensors:
             fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time)
 
-        message = ('Fetched weather and pollution data from the external APIs for ' + city['siteName'] + ' and all ' +
-                   'active sensors.')
+        message = ('Started the operation to fetch weather and pollution data from the external APIs for '
+                   + city['siteName'] + ' and all active sensors.')
         return make_response(jsonify(success=message))
     else:
         sensor = check_sensor(city_name, sensor_id)
@@ -74,6 +74,6 @@ def fetch_data(city_name=None, sensor_id=None):
 
         fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time)
 
-        message = ('Fetched weather and pollution data from the external APIs for ' + city['siteName'] + ' and ' +
-                   sensor['description'] + '.')
+        message = ('Started the operation to fetch weather and pollution data from the external APIs for '
+                   + city['siteName'] + ' and ' + sensor['description'] + '.')
         return make_response(jsonify(success=message))
