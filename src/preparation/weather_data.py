@@ -6,7 +6,7 @@ import requests
 from pandas import json_normalize
 
 from definitions import DATA_EXTERNAL_PATH
-from preparation import save_dataframe
+from preparation.save_data import save_dataframe
 
 url = 'https://api.darksky.net/forecast'
 params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'

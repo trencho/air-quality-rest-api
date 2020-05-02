@@ -30,6 +30,8 @@ services:
       MONGODB_USERNAME: flaskuser
       MONGODB_PASSWORD: your_mongodb_password
       MONGODB_HOSTNAME: mongodb
+      DARK_SKY_CREDENTIALS: /env/DarkSkyAPI.json
+      PULSE_ECO_CREDENTIALS: /env/PulseEcoAPI.json
     expose:
       - 5000
     networks:
@@ -37,7 +39,7 @@ services:
         aliases:
           - aqra
     volumes:
-      - flaskdata: /var/api
+      - flaskdata:/var/api
 
   mongodb:
     image: mongo:latest
@@ -52,7 +54,7 @@ services:
     networks:
       - network
     volumes:
-      - mongodbdata: /data/db
+      - mongodbdata:/data/db
 networks:
   network:
     driver: bridge
