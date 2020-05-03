@@ -12,7 +12,7 @@ from timezonefinder import TimezoneFinder
 from definitions import DATA_EXTERNAL_PATH
 from definitions import pollutants
 from preparation.handle_data import save_dataframe
-from processing import normalize_pollution_data
+from processing.normalize_data import normalize_pollution_data
 
 hour_in_secs = 3600
 week_in_seconds = 604800
