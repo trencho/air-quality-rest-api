@@ -58,19 +58,22 @@ def save_selected_features(city_name, sensor_id, pollutant, selected_features):
         pickle.dump(selected_features, out_file)
 
 
-def create_model_paths(city_name, sensor_id, pollutant, model_name):
+def create_models_path(city_name, sensor_id, pollutant, model_name):
     if not os.path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/'):
         os.makedirs(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/')
 
-    if not os.path.exists(RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/'
+
+def create_results_path(path, city_name, sensor_id, pollutant, model_name):
+    if not os.path.exists(path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/'
                           + model_name + '/'):
-        os.makedirs(RESULTS_ERRORS_PATH + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' +
+        os.makedirs(path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' +
                     model_name + '/')
 
-    if not os.path.exists(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor_id + '/' + pollutant
-                          + '/' + model_name + '/'):
-        os.makedirs(RESULTS_PREDICTIONS_PATH + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' +
-                    model_name + '/')
+
+def create_paths(city_name, sensor_id, pollutant, model_name):
+    create_models_path(city_name, sensor_id, pollutant, model_name)
+    create_results_path(RESULTS_ERRORS_PATH, city_name, sensor_id, pollutant, model_name)
+    create_results_path(RESULTS_PREDICTIONS_PATH, city_name, sensor_id, pollutant, model_name)
 
 
 def check_model_lock(city_name, sensor_id, pollutant, model_name):
@@ -116,7 +119,7 @@ def generate_regression_model(dataset, city, sensor, pollutant):
     best_model_error = math.inf
     best_model = None
     for model_name in regression_models:
-        create_model_paths(city['cityName'], sensor['sensorId'], pollutant, model_name)
+        create_paths(city['cityName'], sensor['sensorId'], pollutant, model_name)
         is_model_locked = check_model_lock(city['cityName'], sensor['sensorId'], pollutant, model_name)
         if is_model_locked:
             continue

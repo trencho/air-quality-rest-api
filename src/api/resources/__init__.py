@@ -79,7 +79,7 @@ def check_sensor(city_name, sensor_id):
     return None
 
 
-def create_data_paths(city_name, sensor_id):
+def create_data_path(city_name, sensor_id):
     if not os.path.exists(
             DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/'):
         os.makedirs(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/')
@@ -92,7 +92,7 @@ def merge_city_sensor_data(threads, city_name, sensor_id):
 
 
 def fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time):
-    create_data_paths(city_name, sensor['sensorId'])
+    create_data_path(city_name, sensor['sensorId'])
 
     threads = list()
 
