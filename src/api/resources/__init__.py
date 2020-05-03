@@ -8,15 +8,25 @@ import pandas as pd
 import requests
 from flask import jsonify, make_response, Response
 
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
-from definitions import MODELS_PATH
 from definitions import dark_sky_env_value, pulse_eco_env_value
 from definitions import dummy_leap_year, seasons
 from definitions import status_active
 from modeling import train
 from preparation import extract_pollution_json, extract_weather_json
-from preparation.handle_data import create_data_paths
 from processing import encode_categorical_data, merge
+
+
+def fetch_cities():
+    url = 'https://pulse.eco/rest/city/'
+    with requests.get(url) as response:
+        try:
+            cities = response.json()
+        except ValueError:
+            return list()
+
+    return cities
 
 
 def check_city(city_name):
@@ -44,6 +54,22 @@ def check_environment_variables():
     return dark_sky_env, pulse_eco_env
 
 
+def fetch_sensors(city_name):
+    url = 'https://' + city_name + '.pulse.eco/rest/sensor/'
+    with requests.get(url) as response:
+        try:
+            sensors = response.json()
+        except ValueError:
+            return list()
+
+    active_sensors = []
+    for sensor in sensors:
+        if sensor['status'] == status_active:
+            active_sensors.append(sensor)
+
+    return active_sensors
+
+
 def check_sensor(city_name, sensor_id):
     sensors = fetch_sensors(city_name)
     for sensor in sensors:
@@ -51,6 +77,18 @@ def check_sensor(city_name, sensor_id):
             return sensor
 
     return None
+
+
+def create_data_paths(city_name, sensor_id):
+    if not os.path.exists(
+            DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/'):
+        os.makedirs(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/')
+
+
+def merge_city_sensor_data(threads, city_name, sensor_id):
+    for thread in threads:
+        thread.join()
+    Thread(target=merge, args=(city_name, sensor_id)).start()
 
 
 def fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time):
@@ -95,31 +133,27 @@ def forecast_sensor(dark_sky_env, sensor, start_time):
     return dict()
 
 
-def fetch_cities():
-    url = 'https://pulse.eco/rest/city/'
-    with requests.get(url) as response:
-        try:
-            cities = response.json()
-        except ValueError:
-            return list()
-
-    return cities
+def train_city_sensors(city, sensor, pollutant):
+    Thread(target=train, args=(city, sensor, pollutant)).start()
 
 
-def fetch_sensors(city_name):
-    url = 'https://' + city_name + '.pulse.eco/rest/sensor/'
-    with requests.get(url) as response:
-        try:
-            sensors = response.json()
-        except ValueError:
-            return list()
+def load_regression_model(city, sensor, pollutant):
+    if not os.path.exists(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
+                          + '/best_regression_model.pkl'):
+        train_city_sensors(city, sensor, pollutant)
+        message = 'Value cannot be predicted because the model is not trained yet. Try again later.'
+        status_code = HTTP_NOT_FOUND
+        return make_response(jsonify(error_message=message), status_code)
 
-    active_sensors = []
-    for sensor in sensors:
-        if sensor['status'] == status_active:
-            active_sensors.append(sensor)
+    with open(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
+              + '/best_regression_model.pkl', 'rb') as in_file:
+        model = pickle.load(in_file)
 
-    return active_sensors
+    with open(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
+              + '/selected_features.txt', 'rb') as in_file:
+        model_features = pickle.load(in_file)
+
+    return model, model_features
 
 
 def forecast_city_sensor(dark_sky_env, city, sensor, pollutant, timestamp):
@@ -181,32 +215,3 @@ def forecast_city_sensor(dark_sky_env, city, sensor, pollutant, timestamp):
 def next_hour(t):
     return t.replace(microsecond=0, second=0, minute=0, hour=0 if t.hour == 23 else t.hour + 1,
                      day=t.day + 1 if t.hour == 23 else t.day)
-
-
-def load_regression_model(city, sensor, pollutant):
-    if not os.path.exists(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
-                          + '/best_regression_model.pkl'):
-        train_city_sensors(city, sensor, pollutant)
-        message = 'Value cannot be predicted because the model is not trained yet. Try again later.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
-
-    with open(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
-              + '/best_regression_model.pkl', 'rb') as in_file:
-        model = pickle.load(in_file)
-
-    with open(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
-              + '/selected_features.txt', 'rb') as in_file:
-        model_features = pickle.load(in_file)
-
-    return model, model_features
-
-
-def merge_city_sensor_data(threads, city_name, sensor_id):
-    for thread in threads:
-        thread.join()
-    Thread(target=merge, args=(city_name, sensor_id)).start()
-
-
-def train_city_sensors(city, sensor, pollutant):
-    Thread(target=train, args=(city, sensor, pollutant)).start()

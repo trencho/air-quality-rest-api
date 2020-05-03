@@ -25,7 +25,7 @@ def fetch_pollutant(city_name, sensor_id):
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_pollution_report.csv')
+    dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
     measurements = list()
     for pollutant in pollutants:
         if pollutant in dataframe.columns:

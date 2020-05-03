@@ -4,6 +4,7 @@ from scipy import stats
 from sklearn.impute import SimpleImputer
 
 from definitions import pollutants, DATA_EXTERNAL_PATH
+from preparation.handle_data import save_dataframe
 from processing import calculate_aqi, calculate_co_aqi, calculate_no2_aqi, calculate_o3_aqi, calculate_pm25_aqi, \
     calculate_pm10_aqi, calculate_so2_aqi
 
@@ -95,5 +96,6 @@ def merge(city_name, sensor_id):
     # # use loc to reorder
     # dataframe = dataframe.loc[:, cols]
 
-    combined_report_csv = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_pollution_report.csv'
-    dataframe.to_csv(combined_report_csv, index=False)
+    summary_data_path = (
+            DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
+    save_dataframe(dataframe, 'summary', summary_data_path)

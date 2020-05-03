@@ -148,6 +148,6 @@ def generate_regression_model(dataset, city, sensor, pollutant):
 
 def train(city, sensor, pollutant):
     dataset = pd.read_csv(
-        DATA_EXTERNAL_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/weather_pollution_report.csv')
+        DATA_EXTERNAL_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/summary_report.csv')
     if pollutant in dataset.columns:
         generate_regression_model(dataset, city, sensor, pollutant)

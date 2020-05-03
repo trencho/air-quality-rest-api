@@ -42,13 +42,13 @@ pollutants = {
 }
 
 algorithms = {
-    # 'DecisionTreeRegressionModel': 'Decision Tree',
-    # 'DummyRegressionModel': 'Dummy',
+    'DecisionTreeRegressionModel': 'Decision Tree',
+    'DummyRegressionModel': 'Dummy',
     'LightGBMRegressionModel': 'LightGBM',
-    # 'LinearRegressionModel': 'Linear',
-    # 'MLPRegressionModel': 'Multilayer Perceptron',
-    # 'RandomForestRegressionModel': 'Random Forest',
-    # 'SupportVectorRegressionModel': 'Support Vector',
+    'LinearRegressionModel': 'Linear',
+    'MLPRegressionModel': 'Multilayer Perceptron',
+    'RandomForestRegressionModel': 'Random Forest',
+    'SupportVectorRegressionModel': 'Support Vector',
     # 'TPOTRegressionModel': 'TPOT',
     'XGBoostRegressionModel': 'XGBoost'
 }

@@ -20,7 +20,7 @@ def previous_value_overwrite(X):
 
 def draw_predictions(city, sensor, pollutant):
     dataset = pd.read_csv(
-        DATA_EXTERNAL_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/weather_pollution_report.csv')
+        DATA_EXTERNAL_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/summary_report.csv')
     validation_split = len(dataset) * 3 // 4
 
     test_dataset = dataset.iloc[validation_split:]
