@@ -12,6 +12,7 @@ from timezonefinder import TimezoneFinder
 from definitions import DATA_EXTERNAL_PATH
 from definitions import pollutants
 from preparation.handle_data import save_dataframe
+from processing import normalize_pollution_data
 
 hour_in_secs = 3600
 week_in_seconds = 604800
@@ -78,10 +79,12 @@ def extract_pollution_json(pulse_eco_env, city_name, sensor, start_timestamp, en
             to_datetime = format_datetime(to_timestamp, sensor_tz)
 
     if not dataframe.empty:
-        dataframe['stamp'] = pd.to_datetime(dataframe['stamp'])
-        dataframe['stamp'] = dataframe['stamp'].values.astype(np.int64) // 10 ** 9
+        dataframe.rename(columns={'stamp': 'time'}, inplace=True)
+        dataframe['time'] = pd.to_datetime(dataframe['time'])
+        dataframe['time'] = dataframe['time'].values.astype(np.int64) // 10 ** 9
         dataframe['value'] = pd.to_numeric(dataframe['value'])
-        dataframe.sort_values(by='stamp', inplace=True)
+        dataframe.sort_values(by='time', inplace=True)
 
+    dataframe = normalize_pollution_data(dataframe)
     pollution_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/pollution_report.csv'
     save_dataframe(dataframe, 'pollution', pollution_data_path)

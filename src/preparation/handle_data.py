@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from api.config.db import mongo
+from api.config import mongo
 from definitions import DATA_EXTERNAL_PATH
 
 

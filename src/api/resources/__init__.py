@@ -127,7 +127,7 @@ def forecast_city_sensor(dark_sky_env, city, sensor, pollutant, timestamp):
     if isinstance(load_model, tuple):
         model, model_features = load_model
     elif isinstance(load_model, Response):
-        # return load_model
+        # return empty dict
         return dict()
 
     features_dict = dict()
