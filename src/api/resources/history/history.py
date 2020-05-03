@@ -24,7 +24,7 @@ def history_pollutant(city_name, sensor_id, pollutant_name):
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_pollution_report.csv')
+    dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
     if pollutant_name not in dataframe.columns:
         message = 'Cannot return historical data because the pollutant is either missing or invalid.'
         status_code = HTTP_NOT_FOUND
