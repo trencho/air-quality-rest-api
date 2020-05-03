@@ -35,6 +35,8 @@ services:
       MONGO_INITDB_DATABASE: air-quality
       MONGODB_DATA_DIR: /data/db
       MONDODB_LOG_DIR: /dev/null
+    expose:
+      - 27017
     volumes:
       - mongodbdata:/data/db
     networks:
