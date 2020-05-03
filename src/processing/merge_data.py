@@ -43,7 +43,7 @@ def merge(city_name, sensor_id):
     df_columns = df_columns.drop('icon', errors='ignore')
     df_columns = df_columns.drop('precipType', errors='ignore')
     df_columns = df_columns.drop('summary', errors='ignore')
-    df_columns = df_columns.drop('AQI', errors='ignore')
+    df_columns = df_columns.drop('aqi', errors='ignore')
     # df_columns = df_columns.drop('Type', errors='ignore')
 
     imp = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
@@ -55,12 +55,12 @@ def merge(city_name, sensor_id):
         else:
             dataframe.drop(columns=column)
 
-    pollutants_wo_aqi = list(pollutants)
-    pollutants_wo_aqi.remove('aqi')
+    pollutants_wo_aqi = pollutants.copy()
+    pollutants_wo_aqi.pop('aqi')
     columns = pollutants_wo_aqi.copy()
     for column in columns:
         if column not in dataframe.columns:
-            pollutants_wo_aqi.remove(column)
+            pollutants_wo_aqi.pop(column)
 
     drop_columns_std = dataframe[pollutants_wo_aqi].std()[dataframe[pollutants_wo_aqi].std() == 0].index.values
 
@@ -69,16 +69,16 @@ def merge(city_name, sensor_id):
     dataframe.drop(drop_columns_std, axis=1, inplace=True)
 
     dataframe['AQI'] = dataframe.apply(
-        lambda row: calculate_aqi(calculate_co_aqi(row['CO']) if 'CO' in dataframe.columns else 0,
-                                  calculate_no2_aqi(row['NO2']) if 'NO2' in dataframe.columns else 0,
-                                  calculate_o3_aqi(row['O3']) if 'O3' in dataframe.columns else 0,
-                                  calculate_pm25_aqi(row['PM25']) if 'PM25' in dataframe.columns else 0,
-                                  calculate_pm10_aqi(row['PM10']) if 'PM10' in dataframe.columns else 0,
-                                  calculate_so2_aqi(row['SO2']) if 'SO2' in dataframe.columns else 0)
-        if dataframe.get('AQI') is None else row['AQI'], axis=1)
+        lambda row: calculate_aqi(calculate_co_aqi(row['co']) if 'co' in dataframe.columns else 0,
+                                  calculate_no2_aqi(row['no2']) if 'no2' in dataframe.columns else 0,
+                                  calculate_o3_aqi(row['o3']) if 'o3' in dataframe.columns else 0,
+                                  calculate_pm25_aqi(row['pm25']) if 'pm25' in dataframe.columns else 0,
+                                  calculate_pm10_aqi(row['pm10']) if 'pm10' in dataframe.columns else 0,
+                                  calculate_so2_aqi(row['so2']) if 'so2' in dataframe.columns else 0)
+        if dataframe.get('aqi') is None else row['aqi'], axis=1)
 
     # dataframe = dataframe[(np.abs(stats.zscore(dataframe[df_columns])) < 3).all(axis=1)]
-    drop_numerical_outliers(dataframe)
+    # drop_numerical_outliers(dataframe)
 
     # dataframe.drop(columns=[dataframe.count().idxmin()], inplace=True, errors='ignore')
     for i, v in dataframe.isna().all().iteritems():
