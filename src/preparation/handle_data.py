@@ -11,7 +11,8 @@ def trim_dataframe(dataframe):
 
 def save_dataframe(dataframe, collection, path):
     db_records = pd.DataFrame(list(mongo.db[collection].find()))
-    dataframe = dataframe[~dataframe['time'].isin(db_records['time'])]
+    if not db_records.empty:
+        dataframe = dataframe[~dataframe['time'].isin(db_records['time'])]
     trim_dataframe(dataframe)
     dataframe_records = dataframe.to_dict('records')
     mongo.db[collection].insert_many(dataframe_records)

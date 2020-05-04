@@ -69,7 +69,7 @@ def merge(city_name, sensor_id):
     dataframe[pollutants_wo_aqi].replace(0, np.nan).ffill(inplace=True)
     dataframe.drop(drop_columns_std, axis=1, inplace=True)
 
-    dataframe['AQI'] = dataframe.apply(
+    dataframe['aqi'] = dataframe.apply(
         lambda row: calculate_aqi(calculate_co_aqi(row['co']) if 'co' in dataframe.columns else 0,
                                   calculate_no2_aqi(row['no2']) if 'no2' in dataframe.columns else 0,
                                   calculate_o3_aqi(row['o3']) if 'o3' in dataframe.columns else 0,
