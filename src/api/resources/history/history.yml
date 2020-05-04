@@ -16,7 +16,7 @@ parameters:
     required: true
     type: string
   - in: path
-    name: pollutant
+    name: pollutant_name
     description: Name of the pollutant
     required: true
     type: string
