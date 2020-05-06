@@ -85,6 +85,6 @@ def extract_pollution_json(pulse_eco_env, city_name, sensor, start_timestamp, en
         dataframe['value'] = pd.to_numeric(dataframe['value'])
         dataframe.sort_values(by='time', inplace=True)
 
-    dataframe = normalize_pollution_data(dataframe)
-    pollution_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/pollution_report.csv'
-    save_dataframe(dataframe, 'pollution', pollution_data_path)
+        dataframe = normalize_pollution_data(dataframe)
+        pollution_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/pollution_report.csv'
+        save_dataframe(dataframe, 'pollution', pollution_data_path, sensor['sensorId'])

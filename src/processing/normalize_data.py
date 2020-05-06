@@ -13,7 +13,7 @@ def normalize_pollution_data(df):
     for value in df['type'].unique():
         df_type = df[df['type'] == value]
         df_type.rename(columns={'value': value}, inplace=True)
-        df_type.drop(columns=['position', 'sensorId', 'type'], inplace=True, errors='ignore')
+        df_type.drop(columns=['position', 'type'], inplace=True, errors='ignore')
 
         dataframe_collection[value] = df_type
 
@@ -21,7 +21,7 @@ def normalize_pollution_data(df):
         if dataframe.empty:
             dataframe = dataframe.append(dataframe_collection[key], ignore_index=True)
         else:
-            dataframe = pd.merge(dataframe, dataframe_collection[key], how='left', on='time')
+            dataframe = pd.merge(dataframe, dataframe_collection[key], how='left', on=['sensorId', 'time'])
 
     cols = list(dataframe)
     # move the column to head of list using index, pop and insert
