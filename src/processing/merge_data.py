@@ -18,10 +18,12 @@ def drop_numerical_outliers(df, z_thresh=3):
 
 
 def merge(city_name, sensor_id):
-    weather_data = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_report.csv')
-    pollution_data = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/pollution_report.csv')
+    weather_data = pd.read_csv(
+        DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_report.csv', dtype=object)
+    pollution_data = pd.read_csv(
+        DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/pollution_report.csv', dtype=object)
 
-    dataframe = pd.merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
+    dataframe = pd.merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on=['sensorId', 'time'])
 
     # nunique = dataframe.apply(pd.Series.nunique)
     # cols_to_drop = nunique[nunique == 1].index
@@ -44,6 +46,7 @@ def merge(city_name, sensor_id):
     df_columns = df_columns.drop('icon', errors='ignore')
     df_columns = df_columns.drop('precipType', errors='ignore')
     df_columns = df_columns.drop('summary', errors='ignore')
+    df_columns = df_columns.drop('sensorId', errors='ignore')
     df_columns = df_columns.drop('aqi', errors='ignore')
     # df_columns = df_columns.drop('Type', errors='ignore')
 
@@ -96,6 +99,6 @@ def merge(city_name, sensor_id):
     # # use loc to reorder
     # dataframe = dataframe.loc[:, cols]
 
-    summary_data_path = (
-            DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
-    save_dataframe(dataframe, 'summary', summary_data_path)
+    if not dataframe.empty:
+        summary_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv'
+        save_dataframe(dataframe, 'summary', summary_data_path, sensor_id)

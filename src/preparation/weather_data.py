@@ -41,5 +41,7 @@ def extract_weather_json(dark_sky_env, city_name, sensor, start_time, end_time):
 
         link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
 
-    weather_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/weather_report.csv'
-    save_dataframe(dataframe, 'weather', weather_data_path)
+    if not dataframe.empty:
+        dataframe['sensorId'] = sensor['sensorId']
+        weather_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/weather_report.csv'
+        save_dataframe(dataframe, 'weather', weather_data_path, sensor['sensorId'])
