@@ -8,9 +8,9 @@ numpy
 pandas
 pytz
 requests
-seaborn
 scikit-learn
 scipy
+seaborn
 statsmodels
 timezonefinder
 tpot
