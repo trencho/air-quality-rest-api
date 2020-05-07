@@ -1,6 +1,6 @@
 import pandas as pd
 
-from api.config import mongo
+from api.config.db import mongo
 
 
 def trim_dataframe(dataframe):
