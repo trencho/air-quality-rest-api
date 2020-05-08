@@ -11,7 +11,7 @@ def normalize_pollution_data(df):
     dataframe_collection = {}
 
     for value in df['type'].unique():
-        df_type = df[df['type'] == value]
+        df_type = df.loc[df['type'] == value].copy()
         df_type.rename(columns={'value': value}, inplace=True)
         df_type.drop(columns=['position', 'type'], inplace=True, errors='ignore')
 
