@@ -28,15 +28,15 @@ def draw_predictions(city, sensor, pollutant):
 
     dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
     for algorithm in algorithms:
-        dataframe_errors = pd.read_csv(RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] +
-                                       '/' + pollutant + '/' + algorithm + '/error.csv')
+        dataframe_errors = pd.read_csv(RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId']
+                                       + '/' + pollutant + '/' + algorithm + '/error.csv')
         dataframe_algorithms = dataframe_algorithms.append(
             [{'algorithm': algorithm, pollutant: dataframe_errors.iloc[0]['Mean Absolute Error']}], ignore_index=True)
 
     algorithm_index = dataframe_algorithms[pollutant].idxmin()
     dataframe_predictions = pd.read_csv(
-        RESULTS_PREDICTIONS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/' +
-        dataframe_algorithms.iloc[algorithm_index]['algorithm'] + '/prediction.csv')
+        RESULTS_PREDICTIONS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/'
+        + dataframe_algorithms.iloc[algorithm_index]['algorithm'] + '/prediction.csv')
 
     X_test = test_dataset.drop(columns=pollutant, errors='ignore')
     X_test = previous_value_overwrite(X_test)
@@ -68,6 +68,6 @@ def draw_predictions(city, sensor, pollutant):
             RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant):
         os.makedirs(
             RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
-    plt.savefig(RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant +
-                '/predictions.png', bbox_inches='tight')
+    plt.savefig(RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
+                + '/predictions.png', bbox_inches='tight')
     plt.close(fig)
