@@ -80,8 +80,7 @@ def check_sensor(city_name, sensor_id):
 
 
 def create_data_path(city_name, sensor_id):
-    if not os.path.exists(
-            DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/'):
+    if not os.path.exists(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/'):
         os.makedirs(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/')
 
 

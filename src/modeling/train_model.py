@@ -64,10 +64,8 @@ def create_models_path(city_name, sensor_id, pollutant, model_name):
 
 
 def create_results_path(path, city_name, sensor_id, pollutant, model_name):
-    if not os.path.exists(path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/'
-                          + model_name + '/'):
-        os.makedirs(path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' +
-                    model_name + '/')
+    if not os.path.exists(path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/'):
+        os.makedirs(path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/')
 
 
 def create_paths(city_name, sensor_id, pollutant, model_name):

@@ -33,8 +33,8 @@ def draw_errors(city, sensor, pollutant):
         dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
         for algorithm in algorithms:
             dataframe_errors = pd.read_csv(
-                RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/' +
-                algorithm + '/error.csv')
+                RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/'
+                + algorithm + '/error.csv')
             dataframe_algorithms = dataframe_algorithms.append(
                 [{'algorithm': algorithms[algorithm], pollutant: dataframe_errors.iloc[0][error_type]}],
                 ignore_index=True)
@@ -63,6 +63,6 @@ def draw_errors(city, sensor, pollutant):
         if not os.path.exists(
                 RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant):
             os.makedirs(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
-        plt.savefig(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant +
-                    '/' + error_type + '.png', bbox_inches='tight')
+        plt.savefig(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
+                    + '/' + error_type + '.png', bbox_inches='tight')
         plt.close(fig)

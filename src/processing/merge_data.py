@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy import stats
-from sklearn.impute import SimpleImputer
+from sklearn.impute import KNNImputer
 
 from definitions import pollutants, DATA_EXTERNAL_PATH
 from preparation.handle_data import save_dataframe
@@ -43,21 +43,20 @@ def merge(city_name, sensor_id):
     #                     dataframe.at[index, column] = equal_sin_time_row[column]
     #                     break
 
-    df_columns = df_columns.drop('icon', errors='ignore')
-    df_columns = df_columns.drop('precipType', errors='ignore')
-    df_columns = df_columns.drop('summary', errors='ignore')
-    df_columns = df_columns.drop('sensorId', errors='ignore')
-    df_columns = df_columns.drop('aqi', errors='ignore')
+    df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'sensorId', 'summary'], errors='ignore')
     # df_columns = df_columns.drop('Type', errors='ignore')
 
-    imp = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
-    for column in df_columns:
-        dataframe[column] = pd.to_numeric(dataframe[column], errors='coerce')
-        if not dataframe[column].isna().all():
-            dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
-            dataframe[column].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
-        else:
-            dataframe.drop(columns=column)
+    # imp = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+    # for column in df_columns:
+    #     dataframe[column] = pd.to_numeric(dataframe[column], errors='coerce')
+    #     if not dataframe[column].isna().all():
+    #         dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
+    #         dataframe[column].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
+    #     else:
+    #         dataframe.drop(columns=column)
+
+    imp = KNNImputer()
+    dataframe = imp.fit_transform(dataframe)
 
     pollutants_wo_aqi = pollutants.copy()
     pollutants_wo_aqi.pop('aqi')

@@ -8,6 +8,13 @@ from tsfresh.utilities.dataframe_functions import impute
 from definitions import dummy_leap_year, seasons
 
 
+def get_season(time):
+    dt = time.date()
+    dt = dt.replace(year=dummy_leap_year)
+
+    return next(season for season, (start, end) in seasons if start <= dt <= end)
+
+
 def encode_categorical_data(dataframe):
     obj_columns = dataframe.select_dtypes(['object']).columns
     dataframe[obj_columns] = dataframe.select_dtypes(['object']).apply(lambda x: x.astype('category'))
@@ -15,13 +22,6 @@ def encode_categorical_data(dataframe):
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
     return dataframe
-
-
-def get_season(time):
-    dt = time.date()
-    dt = dt.replace(year=dummy_leap_year)
-
-    return next(season for season, (start, end) in seasons if start <= dt <= end)
 
 
 def generate_calendar_features(dataframe):
@@ -89,7 +89,6 @@ def generate_features(dataframe):
     dataframe = generate_calendar_features(dataframe)
     # dataframe = generate_tsfresh_features(dataframe, pollutant)
 
-    dataframe = dataframe.drop(columns='precipAccumulation', errors='ignore')
-    dataframe = dataframe.drop(columns='time', errors='ignore')
+    dataframe = dataframe.drop(columns=['precipAccumulation', 'time'], errors='ignore')
 
     return dataframe
