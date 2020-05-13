@@ -9,12 +9,14 @@ parameters:
     name: city_name
     description: Name of the city
     required: true
-    type: string
+    schema:
+      type: string
   - in: query
     name: pollutant
     description: Name of the pollutant
     required: false
-    type: string
+    schema:
+      type: string
 responses:
   200:
     description: Initialized training operation for the specified city and all available sensors.

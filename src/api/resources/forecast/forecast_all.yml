@@ -10,12 +10,14 @@ parameters:
     name: pollutant_name
     description: Name of the pollutant
     required: true
-    type: string
+    schema:
+      type: string
   - in: query
     name: timestamp
     description: Timestamp to predict
     required: false
-    type: integer
+    schema:
+      type: integer
 responses:
   200:
     description: Returned json data of the predicted pollutant for a specific timestamp.

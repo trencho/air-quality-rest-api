@@ -15,6 +15,10 @@ def create_app():
     app.config['MONGO_URI'] = ('mongodb://' + os.environ['MONGODB_USERNAME'] + ':' + os.environ['MONGODB_PASSWORD']
                                + '@' + os.environ['MONGODB_HOSTNAME'] + ':27017/' + os.environ['MONGODB_DATABASE'])
     mongo.init_app(app)
+
+    app.config['SWAGGER'] = {
+        'openapi': '3.0.3'
+    }
     swagger.init_app(app)
 
     return app
