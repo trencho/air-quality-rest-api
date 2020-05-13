@@ -8,12 +8,14 @@ parameters:
     name: start_time
     description: The initial start time to fetch the data
     required: false
-    type: integer
+    schema:
+      type: integer
   - in: query
     name: end_time
     description: The end time until to fetch the data
     required: false
-    type: integer
+    schema:
+      type: integer
 responses:
   200:
     description: Started the operation to fetch weather and pollution data from external APIs for all available cities.

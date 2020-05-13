@@ -9,7 +9,8 @@ parameters:
     name: pollutant
     description: Name of the pollutant
     required: false
-    type: string
+    schema:
+      type: string
 responses:
   200:
     description: Initialized training operation for all cities and available sensors.

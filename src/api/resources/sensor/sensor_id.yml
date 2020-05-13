@@ -8,12 +8,14 @@ parameters:
     name: city_name
     description: Name of the city
     required: true
-    type: string
+    schema:
+      type: string
   - in: path
     name: sensor_id
     description: Id of the sensor
     required: true
-    type: string
+    schema:
+      type: string
 responses:
   200:
     description: Returned json data of the selected sensor for the specified city.
