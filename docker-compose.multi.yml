@@ -3,7 +3,7 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: docker/nginx/Dockerfile
+      dockerfile: docker/multi/nginx/Dockerfile
     container_name: nginx
     depends_on:
       - flask
@@ -19,7 +19,7 @@ services:
   flask:
     build:
       context: .
-      dockerfile: docker/flask/Dockerfile
+      dockerfile: docker/multi/flask/Dockerfile
     container_name: flask
     depends_on:
       - mongodb

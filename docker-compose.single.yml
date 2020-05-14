@@ -3,7 +3,7 @@ services:
   flask:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/single/Dockerfile
     container_name: flask
     depends_on:
       - mongodb
