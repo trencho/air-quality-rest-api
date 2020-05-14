@@ -11,7 +11,7 @@ RUN apt-get update -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY ./requirements.txt /requirements.txt
-COPY ./docker/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/single/nginx.conf /etc/nginx/nginx.conf
 
 WORKDIR /
 
@@ -29,4 +29,4 @@ RUN adduser --disabled-password --gecos '' nginx && \
 ENV PYTHONPATH '/src'
 
 # Run the command to start nginx + uWSGI
-ENTRYPOINT ["/bin/bash", "/docker/launch.sh"]
+ENTRYPOINT ["/bin/bash", "/docker/single/launch.sh"]

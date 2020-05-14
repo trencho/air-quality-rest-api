@@ -32,5 +32,5 @@ if [ -e /debug1 ]; then
   python3 /src/api/app.py
 else
   echo "Running app in production mode!"
-  nginx && uwsgi --ini /docker/uwsgi.ini
+  nginx && uwsgi --ini /docker/single/uwsgi.ini
 fi
