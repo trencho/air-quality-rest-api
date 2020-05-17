@@ -26,7 +26,5 @@ RUN adduser --disabled-password --gecos '' nginx && \
     chmod 777 /run/ -R && \
     chmod 777 /root/ -R
 
-ENV PYTHONPATH '/src'
-
 # Run the command to start nginx + uWSGI
 ENTRYPOINT ["/bin/bash", "/docker/single/launch.sh"]
