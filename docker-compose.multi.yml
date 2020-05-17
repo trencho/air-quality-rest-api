@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.8'
 services:
   nginx:
     build:
@@ -43,9 +43,10 @@ services:
       - flaskdata:/var/api
 
   mongodb:
-    image: mongo:latest
+    build:
+      context: .
+      dockerfile: docker/mongo/Dockerfile
     container_name: mongodb
-    command: mongod --auth
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongodbuser
       MONGO_INITDB_ROOT_PASSWORD: your_mongodb_root_password
