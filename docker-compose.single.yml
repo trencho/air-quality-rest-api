@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.7'
 services:
   flask:
     build:
@@ -39,10 +39,10 @@ services:
       MONDODB_LOG_DIR: /dev/null
     expose:
       - 27017
-    volumes:
-      - mongodbdata:/data/db
     networks:
       - network
+    volumes:
+      - mongodbdata:/data/db
 networks:
   network:
     driver: bridge
