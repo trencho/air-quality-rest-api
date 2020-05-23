@@ -20,5 +20,5 @@ station_names = ['Centar', 'GaziBaba', 'Karpos', 'Kavadarci', 'Kicevo', 'Kocani'
                  'Tetovo']
 for station_name in station_names:
     df = data_frame[data_frame['StationName'] == station_name]
-    df.drop(columns=['StationName'], inplace=True)
+    df.drop(columns='StationName', inplace=True)
     df.to_csv('D:/Downloads/NAPMMU/Datasets/Pollution/pollution_report_' + station_name + '.csv', index=False)

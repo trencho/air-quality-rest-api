@@ -83,6 +83,7 @@ def extract_pollution_json(pulse_eco_env, city_name, sensor, start_timestamp, en
         dataframe['time'] = pd.to_datetime(dataframe['time'])
         dataframe['time'] = dataframe['time'].values.astype(np.int64) // 10 ** 9
         dataframe['value'] = pd.to_numeric(dataframe['value'])
+        dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
         dataframe.sort_values(by='time', inplace=True)
 
         dataframe = normalize_pollution_data(dataframe)

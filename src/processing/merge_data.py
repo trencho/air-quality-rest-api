@@ -14,7 +14,7 @@ def drop_numerical_outliers(df, z_thresh=3):
     constrains = df.select_dtypes(include=[np.number]).apply(lambda x: np.abs(stats.zscore(x)) < z_thresh,
                                                              result_type='reduce').all(axis=1)
     # Drop (inplace) values set to be rejected
-    df.drop(df.index[~constrains], inplace=True)
+    df.drop(index=df.index[~constrains], inplace=True)
 
 
 def merge(city_name, sensor_id):
@@ -23,11 +23,11 @@ def merge(city_name, sensor_id):
     pollution_data = pd.read_csv(
         DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/pollution_report.csv', dtype=object)
 
-    dataframe = pd.merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on=['sensorId', 'time'])
+    dataframe = pd.merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
 
     # nunique = dataframe.apply(pd.Series.nunique)
     # cols_to_drop = nunique[nunique == 1].index
-    # dataframe.drop(cols_to_drop, axis=1, inplace=True)
+    # dataframe.drop(columns=cols_to_drop, inplace=True)
 
     # dataframe.loc[:, dataframe.std() > 0]
 
@@ -69,7 +69,7 @@ def merge(city_name, sensor_id):
 
     dataframe[pollutants_wo_aqi].replace(0, np.nan).bfill(inplace=True)
     dataframe[pollutants_wo_aqi].replace(0, np.nan).ffill(inplace=True)
-    dataframe.drop(drop_columns_std, axis=1, inplace=True)
+    dataframe.drop(columns=drop_columns_std, inplace=True)
 
     dataframe['aqi'] = dataframe.apply(
         lambda row: calculate_aqi(calculate_co_aqi(row['co']) if 'co' in dataframe.columns else 0,
