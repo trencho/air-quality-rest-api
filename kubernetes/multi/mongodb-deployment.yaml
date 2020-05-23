@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.multi.yml
+    kompose.version: 1.19.0 (f63a961c)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongodb
+  name: mongodb
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.multi.yml
+        kompose.version: 1.19.0 (f63a961c)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: mongodb
+    spec:
+      containers:
+        - env:
+            - name: MONDODB_LOG_DIR
+              value: /dev/null
+            - name: MONGODB_DATA_DIR
+              value: /data/db
+            - name: MONGO_INITDB_DATABASE
+              value: air-quality
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: your_mongodb_root_password
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: mongodbuser
+          image: mongodb
+          name: mongodb
+          resources: {}
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodbdata
+      restartPolicy: Always
+      volumes:
+        - name: mongodbdata
+          persistentVolumeClaim:
+            claimName: mongodbdata
+status: {}
