@@ -21,7 +21,7 @@ def normalize_pollution_data(df):
         if dataframe.empty:
             dataframe = dataframe.append(dataframe_collection[key], ignore_index=True)
         else:
-            dataframe = pd.merge(dataframe, dataframe_collection[key], how='left', on=['sensorId', 'time'])
+            dataframe = pd.merge(dataframe, dataframe_collection[key], how='left', on='time')
 
     cols = list(dataframe)
     # move the column to head of list using index, pop and insert

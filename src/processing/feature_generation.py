@@ -52,7 +52,7 @@ def generate_calendar_features(dataframe):
 def select_tsfresh_features(dataframe, target):
     validation_split = len(dataframe) * 3 // 4
 
-    train_x = dataframe.iloc[:validation_split].drop(target, axis=1)
+    train_x = dataframe.iloc[:validation_split].drop(columns=target)
     train_y = dataframe.iloc[:validation_split][target]
 
     train_features_selected = select_features(train_x, train_y)
@@ -63,7 +63,7 @@ def select_tsfresh_features(dataframe, target):
 
 def generate_tsfresh_features(dataframe, target):
     y = dataframe[target]
-    dataframe.drop(target, axis=1, inplace=True)
+    dataframe.drop(columns=target, inplace=True)
 
     dataframe = dataframe.stack()
     dataframe.index.rename(['id', 'time'], inplace=True)

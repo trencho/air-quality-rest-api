@@ -46,7 +46,7 @@ def draw_predictions(city, sensor, pollutant):
     y1 = dataframe_predictions['Actual']
     y2 = dataframe_predictions['Predicted']
 
-    # Plot Line (Left Y Axis)
+    # Plot Line (left Y axis)
     fig, ax = plt.subplots(1, 1, figsize=(16, 10), dpi=80)
     ax.plot(x, y1, color='tab:red', label='Actual')
     ax.plot(x, y2, color='tab:green',
