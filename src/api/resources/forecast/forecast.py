@@ -3,7 +3,8 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
-from api.resources import check_city, check_environment_variables, check_sensor, fetch_cities, fetch_sensors, \
+from api.resources import check_city, fetch_external_api_environment_variables, check_sensor, fetch_cities, \
+    fetch_sensors, \
     forecast_city_sensor, next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 from definitions import pollutants
@@ -20,11 +21,7 @@ forecast = Blueprint('forecast', __name__)
 @swag_from('forecast_city.yml', endpoint='forecast.forecast_city', methods=['GET'])
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
 def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
-    check_env = check_environment_variables()
-    if isinstance(check_env, tuple):
-        dark_sky_env, pulse_eco_env = check_env
-    elif isinstance(check_env, Response):
-        return check_env
+    dark_sky_env, pulse_eco_env = fetch_external_api_environment_variables()
 
     if pollutant_name not in pollutants:
         message = 'Value cannot be predicted because the pollutant is either missing or invalid.'
