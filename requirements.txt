@@ -6,6 +6,7 @@ lightgbm
 matplotlib
 numpy
 pandas
+pymongo[srv]
 pytz
 requests
 scikit-learn
