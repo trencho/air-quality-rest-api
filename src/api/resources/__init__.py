@@ -38,18 +38,9 @@ def check_city(city_name):
     return None
 
 
-def check_environment_variables():
+def fetch_external_api_environment_variables():
     dark_sky_env = os.environ.get(dark_sky_env_value)
-    if dark_sky_env is None:
-        message = 'The environment variable \'' + dark_sky_env_value + '\' is not set'
-        status_code = HTTP_BAD_REQUEST
-        return make_response(jsonify(error_message=message), status_code)
-
     pulse_eco_env = os.environ.get(pulse_eco_env_value)
-    if pulse_eco_env is None:
-        message = 'The environment variable \'' + pulse_eco_env_value + '\' is not set'
-        status_code = HTTP_BAD_REQUEST
-        return make_response(jsonify(error_message=message), status_code)
 
     return dark_sky_env, pulse_eco_env
 

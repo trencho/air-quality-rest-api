@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, make_response, Response, request
+from flask import Blueprint, jsonify, make_response, request
 
-from api.resources import check_city, check_environment_variables, fetch_cities, fetch_city_data, next_hour, \
+from api.resources import check_city, fetch_external_api_environment_variables, fetch_cities, fetch_city_data, \
+    next_hour, \
     fetch_sensors, check_sensor
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 
@@ -22,11 +23,7 @@ def current_hour(t):
 @swag_from('fetch_city.yml', endpoint='fetch.fetch_city', methods=['GET'])
 @swag_from('fetch_city_sensor.yml', endpoint='fetch.fetch_city_sensor', methods=['GET'])
 def fetch_data(city_name=None, sensor_id=None):
-    check_env = check_environment_variables()
-    if isinstance(check_env, tuple):
-        dark_sky_env, pulse_eco_env = check_env
-    elif isinstance(check_env, Response):
-        return check_env
+    dark_sky_env, pulse_eco_env = fetch_external_api_environment_variables()
 
     current_datetime = current_hour(datetime.now())
     current_timestamp = int(datetime.timestamp(current_datetime))

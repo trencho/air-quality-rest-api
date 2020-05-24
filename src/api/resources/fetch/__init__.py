@@ -1,1 +1,1 @@
-from .fetch import fetch
+from .fetch import current_hour, fetch
