@@ -4,8 +4,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
 from definitions import OPEN_API_VERSION
-from definitions import mongo_db_host_env_value, mongo_db_name_env_value, mongo_db_port_env_value, \
-    mongo_db_user_name_env_value, mongo_db_user_pass_env_value
+from definitions import mongo_db_host_env_value, mongo_db_name_env_value, mongo_db_user_name_env_value, \
+    mongo_db_user_pass_env_value
 from .blueprints import register_blueprints
 from .db import mongo
 from .environment import check_environment_variables
@@ -34,8 +34,8 @@ def create_app():
     # Comment these 5 lines for the mongodb when running app in debug mode
     app.config['MONGO_URI'] = ('mongodb://' + os.environ.get(mongo_db_user_name_env_value) + ':'
                                + os.environ.get(mongo_db_user_pass_env_value) + '@'
-                               + os.environ.get(mongo_db_host_env_value) + ':' + os.environ.get(mongo_db_port_env_value)
-                               + '/' + os.environ.get(mongo_db_name_env_value) + '?retryWrites=true&w=majority')
+                               + os.environ.get(mongo_db_host_env_value) + '/' + os.environ.get(mongo_db_name_env_value)
+                               + '?retryWrites=true&w=majority')
     mongo.init_app(app)
 
     app.config['SWAGGER'] = {
