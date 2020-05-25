@@ -1,14 +1,11 @@
 from datetime import datetime
 
-from api.resources import fetch_external_api_environment_variables, fetch_cities, fetch_city_data, fetch_sensors, \
-    next_hour, train_city_sensors
+from api.resources import fetch_cities, fetch_city_data, fetch_sensors, next_hour, train_city_sensors
 from api.resources.fetch import current_hour
 from definitions import pollutants
 
 
 def schedule_fetch_date():
-    dark_sky_env, pulse_eco_env = fetch_external_api_environment_variables()
-
     current_datetime = current_hour(datetime.now())
     current_timestamp = int(datetime.timestamp(current_datetime))
     start_time = current_timestamp
@@ -21,7 +18,7 @@ def schedule_fetch_date():
     for city in cities:
         sensors = fetch_sensors(city['cityName'])
         for sensor in sensors:
-            fetch_city_data(dark_sky_env, pulse_eco_env, city['cityName'], sensor, start_time, end_time)
+            fetch_city_data(city['cityName'], sensor, start_time, end_time)
 
 
 def schedule_model_training():

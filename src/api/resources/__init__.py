@@ -1,4 +1,3 @@
-import json
 import os
 import pickle
 from datetime import datetime
@@ -10,7 +9,7 @@ from flask import jsonify, make_response, Response
 
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
-from definitions import dark_sky_env_value, pulse_eco_env_value
+from definitions import dark_sky_env_value
 from definitions import dummy_leap_year, seasons
 from definitions import status_active
 from modeling import train
@@ -36,13 +35,6 @@ def check_city(city_name):
             return city
 
     return None
-
-
-def fetch_external_api_environment_variables():
-    dark_sky_env = os.environ.get(dark_sky_env_value)
-    pulse_eco_env = os.environ.get(pulse_eco_env_value)
-
-    return dark_sky_env, pulse_eco_env
 
 
 def fetch_sensors(city_name):
@@ -81,30 +73,26 @@ def merge_city_sensor_data(threads, city_name, sensor_id):
     Thread(target=merge, args=(city_name, sensor_id)).start()
 
 
-def fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time):
+def fetch_city_data(city_name, sensor, start_time, end_time):
     create_data_path(city_name, sensor['sensorId'])
 
     threads = list()
 
-    extract_weather_thread = Thread(target=extract_weather_json,
-                                    args=(dark_sky_env, city_name, sensor, start_time, end_time))
+    extract_weather_thread = Thread(target=extract_weather_json, args=(city_name, sensor, start_time, end_time))
     threads.append(extract_weather_thread)
     extract_weather_thread.start()
 
-    extract_pollution_thread = Thread(target=extract_pollution_json,
-                                      args=(pulse_eco_env, city_name, sensor, start_time, end_time))
+    extract_pollution_thread = Thread(target=extract_pollution_json, args=(city_name, sensor, start_time, end_time))
     threads.append(extract_pollution_thread)
     extract_pollution_thread.start()
 
     Thread(target=merge_city_sensor_data, args=(threads, city_name, sensor['sensorId'])).start()
 
 
-def forecast_sensor(dark_sky_env, sensor, start_time):
+def forecast_sensor(sensor, start_time):
     url = 'https://api.darksky.net/forecast'
     params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
-    with open(dark_sky_env) as dark_sky_file:
-        dark_sky_json = json.load(dark_sky_file)
-    private_key = dark_sky_json.get('private_key')
+    private_key = os.environ.get(dark_sky_env_value)
     link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
 
     with requests.get(url=link, params=params) as weather_response:
@@ -146,7 +134,7 @@ def load_regression_model(city, sensor, pollutant):
     return model, model_features
 
 
-def forecast_city_sensor(dark_sky_env, city, sensor, pollutant, timestamp):
+def forecast_city_sensor(city, sensor, pollutant, timestamp):
     load_model = load_regression_model(city, sensor, pollutant)
     if isinstance(load_model, tuple):
         model, model_features = load_model
@@ -155,7 +143,7 @@ def forecast_city_sensor(dark_sky_env, city, sensor, pollutant, timestamp):
         return dict()
 
     features_dict = dict()
-    forecast_data = forecast_sensor(dark_sky_env, sensor, timestamp)
+    forecast_data = forecast_sensor(sensor, timestamp)
     date_time = datetime.fromtimestamp(timestamp)
     for model_feature in model_features:
         if model_feature == 'hour':

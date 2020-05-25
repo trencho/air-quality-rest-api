@@ -3,9 +3,7 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
 
-from api.resources import check_city, fetch_external_api_environment_variables, fetch_cities, fetch_city_data, \
-    next_hour, \
-    fetch_sensors, check_sensor
+from api.resources import check_city, check_sensor, fetch_cities, fetch_city_data, fetch_sensors, next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 
 fetch = Blueprint('fetch', __name__)
@@ -23,8 +21,6 @@ def current_hour(t):
 @swag_from('fetch_city.yml', endpoint='fetch.fetch_city', methods=['GET'])
 @swag_from('fetch_city_sensor.yml', endpoint='fetch.fetch_city_sensor', methods=['GET'])
 def fetch_data(city_name=None, sensor_id=None):
-    dark_sky_env, pulse_eco_env = fetch_external_api_environment_variables()
-
     current_datetime = current_hour(datetime.now())
     current_timestamp = int(datetime.timestamp(current_datetime))
     start_time = request.args.get('start_time', default=current_timestamp, type=int)
@@ -43,7 +39,7 @@ def fetch_data(city_name=None, sensor_id=None):
         for city in cities:
             sensors = fetch_sensors(city['cityName'])
             for sensor in sensors:
-                fetch_city_data(dark_sky_env, pulse_eco_env, city['cityName'], sensor, start_time, end_time)
+                fetch_city_data(city['cityName'], sensor, start_time, end_time)
 
         message = 'Fetched weather and pollution data from the external APIs for all cities.'
         return make_response(jsonify(success=message))
@@ -57,7 +53,7 @@ def fetch_data(city_name=None, sensor_id=None):
     if sensor_id is None:
         sensors = fetch_sensors(city['cityName'])
         for sensor in sensors:
-            fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time)
+            fetch_city_data(city_name, sensor, start_time, end_time)
 
         message = ('Started the operation to fetch weather and pollution data from the external APIs for '
                    + city['siteName'] + ' and all active sensors.')
@@ -69,7 +65,7 @@ def fetch_data(city_name=None, sensor_id=None):
             status_code = HTTP_NOT_FOUND
             return make_response(jsonify(error_message=message), status_code)
 
-        fetch_city_data(dark_sky_env, pulse_eco_env, city_name, sensor, start_time, end_time)
+        fetch_city_data(city_name, sensor, start_time, end_time)
 
         message = ('Started the operation to fetch weather and pollution data from the external APIs for '
                    + city['siteName'] + ' and ' + sensor['description'] + '.')

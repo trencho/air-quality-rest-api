@@ -3,9 +3,7 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
-from api.resources import check_city, fetch_external_api_environment_variables, check_sensor, fetch_cities, \
-    fetch_sensors, \
-    forecast_city_sensor, next_hour
+from api.resources import check_city, check_sensor, fetch_cities, fetch_sensors, forecast_city_sensor, next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 from definitions import pollutants
 
@@ -21,8 +19,6 @@ forecast = Blueprint('forecast', __name__)
 @swag_from('forecast_city.yml', endpoint='forecast.forecast_city', methods=['GET'])
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
 def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
-    dark_sky_env, pulse_eco_env = fetch_external_api_environment_variables()
-
     if pollutant_name not in pollutants:
         message = 'Value cannot be predicted because the pollutant is either missing or invalid.'
         status_code = HTTP_NOT_FOUND
@@ -43,7 +39,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
         for city in cities:
             sensors = fetch_sensors(city['cityName'])
             for sensor in sensors:
-                forecast_result = forecast_city_sensor(dark_sky_env, city, sensor, pollutant_name, timestamp)
+                forecast_result = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
                 if isinstance(forecast_result, Response):
                     return forecast_result
 
@@ -60,7 +56,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
     if sensor_id is None:
         sensors = fetch_sensors(city['cityName'])
         for sensor in sensors:
-            forecast_result = forecast_city_sensor(dark_sky_env, city, sensor, pollutant_name, timestamp)
+            forecast_result = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
             if isinstance(forecast_result, Response):
                 return forecast_result
 
@@ -74,7 +70,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    forecast_result = forecast_city_sensor(dark_sky_env, city, sensor, pollutant_name, timestamp)
+    forecast_result = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
     if isinstance(forecast_result, Response):
         return forecast_result
 
