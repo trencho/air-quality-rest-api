@@ -12,16 +12,11 @@ from .environment import check_environment_variables
 from .schedule import schedule_fetch_date, schedule_model_training
 from .swagger import swagger
 
-__all__ = [
-    'schedule_fetch_date',
-    'schedule_model_training'
-]
-
 
 def schedule_operations():
     scheduler = BackgroundScheduler()
-    for operation in __all__:
-        scheduler.add_job(func=globals()[operation], trigger='interval', hours=1)
+    scheduler.add_job(func=schedule_fetch_date, trigger='interval', hours=1)
+    scheduler.add_job(func=schedule_model_training, trigger='cron', year='*', month='*', day='last')
 
     scheduler.start()
 
