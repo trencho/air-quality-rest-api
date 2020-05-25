@@ -36,8 +36,15 @@ mongo_db_port_env_value = 'MONGODB_PORT'
 mongo_db_user_name_env_value = 'MONGODB_USERNAME'
 mongo_db_user_pass_env_value = 'MONGODB_PASSWORD'
 
-environment_variables = [dark_sky_env_value, pulse_eco_env_value, mongo_db_host_env_value, mongo_db_name_env_value,
-                         mongo_db_port_env_value, mongo_db_user_name_env_value, mongo_db_user_pass_env_value]
+environment_variables = [
+    dark_sky_env_value,
+    pulse_eco_env_value,
+    mongo_db_host_env_value,
+    mongo_db_name_env_value,
+    mongo_db_port_env_value,
+    mongo_db_user_name_env_value,
+    mongo_db_user_pass_env_value
+]
 
 OPEN_API_VERSION = '3.0.3'
 

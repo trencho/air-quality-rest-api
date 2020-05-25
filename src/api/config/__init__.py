@@ -9,18 +9,21 @@ from definitions import mongo_db_host_env_value, mongo_db_name_env_value, mongo_
 from .blueprints import register_blueprints
 from .db import mongo
 from .environment import check_environment_variables
-from .schedule import schedule_fetch_date
+from .schedule import schedule_fetch_date, schedule_model_training
 from .swagger import swagger
 
 __all__ = [
-    'schedule_fetch_date'
+    'schedule_fetch_date',
+    'schedule_model_training'
 ]
 
 
 def schedule_operations():
+    scheduler = BackgroundScheduler()
     for operation in __all__:
-        scheduler = BackgroundScheduler()
         scheduler.add_job(func=globals()[operation], trigger='interval', hours=1)
+
+    scheduler.start()
 
 
 def create_app():
