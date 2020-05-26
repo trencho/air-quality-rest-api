@@ -1,3 +1,4 @@
+import json
 import os
 import pickle
 from datetime import datetime
@@ -92,7 +93,10 @@ def fetch_city_data(city_name, sensor, start_time, end_time):
 def forecast_sensor(sensor, start_time):
     url = 'https://api.darksky.net/forecast'
     params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
-    private_key = os.environ.get(dark_sky_env_value)
+    dark_sky_env = os.environ.get(dark_sky_env_value)
+    with open(dark_sky_env) as dark_sky_file:
+        dark_sky_json = json.load(dark_sky_file)
+    private_key = dark_sky_json.get('private_key')
     link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
 
     with requests.get(url=link, params=params) as weather_response:
