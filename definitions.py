@@ -43,7 +43,7 @@ environment_variables = [
     pulse_eco_pass_env_value,
     mongo_db_host_env_value,
     mongo_db_name_env_value,
-    mongo_db_port_env_value,
+    # mongo_db_port_env_value,
     mongo_db_user_name_env_value,
     mongo_db_user_pass_env_value
 ]
