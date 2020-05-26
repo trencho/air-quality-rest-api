@@ -23,6 +23,3 @@ COPY .. /
 
 RUN chmod 777 /run/ -R && \
     chmod 777 /root/ -R
-
-# Run the command to start uWSGI
-ENTRYPOINT ["/bin/bash", "uwsgi", "--ini", "/heroku/uwsgi.ini"]
