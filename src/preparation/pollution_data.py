@@ -1,3 +1,4 @@
+import json
 import os
 import traceback
 from datetime import datetime
@@ -9,9 +10,7 @@ from pandas import json_normalize
 from pytz import timezone
 from timezonefinder import TimezoneFinder
 
-from definitions import DATA_EXTERNAL_PATH
-from definitions import pollutants
-from definitions import pulse_eco_user_env_value, pulse_eco_pass_env_value
+from definitions import DATA_EXTERNAL_PATH, pulse_eco_env_value, pollutants
 from preparation.handle_data import save_dataframe
 from processing.normalize_data import normalize_pollution_data
 
@@ -30,8 +29,11 @@ def format_datetime(timestamp, tz):
 def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
     url = 'https://' + city_name + '.pulse.eco/rest/dataRaw'
 
-    username = os.environ.get(pulse_eco_user_env_value)
-    password = os.environ.get(pulse_eco_pass_env_value)
+    pulse_eco_env = os.environ.get(pulse_eco_env_value)
+    with open(pulse_eco_env) as pulse_eco_file:
+        pulse_eco_json = json.load(pulse_eco_file)
+    username = pulse_eco_json.get('username')
+    password = pulse_eco_json.get('password')
 
     tf = TimezoneFinder()
     sensor_position = sensor['position'].split(',')

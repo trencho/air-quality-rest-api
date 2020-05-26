@@ -1,3 +1,4 @@
+import json
 import os
 import traceback
 
@@ -5,8 +6,7 @@ import pandas as pd
 import requests
 from pandas import json_normalize
 
-from definitions import DATA_EXTERNAL_PATH
-from definitions import dark_sky_env_value
+from definitions import DATA_EXTERNAL_PATH, dark_sky_env_value
 from preparation.handle_data import save_dataframe
 
 url = 'https://api.darksky.net/forecast'
@@ -16,7 +16,10 @@ hour_in_secs = 3600
 
 
 def extract_weather_json(city_name, sensor, start_time, end_time):
-    private_key = os.environ.get(dark_sky_env_value)
+    dark_sky_env = os.environ.get(dark_sky_env_value)
+    with open(dark_sky_env) as dark_sky_file:
+        dark_sky_json = json.load(dark_sky_file)
+    private_key = dark_sky_json.get('private_key')
     link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
 
     dataframe = pd.DataFrame()
