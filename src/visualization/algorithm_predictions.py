@@ -4,8 +4,7 @@ import warnings
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
-from definitions import algorithms
+from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, regression_models
 
 warnings.filterwarnings(action='once')
 
@@ -27,7 +26,7 @@ def draw_predictions(city, sensor, pollutant):
     test_dataset.reset_index(drop=True, inplace=True)
 
     dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
-    for algorithm in algorithms:
+    for algorithm in regression_models:
         dataframe_errors = pd.read_csv(RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId']
                                        + '/' + pollutant + '/' + algorithm + '/error.csv')
         dataframe_algorithms = dataframe_algorithms.append(
@@ -50,7 +49,7 @@ def draw_predictions(city, sensor, pollutant):
     fig, ax = plt.subplots(1, 1, figsize=(16, 10), dpi=80)
     ax.plot(x, y1, color='tab:red', label='Actual')
     ax.plot(x, y2, color='tab:green',
-            label='Predicted: ' + algorithms[dataframe_algorithms.iloc[algorithm_index]['algorithm']])
+            label='Predicted: ' + regression_models[dataframe_algorithms.iloc[algorithm_index]['algorithm']])
     # Decorations
     # ax (left Y axis)
     ax.set_xlabel('Dates', fontsize=22)

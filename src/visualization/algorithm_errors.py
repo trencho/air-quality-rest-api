@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from definitions import RESULTS_ERRORS_PATH
-from definitions import algorithms
+from definitions import RESULTS_ERRORS_PATH, regression_models
 
 warnings.filterwarnings(action='once')
 
@@ -31,12 +30,12 @@ def draw_errors(city, sensor, pollutant):
 
     for error_type in error_types:
         dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
-        for algorithm in algorithms:
+        for algorithm in regression_models:
             dataframe_errors = pd.read_csv(
                 RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/'
                 + algorithm + '/error.csv')
             dataframe_algorithms = dataframe_algorithms.append(
-                [{'algorithm': algorithms[algorithm], pollutant: dataframe_errors.iloc[0][error_type]}],
+                [{'algorithm': regression_models[algorithm], pollutant: dataframe_errors.iloc[0][error_type]}],
                 ignore_index=True)
 
         dataframe_algorithms.sort_values(by=pollutant, ascending=False, inplace=True)
