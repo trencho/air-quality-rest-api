@@ -3,8 +3,7 @@ from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response
 
 from api.resources import check_city, check_sensor
-from definitions import HTTP_NOT_FOUND, DATA_EXTERNAL_PATH
-from definitions import pollutants
+from definitions import DATA_EXTERNAL_PATH, HTTP_NOT_FOUND, pollutants
 
 pollutant = Blueprint('pollutant', __name__)
 

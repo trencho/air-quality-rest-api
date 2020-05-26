@@ -59,7 +59,7 @@ pollutants = {
     'aqi': 'AQI'
 }
 
-algorithms = {
+regression_models = {
     'DecisionTreeRegressionModel': 'Decision Tree',
     'DummyRegressionModel': 'Dummy',
     'LightGBMRegressionModel': 'LightGBM',

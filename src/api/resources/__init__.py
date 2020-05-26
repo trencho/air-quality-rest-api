@@ -8,11 +8,8 @@ import pandas as pd
 import requests
 from flask import jsonify, make_response, Response
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH
-from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
-from definitions import dark_sky_env_value
-from definitions import dummy_leap_year, seasons
-from definitions import status_active
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, status_active, \
+    dark_sky_env_value, dummy_leap_year, seasons
 from modeling import train
 from preparation import extract_pollution_json, extract_weather_json
 from processing import encode_categorical_data, merge

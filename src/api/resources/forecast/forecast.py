@@ -4,8 +4,7 @@ from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
 from api.resources import check_city, check_sensor, fetch_cities, fetch_sensors, forecast_city_sensor, next_hour
-from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
-from definitions import pollutants
+from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND, pollutants
 
 forecast = Blueprint('forecast', __name__)
 
