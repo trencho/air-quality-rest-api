@@ -28,8 +28,7 @@ HTTP_BAD_REQUEST = 400
 HTTP_NOT_FOUND = 404
 
 dark_sky_env_value = 'DARK_SKY_CREDENTIALS'
-pulse_eco_user_env_value = 'PULSE_ECO_USER_CREDENTIALS'
-pulse_eco_pass_env_value = 'PULSE_ECO_PASS_CREDENTIALS'
+pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
 
 mongo_db_host_env_value = 'MONGODB_HOSTNAME'
 mongo_db_name_env_value = 'MONGODB_DATABASE'
@@ -39,8 +38,7 @@ mongo_db_user_pass_env_value = 'MONGODB_PASSWORD'
 
 environment_variables = [
     dark_sky_env_value,
-    pulse_eco_user_env_value,
-    pulse_eco_pass_env_value,
+    pulse_eco_env_value,
     mongo_db_host_env_value,
     mongo_db_name_env_value,
     # mongo_db_port_env_value,
