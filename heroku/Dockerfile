@@ -11,7 +11,7 @@ RUN apt-get update -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY ../requirements.txt /requirements.txt
+COPY ./requirements.txt /requirements.txt
 
 WORKDIR /
 
@@ -19,7 +19,7 @@ WORKDIR /
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container
-COPY .. /
+COPY . /
 
 RUN chmod 777 /run/ -R && \
     chmod 777 /root/ -R
