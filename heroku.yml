@@ -1,5 +1,5 @@
 build:
   docker:
-    web: heroku/Dockerfile
+    web: Dockerfile
 run:
   web: uwsgi heroku/uwsgi.ini
