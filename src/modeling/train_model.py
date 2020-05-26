@@ -5,8 +5,8 @@ import pickle
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
-from definitions import algorithms as regression_models, pollutants
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, \
+    regression_models
 from modeling import save_errors, save_results
 from models import make_model
 from processing import backward_elimination, generate_features, value_scaling

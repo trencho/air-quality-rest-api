@@ -3,7 +3,7 @@ import pandas as pd
 from scipy import stats
 from sklearn.impute import KNNImputer
 
-from definitions import pollutants, DATA_EXTERNAL_PATH
+from definitions import DATA_EXTERNAL_PATH, pollutants
 from preparation.handle_data import save_dataframe
 from processing import calculate_aqi, calculate_co_aqi, calculate_no2_aqi, calculate_o3_aqi, calculate_pm25_aqi, \
     calculate_pm10_aqi, calculate_so2_aqi

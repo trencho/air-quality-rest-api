@@ -3,9 +3,8 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
-from definitions import OPEN_API_VERSION
 from definitions import mongo_db_host_env_value, mongo_db_name_env_value, mongo_db_user_name_env_value, \
-    mongo_db_user_pass_env_value
+    mongo_db_user_pass_env_value, OPEN_API_VERSION
 from .blueprints import register_blueprints
 from .db import mongo
 from .environment import check_environment_variables
