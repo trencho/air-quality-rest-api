@@ -1,1 +1,1 @@
-web: bin/start-nginx uwsgi heroku/uwsgi.ini
+web: bin/start-nginx-solo uwsgi config/uwsgi.ini
