@@ -17,4 +17,5 @@ statsmodels
 timezonefinder
 tpot
 tsfresh
+uwsgi
 xgboost
