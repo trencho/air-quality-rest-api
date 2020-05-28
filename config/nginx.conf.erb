@@ -36,7 +36,7 @@ http {
   keepalive_timeout 65;
 
   # Include additional parameters for virtual host(s)/server(s)
-  include whitelist.conf
+  # include whitelist.conf;
 
   upstream flask {
     server 0.0.0.0:5000 fail_timeout=0;
