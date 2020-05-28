@@ -64,7 +64,6 @@ http {
 
     # Define the location of the proxy server to send the request to
     location @app {
-      include /etc/nginx/uwsgi_params;
       uwsgi_pass flask;
     }
   }
