@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose convert -f docker-compose.single.yml
+    kompose.cmd: kompose convert -f docker-compose.single.yaml
     kompose.version: 1.19.0 (f63a961c)
   creationTimestamp: null
   labels:
@@ -18,7 +18,7 @@ spec:
   template:
     metadata:
       annotations:
-        kompose.cmd: kompose convert -f docker-compose.single.yml
+        kompose.cmd: kompose convert -f docker-compose.single.yaml
         kompose.version: 1.19.0 (f63a961c)
       creationTimestamp: null
       labels:
