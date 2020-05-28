@@ -36,6 +36,10 @@ http {
   # Include additional parameters for virtual host(s)/server(s)
   # include whitelist.conf;
 
+  upstream flask {
+    server 0.0.0.0:5000 fail_timeout=0;
+  }
+
   # Define the parameters for a specific virtual host/server
   server {
     # Define the server name, IP address, and/or port of the server
@@ -58,7 +62,7 @@ http {
 
     # Define the location of the proxy server to send the request to
     location @app {
-      proxy_pass http://127.0.0.1:5000;
+      proxy_pass http://flask;
     }
   }
 }
