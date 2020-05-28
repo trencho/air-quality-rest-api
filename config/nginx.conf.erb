@@ -7,12 +7,19 @@ error_log logs/nginx/error.log warn;
 
 # events block defines the parameters that affect connection processing.
 events {
+  # Efficient method for connection processing
+  use epoll;
+  # Worker processes will accept new connections by turn
+  accept_mutex on;
   # Define the maximum number of simultaneous connections that can be opened by a worker process
   worker_connections 1024;
 }
 
 # http block defines the parameters for how NGINX should handle HTTP web traffic
 http {
+  # Disable emitting nginx version on error pages and in the "Server" response header field
+  server_tokens off;
+
   # Include the file defining the list of file types that are supported by NGINX
   include mime.types;
   # Define the default file type that is returned to the user
