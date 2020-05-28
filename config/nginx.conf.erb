@@ -37,7 +37,7 @@ http {
   # include whitelist.conf;
 
   upstream flask {
-    server 0.0.0.0:5000 fail_timeout=0;
+    server localhost:5000 fail_timeout=0;
   }
 
   # Define the parameters for a specific virtual host/server
