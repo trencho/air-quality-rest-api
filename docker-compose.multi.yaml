@@ -24,15 +24,15 @@ services:
     depends_on:
       - mongodb
     environment:
-      APP_ENV: prod
-      APP_NAME: air-quality-rest-api
-      PYTHONPATH: /src
-      MONGODB_DATABASE: air-quality
-      MONGODB_USERNAME: flaskuser
-      MONGODB_PASSWORD: your_mongodb_password
-      MONGODB_HOSTNAME: mongodb
-      DARK_SKY_CREDENTIALS: /env/DarkSkyAPI.json
-      PULSE_ECO_CREDENTIALS: /env/PulseEcoAPI.json
+      APP_ENV: ${APP_ENV}
+      APP_NAME: ${APP_NAME}
+      PYTHONPATH: ${PYTHONPATH}
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      MONGODB_HOSTNAME: ${MONGODB_HOSTNAME}
+      DARK_SKY_CREDENTIALS: ${DARK_SKY_CREDENTIALS}
+      PULSE_ECO_CREDENTIALS: ${PULSE_ECO_CREDENTIALS}
     expose:
       - 5000
     networks:
@@ -48,11 +48,11 @@ services:
       dockerfile: docker/mongo/Dockerfile
     container_name: mongodb
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongodbuser
-      MONGO_INITDB_ROOT_PASSWORD: your_mongodb_root_password
-      MONGO_INITDB_DATABASE: air-quality
-      MONGODB_DATA_DIR: /data/db
-      MONDODB_LOG_DIR: /dev/null
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+      MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
+      MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
     expose:
       - 27017
     networks:
