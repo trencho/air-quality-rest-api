@@ -62,7 +62,7 @@ http {
 
     # Define the location of the proxy server to send the request to
     location @app {
-      uwsgi_pass flask;
+      proxy_pass flask;
     }
   }
 }
