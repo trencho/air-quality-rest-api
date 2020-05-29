@@ -58,7 +58,7 @@ http {
     charset utf-8;
 
     # Configure NGINX to reverse proxy HTTP requests to the upstream server (uWSGI (WSGI server))
-    location /rest {
+    location / {
       # Check the files of the proxy server to send the request to
       try_files $uri @app;
 
