@@ -33,5 +33,5 @@ if [ -e /debug1 ]; then
 else
   echo "Running app in production mode!"
   sed -i "s/listen PORT;/listen $PORT;/g" /etc/nginx/nginx.conf
-  nginx && uwsgi --ini config/uwsgi.ini
+  nginx && uwsgi --ini config/uwsgi.ini &
 fi
