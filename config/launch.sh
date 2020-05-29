@@ -32,7 +32,6 @@ if [ -e /debug1 ]; then
   python3 /src/api/app.py
 else
   echo "Running app in production mode!"
-  # shellcheck disable=SC2016
-  sed -i -r 's/ENV[\"PORT\"]/$PORT/g' /etc/nginx/nginx.conf
+  sed -i "s/listen PORT;/listen $PORT;/g" /etc/nginx/nginx.conf
   nginx && uwsgi --ini /docker/single/uwsgi.ini
 fi
