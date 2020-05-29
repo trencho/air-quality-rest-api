@@ -44,9 +44,9 @@ http {
   # Include additional parameters for virtual host(s)/server(s)
   # include whitelist.conf;
 
-  upstream flask {
-    server 0.0.0.0:5000 fail_timeout=0;
-  }
+  # upstream flask {
+  #   server 0.0.0.0:5000 fail_timeout=0;
+  # }
 
   # Define the parameters for a specific virtual host/server
   server {
@@ -71,7 +71,8 @@ http {
     # Define the location of the proxy server to send the request to
     location @app {
       include /etc/nginx/uwsgi_params;
-      proxy_pass http://flask;
+      more_set_headers 'X-Request-Id: $http_x_request_id';
+      uwsgi_pass unix:/tmp/uwsgi.socket;
     }
   }
 }
