@@ -70,7 +70,7 @@ http {
 
     # Define the location of the proxy server to send the request to
     location @app {
-      include /etc/nginx/uwsgi_params;
+      include uwsgi_params;
       more_set_headers 'X-Request-Id: $http_x_request_id';
       uwsgi_pass unix:/tmp/uwsgi.socket;
     }
