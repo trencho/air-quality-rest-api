@@ -12,7 +12,7 @@ RUN apt-get update -y && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY ./requirements.txt /requirements.txt
-COPY config/nginx.conf /etc/nginx/nginx.conf
+COPY config/nginx.conf.erb /etc/nginx/nginx.conf
 
 WORKDIR /
 
