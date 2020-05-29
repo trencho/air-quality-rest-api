@@ -32,5 +32,6 @@ if [ -e /debug1 ]; then
   python3 /src/api/app.py
 else
   echo "Running app in production mode!"
+  sed -i -e "s/<%=\sENV[\"PORT\"]\s%>/$PORT/g" /etc/nginx/nginx.conf
   nginx && uwsgi --ini /docker/single/uwsgi.ini
 fi
