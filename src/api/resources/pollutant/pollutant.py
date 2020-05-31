@@ -24,13 +24,16 @@ def fetch_pollutant(city_name, sensor_id):
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
     measurements = list()
-    for pollutant in pollutants:
-        if pollutant in dataframe.columns:
-            measurement_dict = dict()
-            measurement_dict['name'] = pollutants[pollutant]
-            measurement_dict['value'] = pollutant
-            measurements.append(measurement_dict)
-    message = measurements
-    return make_response(jsonify(message))
+    try:
+        dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
+        for pollutant in pollutants:
+            if pollutant in dataframe.columns:
+                measurement_dict = dict()
+                measurement_dict['name'] = pollutants[pollutant]
+                measurement_dict['value'] = pollutant
+                measurements.append(measurement_dict)
+    except FileNotFoundError:
+        pass
+
+    return make_response(jsonify(measurements))
