@@ -74,5 +74,4 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
         return forecast_result
 
     forecast_results.append(forecast_result)
-
     return make_response(jsonify(forecast_results))
