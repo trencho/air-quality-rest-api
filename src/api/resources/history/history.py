@@ -1,9 +1,10 @@
-import pandas as pd
-from flasgger import swag_from
-from flask import Blueprint, jsonify, make_response
+from datetime import datetime
 
-from api.resources import check_city, check_sensor
-from definitions import HTTP_NOT_FOUND, DATA_EXTERNAL_PATH
+from flasgger import swag_from
+from flask import Blueprint, jsonify, make_response, Response, request
+
+from api.resources import check_city, check_sensor, current_hour, fetch_dataframe
+from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 
 history = Blueprint('history', __name__)
 
@@ -24,12 +25,29 @@ def history_pollutant(city_name, sensor_id, pollutant_name):
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
+    dataframe = fetch_dataframe(city_name, sensor_id)
+    if isinstance(dataframe, Response):
+        # return empty data
+        return make_response(jsonify(dict()))
+
     if pollutant_name not in dataframe.columns:
         message = 'Cannot return historical data because the pollutant is either missing or invalid.'
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
+    start_timestamp = dataframe.iloc[0]['time']
+    start_time = request.args.get('start_time', default=start_timestamp, type=int)
+
+    current_datetime = current_hour(datetime.now())
+    current_timestamp = int(datetime.timestamp(current_datetime))
+    end_time = request.args.get('end_time', default=current_timestamp, type=int)
+    if end_time <= start_time:
+        message = 'Specify end timestamp larger than the current hour\'s timestamp.'
+        status_code = HTTP_BAD_REQUEST
+        return make_response(jsonify(error_message=message), status_code)
+
+    dataframe = dataframe.loc[(dataframe['time'] >= start_time) & (dataframe['time'] <= end_time)]
     dataframe['time'] = dataframe['time'] * 1000
-    history_result = dataframe[['time', pollutant_name]].to_json(orient='values')
-    return make_response(history_result)
+
+    history_results = dataframe[['time', pollutant_name]].to_json(orient='values')
+    return make_response(history_results)

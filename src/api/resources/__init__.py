@@ -15,6 +15,16 @@ from preparation import extract_pollution_json, extract_weather_json
 from processing import encode_categorical_data, merge
 
 
+def fetch_dataframe(city_name, sensor_id):
+    try:
+        dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
+    except FileNotFoundError:
+        message = 'Cannot return historical data because the data is missing for that city and sensor.'
+        return make_response(jsonify(message))
+
+    return dataframe
+
+
 def fetch_cities():
     url = 'https://pulse.eco/rest/city/'
     with requests.get(url) as response:
@@ -189,6 +199,10 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     forecast_result['value'] = float(round(model.predict(features)[0], 2))
 
     return forecast_result
+
+
+def current_hour(t):
+    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour)
 
 
 def next_hour(t):

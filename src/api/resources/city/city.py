@@ -22,5 +22,4 @@ def fetch_city(city_name=None):
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    message = city
-    return make_response(jsonify(message))
+    return make_response(jsonify(city))

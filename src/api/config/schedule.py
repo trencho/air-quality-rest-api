@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from api.resources import fetch_cities, fetch_city_data, fetch_sensors, next_hour, train_city_sensors
-from api.resources.fetch import current_hour
+from api.resources import current_hour, fetch_cities, fetch_city_data, fetch_sensors, next_hour, train_city_sensors
 from definitions import pollutants
 
 
