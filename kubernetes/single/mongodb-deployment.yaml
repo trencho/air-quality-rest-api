@@ -1,15 +1,15 @@
-apiVersion: v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker-compose.single.yaml
-    kompose.version: 1.19.0 (f63a961c)
+    kompose.version: 1.21.0 (992df58d8)
   creationTimestamp: null
   labels:
     io.kompose.service: mongodb
   name: mongodb
 spec:
-  replicas: 1
+  replicas: 4
   selector:
     matchLabels:
       io.kompose.service: mongodb
@@ -19,30 +19,24 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker-compose.single.yaml
-        kompose.version: 1.19.0 (f63a961c)
+        kompose.version: 1.21.0 (992df58d8)
       creationTimestamp: null
       labels:
+        io.kompose.network/network: true
         io.kompose.service: mongodb
     spec:
       containers:
-        - env:
-            - name: MONDODB_LOG_DIR
-              value: /dev/null
-            - name: MONGODB_DATA_DIR
-              value: /data/db
-            - name: MONGO_INITDB_DATABASE
-              value: air-quality
-            - name: MONGO_INITDB_ROOT_PASSWORD
-              value: your_mongodb_root_password
-            - name: MONGO_INITDB_ROOT_USERNAME
-              value: mongodbuser
+        - name: mongodb
           image: mongodb
-          name: mongodb
+          imagePullPolicy: ''
+          ports:
+            - containerPort: 27017
           resources: {}
           volumeMounts:
             - mountPath: /data/db
               name: mongodbdata
       restartPolicy: Always
+      serviceAccountName: ''
       volumes:
         - name: mongodbdata
           persistentVolumeClaim:

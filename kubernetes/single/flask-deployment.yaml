@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker-compose.single.yaml
-    kompose.version: 1.19.0 (f63a961c)
+    kompose.version: 1.21.0 (992df58d8)
   creationTimestamp: null
   labels:
     io.kompose.service: flask
@@ -19,33 +19,16 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker-compose.single.yaml
-        kompose.version: 1.19.0 (f63a961c)
+        kompose.version: 1.21.0 (992df58d8)
       creationTimestamp: null
       labels:
+        io.kompose.network/network: true
         io.kompose.service: flask
     spec:
       containers:
-        - env:
-            - name: APP_ENV
-              value: prod
-            - name: APP_NAME
-              value: air-quality-rest-api
-            - name: DARK_SKY_CREDENTIALS
-              value: /env/DarkSkyAPI.json
-            - name: MONGODB_DATABASE
-              value: air-quality
-            - name: MONGODB_HOSTNAME
-              value: mongodb
-            - name: MONGODB_PASSWORD
-              value: your_mongodb_password
-            - name: MONGODB_USERNAME
-              value: flaskuser
-            - name: PULSE_ECO_CREDENTIALS
-              value: /env/PulseEcoAPI.json
-            - name: PYTHONPATH
-              value: /src
+        - name: flask
           image: flask
-          name: flask
+          imagePullPolicy: ''
           ports:
             - containerPort: 80
           resources: {}
@@ -53,6 +36,7 @@ spec:
             - mountPath: /var/api
               name: flaskdata
       restartPolicy: Always
+      serviceAccountName: ''
       volumes:
         - name: flaskdata
           persistentVolumeClaim:
