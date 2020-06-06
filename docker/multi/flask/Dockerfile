@@ -25,4 +25,4 @@ RUN chmod 777 /run/ -R && \
     chmod 777 /root/ -R
 
 # Run the command to start uWSGI
-ENTRYPOINT ["/bin/bash", "uwsgi", "--ini", "/docker/multi/flask/uwsgi.ini"]
+ENTRYPOINT ["uwsgi", "--ini", "/docker/multi/flask/uwsgi.ini"]
