@@ -2,7 +2,7 @@ version: '3.7'
 services:
   flask:
     build:
-      context: .
+      context: ../..
       dockerfile: docker/single/Dockerfile
     container_name: flask
     depends_on:
@@ -28,7 +28,7 @@ services:
 
   mongodb:
     build:
-      context: .
+      context: ../..
       dockerfile: docker/mongo/Dockerfile
     container_name: mongodb
     environment:
