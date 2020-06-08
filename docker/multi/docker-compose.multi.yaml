@@ -2,7 +2,7 @@ version: '3.7'
 services:
   nginx:
     build:
-      context: .
+      context: ../..
       dockerfile: docker/multi/nginx/Dockerfile
     container_name: nginx
     depends_on:
@@ -18,7 +18,7 @@ services:
 
   flask:
     build:
-      context: .
+      context: ../..
       dockerfile: docker/multi/flask/Dockerfile
     container_name: flask
     depends_on:
@@ -44,7 +44,7 @@ services:
 
   mongodb:
     build:
-      context: .
+      context: ../..
       dockerfile: docker/mongo/Dockerfile
     container_name: mongodb
     environment:
