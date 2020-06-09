@@ -17,10 +17,20 @@ def check_environment_variables():
             exit(-1)
 
 
+def check_collection_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+        return False
+
+    return True
+
+
 def fetch_collection(collection, city_name, sensor_id):
-    db_records = pd.DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
     path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/' + collection + '_report.csv'
-    save_dataframe(db_records, collection, path, sensor_id)
+    if not check_collection_path(path):
+        db_records = pd.DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
+        if not db_records.empty:
+            save_dataframe(db_records, collection, path, sensor_id)
 
 
 def fetch_mongodb_data():
