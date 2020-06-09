@@ -21,8 +21,8 @@ def schedule_operations():
 
 
 def create_app():
-    # Comment these 2 lines to skip the environment variable check and scheduling of api operations
-    # when running app in debug mode
+    # Comment these 2 lines to skip the environment variable check and scheduling of api operations when running app in
+    # debug mode
     check_environment_variables()
     schedule_operations()
 
