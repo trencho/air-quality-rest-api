@@ -59,6 +59,12 @@ pollutants = {
     'aqi': 'AQI'
 }
 
+collections = [
+    'pollution',
+    'summary',
+    'weather'
+]
+
 regression_models = {
     'DecisionTreeRegressionModel': 'Decision Tree',
     'DummyRegressionModel': 'Dummy',
