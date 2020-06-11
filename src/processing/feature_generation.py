@@ -70,8 +70,8 @@ def generate_tsfresh_features(dataframe, target):
     dataframe = dataframe.reset_index()
 
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        dataframe = extract_features(dataframe, column_id="id", column_sort="time")
+        warnings.simplefilter('ignore')
+        dataframe = extract_features(dataframe, column_id='id', column_sort='time')
 
     dataframe = impute(dataframe)
     dataframe[target] = y
