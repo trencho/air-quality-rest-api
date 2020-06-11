@@ -15,7 +15,7 @@ def data_dump():
     for root, directories, files in walk(ROOT_DIR):
         for file in files:
             if file.endswith('.csv'):
-                file_list.append(pd.read_csv(path.join(root, file)))
+                file_list.append(pd.read_csv(path.join(root, file)).to_csv(index=False))
                 rel_dir = path.relpath(root, ROOT_DIR)
                 rel_file = path.join(rel_dir, file)
                 file_names.append(rel_file)
