@@ -17,7 +17,7 @@ def data_dump():
             if file.endswith('.csv'):
                 file_list.append(pd.read_csv(path.join(root, file)).to_csv(index=False))
                 rel_dir = path.relpath(root, ROOT_DIR)
-                rel_file = path.join(rel_dir, file)
+                rel_file = path.join(rel_dir, file).replace('\\', '/')
                 file_names.append(rel_file)
 
     if file_list:
