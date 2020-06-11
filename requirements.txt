@@ -7,6 +7,7 @@ lightgbm
 matplotlib
 numpy
 pandas
+pygithub
 pymongo[srv]
 pytz
 requests
