@@ -32,7 +32,7 @@ def weighted_hamming(data):
     return distances
 
 
-def distance_matrix(data, numeric_distance="euclidean", categorical_distance="jaccard"):
+def distance_matrix(data, numeric_distance='euclidean', categorical_distance='jaccard'):
     """ Compute the pairwise distance attribute by attribute in order to account for different variables type:
         - Continuous
         - Categorical
@@ -57,8 +57,8 @@ def distance_matrix(data, numeric_distance="euclidean", categorical_distance="ja
         @returns:
             - the distance matrix
     """
-    possible_continuous_distances = ["euclidean", "cityblock"]
-    possible_binary_distances = ["euclidean", "jaccard", "hamming", "weighted-hamming"]
+    possible_continuous_distances = ['euclidean', 'cityblock']
+    possible_binary_distances = ['euclidean', 'jaccard', 'hamming', 'weighted-hamming']
     number_of_variables = data.shape[1]
     number_of_observations = data.shape[0]
 
