@@ -26,7 +26,7 @@ def draw_errors(city, sensor, pollutant):
     }
     plt.rcParams.update(params)
     plt.style.use('seaborn-whitegrid')
-    sns.set_style("white")
+    sns.set_style('white')
 
     for error_type in error_types:
         dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
