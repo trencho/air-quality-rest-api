@@ -36,6 +36,8 @@ mongo_db_port_env_value = 'MONGODB_PORT'
 mongo_db_user_name_env_value = 'MONGODB_USERNAME'
 mongo_db_user_pass_env_value = 'MONGODB_PASSWORD'
 
+github_token_env_value = 'GITHUB_TOKEN'
+
 environment_variables = [
     dark_sky_env_value,
     pulse_eco_env_value,
