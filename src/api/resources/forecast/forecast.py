@@ -32,7 +32,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
         status_code = HTTP_BAD_REQUEST
         return make_response(jsonify(error_message=message), status_code)
 
-    forecast_results = list()
+    forecast_results = []
     if city_name is None:
         cities = fetch_cities()
         for city in cities:

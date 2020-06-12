@@ -8,12 +8,13 @@ pollutant = Blueprint('pollutant', __name__)
 
 
 def fetch_measurements(dataframe):
-    measurements = list()
+    measurements = []
     for pollutant in pollutants:
         if pollutant in dataframe.columns:
-            measurement_dict = dict()
-            measurement_dict['name'] = pollutants[pollutant]
-            measurement_dict['value'] = pollutant
+            measurement_dict = {
+                'name': pollutants[pollutant],
+                'value': pollutant
+            }
             measurements.append(measurement_dict)
 
     return measurements
@@ -38,7 +39,7 @@ def fetch_pollutant(city_name, sensor_id):
     dataframe = fetch_dataframe(city_name, sensor_id)
     if isinstance(dataframe, Response):
         # return empty data
-        return make_response(jsonify(dict()))
+        return make_response(jsonify({}))
 
     measurements = fetch_measurements(dataframe)
     return make_response(jsonify(measurements))
