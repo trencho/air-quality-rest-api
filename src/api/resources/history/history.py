@@ -28,7 +28,7 @@ def history_pollutant(city_name, sensor_id, pollutant_name):
     dataframe = fetch_dataframe(city_name, sensor_id)
     if isinstance(dataframe, Response):
         # return empty data
-        return make_response(jsonify(dict()))
+        return make_response(jsonify({}))
 
     if pollutant_name not in dataframe.columns:
         message = 'Cannot return historical data because the pollutant is either missing or invalid.'
