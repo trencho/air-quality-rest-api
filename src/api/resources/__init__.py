@@ -31,7 +31,7 @@ def fetch_cities():
         try:
             cities = response.json()
         except ValueError:
-            return list()
+            return []
 
     return cities
 
@@ -51,7 +51,7 @@ def fetch_sensors(city_name):
         try:
             sensors = response.json()
         except ValueError:
-            return list()
+            return []
 
     active_sensors = []
     for sensor in sensors:
@@ -84,7 +84,7 @@ def merge_city_sensor_data(threads, city_name, sensor_id):
 def fetch_city_data(city_name, sensor, start_time, end_time):
     create_data_path(city_name, sensor['sensorId'])
 
-    threads = list()
+    threads = []
 
     extract_weather_thread = Thread(target=extract_weather_json, args=(city_name, sensor, start_time, end_time))
     threads.append(extract_weather_thread)
@@ -119,7 +119,7 @@ def forecast_sensor(sensor, start_time):
             status_code = HTTP_BAD_REQUEST
             return make_response(jsonify(error_message=message), status_code)
 
-    return dict()
+    return {}
 
 
 def train_city_sensors(city, sensor, pollutant):
@@ -151,9 +151,9 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
         model, model_features = load_model
     elif isinstance(load_model, Response):
         # return empty dict
-        return dict()
+        return {}
 
-    features_dict = dict()
+    features_dict = {}
     forecast_data = forecast_sensor(sensor, timestamp)
     date_time = datetime.fromtimestamp(timestamp)
     for model_feature in model_features:
@@ -191,12 +191,13 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     features = pd.DataFrame(features_dict, index=[0])
     features = encode_categorical_data(features)
 
-    forecast_result = dict()
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
-    forecast_result['latitude'] = latitude
-    forecast_result['longitude'] = longitude
-    forecast_result['value'] = float(round(model.predict(features)[0], 2))
+    forecast_result = {
+        'latitude': latitude,
+        'longitude': longitude,
+        'value': float(round(model.predict(features)[0], 2))
+    }
 
     return forecast_result
 
