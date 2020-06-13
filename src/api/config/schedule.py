@@ -5,26 +5,29 @@ from os import path, walk
 import pandas as pd
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from api.config.git import append_commit_files, update_git_files
+from api.config.git import append_commit_files, merge_csv_files, update_git_files
 from api.resources import current_hour, fetch_cities, fetch_city_data, fetch_sensors, next_hour, train_city_sensors
 from definitions import pollutants, ROOT_DIR
 
 
 def data_dump():
+    repo_name = 'air-quality-data-dump'
+
     file_list = []
     file_names = []
     for root, directories, files in walk(ROOT_DIR):
         for file in files:
+            file_path = path.join(root, file)
             if file.endswith('.csv'):
-                data = pd.read_csv(path.join(root, file)).to_csv(index=False)
+                data = pd.read_csv(file_path).to_csv(index=False)
+                data = merge_csv_files(repo_name, file_path, data)
                 append_commit_files(file_list, file_names, root, data, file)
             elif file.endswith('.png'):
-                with open(path.join(root, file), 'rb') as input_file:
+                with open(file_path, 'rb') as input_file:
                     data = base64.b64encode(input_file.read())
                 append_commit_files(file_list, file_names, root, data, file)
 
     if file_list:
-        repo_name = 'air-quality-data-dump'
         branch = 'master'
         commit_message = 'Scheduled data dump - ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         update_git_files(file_names, file_list, repo_name, branch, commit_message)
