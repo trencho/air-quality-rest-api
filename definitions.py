@@ -45,7 +45,8 @@ environment_variables = [
     mongo_db_name_env_value,
     # mongo_db_port_env_value,
     mongo_db_user_name_env_value,
-    mongo_db_user_pass_env_value
+    mongo_db_user_pass_env_value,
+    github_token_env_value
 ]
 
 OPEN_API_VERSION = '3.0.3'
