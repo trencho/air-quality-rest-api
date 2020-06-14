@@ -1,14 +1,10 @@
-import os
-
 from flask import Flask
 
-from definitions import mongo_db_host_env_value, mongo_db_name_env_value, mongo_db_user_name_env_value, \
-    mongo_db_user_pass_env_value, OPEN_API_VERSION
 from .blueprints import register_blueprints
-from .db import mongo
+from .db import mongo, configure_database
 from .environment import check_environment_variables, fetch_mongodb_data
 from .schedule import schedule_operations
-from .swagger import swagger
+from .swagger import swagger, configure_swagger
 
 
 def create_app():
@@ -21,17 +17,10 @@ def create_app():
 
     register_blueprints(app)
 
-    # Comment these 6 lines for the mongodb when running app in debug mode
-    app.config['MONGO_URI'] = ('mongodb+srv://' + os.environ.get(mongo_db_user_name_env_value) + ':'
-                               + os.environ.get(mongo_db_user_pass_env_value) + '@'
-                               + os.environ.get(mongo_db_host_env_value) + '/' + os.environ.get(mongo_db_name_env_value)
-                               + '?retryWrites=true&w=majority')
-    mongo.init_app(app)
+    # Comment these 2 lines for the mongodb configuration when running app in debug mode
+    configure_database(app)
     fetch_mongodb_data()
 
-    app.config['SWAGGER'] = {
-        'openapi': OPEN_API_VERSION
-    }
-    swagger.init_app(app)
+    configure_swagger(app)
 
     return app
