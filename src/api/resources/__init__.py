@@ -1,23 +1,23 @@
-import json
-import os
-import pickle
 from datetime import datetime
+from json import load as json_load
+from os import environ, makedirs, path
+from pickle import load as pickle_load
 from threading import Thread
 
-import pandas as pd
-import requests
 from flask import jsonify, make_response, Response
+from pandas import DataFrame, read_csv
+from requests import get as requests_get
 
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, status_active, \
     dark_sky_env_value, dummy_leap_year, seasons
 from modeling import train
 from preparation import extract_pollution_json, extract_weather_json
-from processing import encode_categorical_data, merge
+from processing import encode_categorical_data, merge_air_quality_data
 
 
 def fetch_dataframe(city_name, sensor_id):
     try:
-        dataframe = pd.read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
+        dataframe = read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
     except FileNotFoundError:
         message = 'Cannot return historical data because the data is missing for that city and sensor.'
         return make_response(jsonify(message))
@@ -27,7 +27,7 @@ def fetch_dataframe(city_name, sensor_id):
 
 def fetch_cities():
     url = 'https://pulse.eco/rest/city/'
-    with requests.get(url) as response:
+    with requests_get(url) as response:
         try:
             cities = response.json()
         except ValueError:
@@ -47,7 +47,7 @@ def check_city(city_name):
 
 def fetch_sensors(city_name):
     url = 'https://' + city_name + '.pulse.eco/rest/sensor/'
-    with requests.get(url) as response:
+    with requests_get(url) as response:
         try:
             sensors = response.json()
         except ValueError:
@@ -71,14 +71,14 @@ def check_sensor(city_name, sensor_id):
 
 
 def create_data_path(city_name, sensor_id):
-    if not os.path.exists(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/'):
-        os.makedirs(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/')
+    if not path.exists(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/'):
+        makedirs(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/')
 
 
 def merge_city_sensor_data(threads, city_name, sensor_id):
     for thread in threads:
         thread.join()
-    Thread(target=merge, args=(city_name, sensor_id)).start()
+    Thread(target=merge_air_quality_data, args=(city_name, sensor_id)).start()
 
 
 def fetch_city_data(city_name, sensor, start_time, end_time):
@@ -100,13 +100,13 @@ def fetch_city_data(city_name, sensor, start_time, end_time):
 def forecast_sensor(sensor, start_time):
     url = 'https://api.darksky.net/forecast'
     params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
-    dark_sky_env = os.environ.get(dark_sky_env_value)
+    dark_sky_env = environ.get(dark_sky_env_value)
     with open(dark_sky_env) as dark_sky_file:
-        dark_sky_json = json.load(dark_sky_file)
+        dark_sky_json = json_load(dark_sky_file)
     private_key = dark_sky_json.get('private_key')
     link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
 
-    with requests.get(url=link, params=params) as weather_response:
+    with requests_get(url=link, params=params) as weather_response:
         try:
             weather_json = weather_response.json()
             hourly = weather_json.get('hourly')
@@ -127,8 +127,8 @@ def train_city_sensors(city, sensor, pollutant):
 
 
 def load_regression_model(city, sensor, pollutant):
-    if not os.path.exists(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
-                          + '/best_regression_model.pkl'):
+    if not path.exists(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
+                       + '/best_regression_model.pkl'):
         train_city_sensors(city, sensor, pollutant)
         message = 'Value cannot be predicted because the model is not trained yet. Try again later.'
         status_code = HTTP_NOT_FOUND
@@ -136,11 +136,11 @@ def load_regression_model(city, sensor, pollutant):
 
     with open(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
               + '/best_regression_model.pkl', 'rb') as in_file:
-        model = pickle.load(in_file)
+        model = pickle_load(in_file)
 
     with open(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
               + '/selected_features.txt', 'rb') as in_file:
-        model_features = pickle.load(in_file)
+        model_features = pickle_load(in_file)
 
     return model, model_features
 
@@ -188,7 +188,7 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
 
         features_dict.update({model_feature: feature})
 
-    features = pd.DataFrame(features_dict, index=[0])
+    features = DataFrame(features_dict, index=[0])
     features = encode_categorical_data(features)
 
     sensor_position = sensor['position'].split(',')

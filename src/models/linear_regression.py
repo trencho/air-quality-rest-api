@@ -1,4 +1,4 @@
-import pickle
+from pickle import dump as pickle_dump, load as pickle_load, HIGHEST_PROTOCOL
 
 from sklearn.linear_model import LinearRegression
 
@@ -31,9 +31,9 @@ class LinearRegressionModel:
     def save(self, city_name, sensor_id, pollutant):
         with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(self).__name__
                   + '/linear_regression_model.pkl', 'wb') as out_file:
-            pickle.dump(self.reg, out_file, pickle.HIGHEST_PROTOCOL)
+            pickle_dump(self.reg, out_file, HIGHEST_PROTOCOL)
 
     def load(self, city_name, sensor_id, pollutant):
         with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(self).__name__
                   + '/linear_regression_model.pkl', 'rb') as in_file:
-            self.reg = pickle.load(in_file)
+            self.reg = pickle_load(in_file)

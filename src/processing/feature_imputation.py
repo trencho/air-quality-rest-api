@@ -1,7 +1,7 @@
-import numbers
+from numbers import Number
 
-import numpy as np
-import pandas as pd
+from numpy import array, asarray, fill_diagonal, isnan, ma as numpy_ma, nan
+from pandas import DataFrame, factorize, get_dummies, isnull
 from scipy import stats
 from scipy.spatial.distance import cdist
 from scipy.stats import hmean
@@ -22,12 +22,12 @@ def weighted_hamming(data):
     categories_dist = []
 
     for category in data:
-        X = pd.get_dummies(data[category])
+        X = get_dummies(data[category])
         X_mean = X * X.mean()
         X_dot = X_mean.dot(X.transpose())
-        X_np = np.asarray(X_dot.replace(0, 1, inplace=False))
+        X_np = asarray(X_dot.replace(0, 1, inplace=False))
         categories_dist.append(X_np)
-    categories_dist = np.array(categories_dist)
+    categories_dist = array(categories_dist)
     distances = hmean(categories_dist, axis=0)
     return distances
 
@@ -63,7 +63,7 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
     number_of_observations = data.shape[0]
 
     # Get the type of each attribute (Numeric or categorical)
-    is_numeric = [all(isinstance(n, numbers.Number) for n in data.iloc[:, i]) for i, x in enumerate(data)]
+    is_numeric = [all(isinstance(n, Number) for n in data.iloc[:, i]) for i, x in enumerate(data)]
     is_all_numeric = sum(is_numeric) == len(is_numeric)
     is_all_categorical = sum(is_numeric) == 0
     is_mixed_type = not is_all_categorical and not is_all_numeric
@@ -100,41 +100,41 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
     # "Dummifies" categorical variables in place
     if not is_all_numeric and not (categorical_distance == 'hamming' or categorical_distance == 'weighted-hamming'):
         if is_mixed_type:
-            data_categorical = pd.get_dummies(data_categorical)
+            data_categorical = get_dummies(data_categorical)
         else:
-            data = pd.get_dummies(data)
+            data = get_dummies(data)
     elif not is_all_numeric and categorical_distance == 'hamming':
         if is_mixed_type:
-            data_categorical = pd.DataFrame(
-                [pd.factorize(data_categorical[x])[0] for x in data_categorical]).transpose()
+            data_categorical = DataFrame(
+                [factorize(data_categorical[x])[0] for x in data_categorical]).transpose()
         else:
-            data = pd.DataFrame([pd.factorize(data[x])[0] for x in data]).transpose()
+            data = DataFrame([factorize(data[x])[0] for x in data]).transpose()
 
     if is_all_numeric:
         result_matrix = cdist(data, data, metric=numeric_distance)
     elif is_all_categorical:
-        if categorical_distance == "weighted-hamming":
+        if categorical_distance == 'weighted-hamming':
             result_matrix = weighted_hamming(data)
         else:
             result_matrix = cdist(data, data, metric=categorical_distance)
     else:
         result_numeric = cdist(data_numeric, data_numeric, metric=numeric_distance)
-        if categorical_distance == "weighted-hamming":
+        if categorical_distance == 'weighted-hamming':
             result_categorical = weighted_hamming(data_categorical)
         else:
             result_categorical = cdist(data_categorical, data_categorical, metric=categorical_distance)
-        result_matrix = np.array([[1.0 * (result_numeric[i, j] * number_of_numeric_var + result_categorical[i, j] *
-                                          number_of_categorical_var) / number_of_variables for j in
-                                   range(number_of_observations)] for i in range(number_of_observations)])
+        result_matrix = array([[1.0 * (result_numeric[i, j] * number_of_numeric_var + result_categorical[i, j] *
+                                       number_of_categorical_var) / number_of_variables for j in
+                                range(number_of_observations)] for i in range(number_of_observations)])
 
     # Fill the diagonal with NaN values
-    np.fill_diagonal(result_matrix, np.nan)
+    fill_diagonal(result_matrix, nan)
 
-    return pd.DataFrame(result_matrix)
+    return DataFrame(result_matrix)
 
 
-def knn_impute(target, attributes, k_neighbors, aggregation_method="mean", numeric_distance="euclidean",
-               categorical_distance="jaccard", missing_neighbors_threshold=0.5):
+def knn_impute(target, attributes, k_neighbors, aggregation_method='mean', numeric_distance='euclidean',
+               categorical_distance='jaccard', missing_neighbors_threshold=0.5):
     """ Replace the missing values within the target variable based on its k nearest neighbors identified with the
         attributes variables. If more than 50% of its neighbors are also missing values, the value is not modified and
         remains missing. If there is a problem in the parameters provided, returns None.
@@ -164,9 +164,9 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method="mean", numer
     """
 
     # Get useful variables
-    possible_aggregation_method = ["mean", "median", "mode"]
+    possible_aggregation_method = ['mean', 'median', 'mode']
     number_observations = len(target)
-    is_target_numeric = all(isinstance(n, numbers.Number) for n in target)
+    is_target_numeric = all(isinstance(n, Number) for n in target)
 
     # Check for possible errors
     if number_observations < 3:
@@ -181,13 +181,13 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method="mean", numer
     if aggregation_method not in possible_aggregation_method:
         print('The aggregation method is incorrect.')
         return None
-    if not is_target_numeric and aggregation_method != "mode":
+    if not is_target_numeric and aggregation_method != 'mode':
         print('The only method allowed for categorical target variable is the mode.')
         return None
 
     # Make sure the data are in the right format
-    target = pd.DataFrame(target)
-    attributes = pd.DataFrame(attributes)
+    target = DataFrame(target)
+    attributes = DataFrame(attributes)
 
     # Get the distance matrix and check whether no error was triggered when computing it
     distances = distance_matrix(attributes, numeric_distance, categorical_distance)
@@ -196,17 +196,17 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method="mean", numer
 
     # Get the closest points and compute the correct aggregation method
     for i, value in enumerate(target.iloc[:, 0]):
-        if pd.isnull(value):
+        if isnull(value):
             order = distances.iloc[i, :].values.argsort()[:k_neighbors]
             closest_to_target = target.iloc[order, :]
             missing_neighbors = [x for x in closest_to_target.isnull().iloc[:, 0]]
             # Compute the right aggregation method if at least more than 50% of the closest neighbors are not missing
             if sum(missing_neighbors) >= missing_neighbors_threshold * k_neighbors:
                 continue
-            elif aggregation_method == "mean":
-                target.iloc[i] = np.ma.mean(np.ma.masked_array(closest_to_target, np.isnan(closest_to_target)))
-            elif aggregation_method == "median":
-                target.iloc[i] = np.ma.median(np.ma.masked_array(closest_to_target, np.isnan(closest_to_target)))
+            elif aggregation_method == 'mean':
+                target.iloc[i] = numpy_ma.mean(numpy_ma.masked_array(closest_to_target, isnan(closest_to_target)))
+            elif aggregation_method == 'median':
+                target.iloc[i] = numpy_ma.median(numpy_ma.masked_array(closest_to_target, isnan(closest_to_target)))
             else:
                 target.iloc[i] = stats.mode(closest_to_target, nan_policy='omit')[0][0]
 

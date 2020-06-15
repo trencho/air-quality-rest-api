@@ -1,7 +1,7 @@
 import warnings
 
-import numpy as np
-import pandas as pd
+from numpy import int64
+from pandas import cut as pandas_cut, to_datetime
 from tsfresh import extract_features, select_features
 from tsfresh.utilities.dataframe_functions import impute
 
@@ -26,22 +26,22 @@ def encode_categorical_data(dataframe):
 
 def generate_calendar_features(dataframe):
     dataframe = dataframe.copy()
-    dataframe['time'] = pd.to_datetime(dataframe['time'], unit='s')
+    dataframe['time'] = to_datetime(dataframe['time'], unit='s')
 
     dataframe['hour'] = dataframe['time'].dt.hour
     dataframe['month'] = dataframe['time'].dt.month
     dataframe['dayOfWeek'] = dataframe['time'].dt.dayofweek
     dataframe['dayOfYear'] = dataframe['time'].dt.dayofyear
     dataframe['weekOfYear'] = dataframe['time'].dt.weekofyear
-    dataframe['isWeekend'] = dataframe['time'].apply(lambda x: 0 if pd.to_datetime(x).weekday() in (5, 6) else 1)
+    dataframe['isWeekend'] = dataframe['time'].apply(lambda x: 0 if to_datetime(x).weekday() in (5, 6) else 1)
     dataframe['season'] = dataframe['time'].apply(get_season)
     dataframe['season'] = dataframe['season'].astype('category')
 
-    dataframe['time'] = dataframe['time'].values.astype(np.int64) // 10 ** 9
+    dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
 
     bins = [0, 4, 8, 12, 16, 20, 24]
     labels = ['Late Night', 'Early Morning', 'Morning', 'Noon', 'Eve', 'Night']
-    dataframe['session'] = pd.cut(dataframe['hour'], bins=bins, labels=labels)
+    dataframe['session'] = pandas_cut(dataframe['hour'], bins=bins, labels=labels)
     dataframe['session'] = dataframe['session'].astype('category')
 
     dataframe = encode_categorical_data(dataframe)

@@ -1,17 +1,16 @@
-import json
-import os
 import traceback
 from datetime import datetime
+from json import load as json_load
+from os import environ
 
-import numpy as np
-import pandas as pd
-import requests
-from pandas import json_normalize
+from numpy import int64
+from pandas import DataFrame, json_normalize, to_datetime as pandas_to_datetime, to_numeric
 from pytz import timezone
+from requests import get as requests_get
 from timezonefinder import TimezoneFinder
 
 from definitions import DATA_EXTERNAL_PATH, pulse_eco_env_value, pollutants
-from preparation.handle_data import save_dataframe
+from preparation import save_dataframe
 from processing.normalize_data import normalize_pollution_data
 
 hour_in_secs = 3600
@@ -29,9 +28,9 @@ def format_datetime(timestamp, tz):
 def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
     url = 'https://' + city_name + '.pulse.eco/rest/dataRaw'
 
-    pulse_eco_env = os.environ.get(pulse_eco_env_value)
+    pulse_eco_env = environ.get(pulse_eco_env_value)
     with open(pulse_eco_env) as pulse_eco_file:
-        pulse_eco_json = json.load(pulse_eco_file)
+        pulse_eco_json = json_load(pulse_eco_file)
     username = pulse_eco_json.get('username')
     password = pulse_eco_json.get('password')
 
@@ -47,12 +46,12 @@ def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
     to_timestamp = start_timestamp + week_in_seconds
     to_datetime = format_datetime(to_timestamp, sensor_tz)
 
-    dataframe = pd.DataFrame()
+    dataframe = DataFrame()
     while from_timestamp < end_timestamp:
         for pollutant in pollutants:
             parameters = 'sensorId=' + sensor['sensorId'] + '&' + 'type=' + pollutant + '&' + 'from=' + from_datetime \
                          + '&' + 'to=' + to_datetime
-            with requests.get(url=url, params=parameters, auth=(username, password)) as pollution_response:
+            with requests_get(url=url, params=parameters, auth=(username, password)) as pollution_response:
                 try:
                     pollution_json = pollution_response.json()
                     dataframe = dataframe.append(json_normalize(pollution_json), ignore_index=True)
@@ -62,7 +61,7 @@ def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
 
         if not dataframe.empty:
             dataframe.sort_values(by='stamp', inplace=True)
-            dataframe['stamp'] = pd.to_datetime(dataframe['stamp'])
+            dataframe['stamp'] = pandas_to_datetime(dataframe['stamp'])
             last_datetime = dataframe['stamp'].iloc[-1]
             last_timestamp = datetime.timestamp(last_datetime)
             if from_timestamp < last_timestamp:
@@ -81,9 +80,9 @@ def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
 
     if not dataframe.empty:
         dataframe.rename(columns={'stamp': 'time'}, inplace=True)
-        dataframe['time'] = pd.to_datetime(dataframe['time'])
-        dataframe['time'] = dataframe['time'].values.astype(np.int64) // 10 ** 9
-        dataframe['value'] = pd.to_numeric(dataframe['value'])
+        dataframe['time'] = pandas_to_datetime(dataframe['time'])
+        dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
+        dataframe['value'] = to_numeric(dataframe['value'])
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
         dataframe.sort_values(by='time', inplace=True)
 
