@@ -1,36 +1,36 @@
-import os
+from os import environ, makedirs, path
 from threading import Thread
 
-import pandas as pd
+from pandas import DataFrame
 
 from api.resources import fetch_cities, fetch_sensors
 from definitions import environment_variables, DATA_EXTERNAL_PATH, collections
-from preparation.handle_data import save_dataframe
+from preparation import save_dataframe
 from .db import mongo
 
 
 def check_environment_variables():
     for environment_variable in environment_variables:
-        env = os.environ.get(environment_variable)
+        env = environ.get(environment_variable)
         if env is None:
             print('The environment variable \'' + environment_variable + '\' is missing')
             exit(-1)
 
 
-def check_collection_path(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
+def check_collection_path(collection_path):
+    if not path.exists(collection_path):
+        makedirs(collection_path)
         return False
 
     return True
 
 
 def fetch_collection(collection, city_name, sensor_id):
-    path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/' + collection + '_report.csv'
-    if not check_collection_path(path):
-        db_records = pd.DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
+    collection_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/' + collection + '_report.csv'
+    if not check_collection_path(collection_path):
+        db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
         if not db_records.empty:
-            save_dataframe(db_records, collection, path, sensor_id)
+            save_dataframe(db_records, collection, collection_path, sensor_id)
 
 
 def fetch_mongodb_data():

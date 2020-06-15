@@ -1,29 +1,29 @@
-import numpy as np
-import pandas as pd
+from numpy import abs, nan, number
+from pandas import merge as pandas_merge, read_csv, to_numeric
 from scipy import stats
 from sklearn.impute import KNNImputer
 
 from definitions import DATA_EXTERNAL_PATH, pollutants
-from preparation.handle_data import save_dataframe
+from preparation import save_dataframe
 from processing import calculate_aqi, calculate_co_aqi, calculate_no2_aqi, calculate_o3_aqi, calculate_pm25_aqi, \
     calculate_pm10_aqi, calculate_so2_aqi
 
 
 def drop_numerical_outliers(df, z_thresh=3):
     # Constrains will contain `True` or `False` depending on if it is a value below the threshold.
-    constrains = df.select_dtypes(include=[np.number]).apply(lambda x: np.abs(stats.zscore(x)) < z_thresh,
-                                                             result_type='reduce').all(axis=1)
+    constrains = df.select_dtypes(include=[number]).apply(lambda x: abs(stats.zscore(x)) < z_thresh,
+                                                          result_type='reduce').all(axis=1)
     # Drop (inplace) values set to be rejected
     df.drop(index=df.index[~constrains], inplace=True)
 
 
-def merge(city_name, sensor_id):
-    weather_data = pd.read_csv(
+def merge_air_quality_data(city_name, sensor_id):
+    weather_data = read_csv(
         DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/weather_report.csv', dtype=object)
-    pollution_data = pd.read_csv(
+    pollution_data = read_csv(
         DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/pollution_report.csv', dtype=object)
 
-    dataframe = pd.merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
+    dataframe = pandas_merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
 
     # nunique = dataframe.apply(pd.Series.nunique)
     # cols_to_drop = nunique[nunique == 1].index
@@ -48,7 +48,7 @@ def merge(city_name, sensor_id):
 
     imp = KNNImputer()
     for column in df_columns:
-        dataframe[column] = pd.to_numeric(dataframe[column], errors='coerce')
+        dataframe[column] = to_numeric(dataframe[column], errors='coerce')
         if not dataframe[column].isna().all():
             dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
             dataframe[column].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
@@ -64,8 +64,8 @@ def merge(city_name, sensor_id):
 
     drop_columns_std = dataframe[pollutants_wo_aqi].std()[dataframe[pollutants_wo_aqi].std() == 0].index.values
 
-    dataframe[pollutants_wo_aqi].replace(0, np.nan).bfill(inplace=True)
-    dataframe[pollutants_wo_aqi].replace(0, np.nan).ffill(inplace=True)
+    dataframe[pollutants_wo_aqi].replace(0, nan).bfill(inplace=True)
+    dataframe[pollutants_wo_aqi].replace(0, nan).ffill(inplace=True)
     dataframe.drop(columns=drop_columns_std, inplace=True)
 
     dataframe['aqi'] = dataframe.apply(

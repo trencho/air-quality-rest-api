@@ -1,8 +1,8 @@
-import math
-import os
-import pickle
+from math import inf
+from os import makedirs, path, remove as os_remove
+from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
 
-import pandas as pd
+from pandas import read_csv
 from sklearn.model_selection import RandomizedSearchCV
 
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, \
@@ -51,21 +51,22 @@ def split_dataset(dataset, pollutant):
 
 
 def save_selected_features(city_name, sensor_id, pollutant, selected_features):
-    if not os.path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/'):
-        os.makedirs(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/')
+    if not path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/'):
+        makedirs(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/')
     with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/selected_features.txt',
               'wb') as out_file:
-        pickle.dump(selected_features, out_file)
+        pickle_dump(selected_features, out_file)
 
 
 def create_models_path(city_name, sensor_id, pollutant, model_name):
-    if not os.path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/'):
-        os.makedirs(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/')
+    if not path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/'):
+        makedirs(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/')
 
 
-def create_results_path(path, city_name, sensor_id, pollutant, model_name):
-    if not os.path.exists(path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/'):
-        os.makedirs(path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/')
+def create_results_path(results_path, city_name, sensor_id, pollutant, model_name):
+    if not path.exists(
+            results_path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/'):
+        makedirs(results_path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/')
 
 
 def create_paths(city_name, sensor_id, pollutant, model_name):
@@ -75,8 +76,7 @@ def create_paths(city_name, sensor_id, pollutant, model_name):
 
 
 def check_model_lock(city_name, sensor_id, pollutant, model_name):
-    return os.path.exists(
-        MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/.lock')
+    return path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/.lock')
 
 
 def create_model_lock(city_name, sensor_id, pollutant, model_name):
@@ -91,19 +91,19 @@ def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollut
 
     with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(model).__name__ +
               '/HyperparameterOptimization.txt', 'wb') as out_file:
-        pickle.dump(dt_cv.best_params_, out_file)
+        pickle_dump(dt_cv.best_params_, out_file)
 
     return dt_cv.best_params_
 
 
 def remove_model_lock(city_name, sensor_id, pollutant, model_name):
-    os.remove(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/.lock')
+    os_remove(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/.lock')
 
 
 def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
     with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/best_regression_model.pkl',
               'wb') as out_file:
-        pickle.dump(best_model, out_file, pickle.HIGHEST_PROTOCOL)
+        pickle_dump(best_model, out_file, HIGHEST_PROTOCOL)
 
 
 def generate_regression_model(dataset, city, sensor, pollutant):
@@ -114,7 +114,7 @@ def generate_regression_model(dataset, city, sensor, pollutant):
     selected_features = list(X_train.columns)
     save_selected_features(city['cityName'], sensor['sensorId'], pollutant, selected_features)
 
-    best_model_error = math.inf
+    best_model_error = inf
     best_model = None
     for model_name in regression_models:
         create_paths(city['cityName'], sensor['sensorId'], pollutant, model_name)
@@ -148,7 +148,6 @@ def generate_regression_model(dataset, city, sensor, pollutant):
 
 
 def train(city, sensor, pollutant):
-    dataset = pd.read_csv(
-        DATA_EXTERNAL_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/summary_report.csv')
+    dataset = read_csv(DATA_EXTERNAL_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/summary_report.csv')
     if pollutant in dataset.columns:
         generate_regression_model(dataset, city, sensor, pollutant)

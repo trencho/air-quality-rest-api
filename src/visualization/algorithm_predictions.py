@@ -1,8 +1,8 @@
-import os
 import warnings
+from os import makedirs, path
 
 import matplotlib.pyplot as plt
-import pandas as pd
+from pandas import DataFrame, read_csv, to_datetime
 
 from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, regression_models
 
@@ -18,29 +18,29 @@ def previous_value_overwrite(X):
 
 
 def draw_predictions(city, sensor, pollutant):
-    dataset = pd.read_csv(
+    dataset = read_csv(
         DATA_EXTERNAL_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/summary_report.csv')
     validation_split = len(dataset) * 3 // 4
 
     test_dataset = dataset.iloc[validation_split:]
     test_dataset.reset_index(drop=True, inplace=True)
 
-    dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
+    dataframe_algorithms = DataFrame(columns=['algorithm', pollutant])
     for algorithm in regression_models:
-        dataframe_errors = pd.read_csv(RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId']
-                                       + '/' + pollutant + '/' + algorithm + '/error.csv')
+        dataframe_errors = read_csv(RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId']
+                                    + '/' + pollutant + '/' + algorithm + '/error.csv')
         dataframe_algorithms = dataframe_algorithms.append(
             [{'algorithm': algorithm, pollutant: dataframe_errors.iloc[0]['Mean Absolute Error']}], ignore_index=True)
 
     algorithm_index = dataframe_algorithms[pollutant].idxmin()
-    dataframe_predictions = pd.read_csv(
+    dataframe_predictions = read_csv(
         RESULTS_PREDICTIONS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/'
         + dataframe_algorithms.iloc[algorithm_index]['algorithm'] + '/prediction.csv')
 
     X_test = test_dataset.drop(columns=pollutant, errors='ignore')
     X_test = previous_value_overwrite(X_test)
     x = X_test['time']
-    x = pd.to_datetime(x, unit='s').dt.normalize()
+    x = to_datetime(x, unit='s').dt.normalize()
 
     y1 = dataframe_predictions['Actual']
     y2 = dataframe_predictions['Predicted']
@@ -63,10 +63,9 @@ def draw_predictions(city, sensor, pollutant):
     fig.tight_layout()
     plt.gcf().autofmt_xdate()
 
-    if not os.path.exists(
+    if not path.exists(
             RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant):
-        os.makedirs(
-            RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
+        makedirs(RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
     plt.savefig(RESULTS_PREDICTIONS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
                 + '/predictions.png', bbox_inches='tight')
     plt.close(fig)
