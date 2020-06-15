@@ -1,10 +1,10 @@
-import numpy as np
-import pandas as pd
+from numpy import int64
+from pandas import DataFrame, read_csv, to_datetime
 
-data_frame = pd.DataFrame()
+data_frame = DataFrame()
 
 for year in range(2015, 2019):
-    df = pd.read_csv('D:/Downloads/NAPMMU/Datasets/Pollution/measurements_' + str(year) + '.csv', sep=';')
+    df = read_csv('D:/Downloads/NAPMMU/Datasets/Pollution/measurements_' + str(year) + '.csv', sep=';')
     df.rename(columns={'DateTime': 'time'}, inplace=True)
 
     if year == 2018:
@@ -12,7 +12,7 @@ for year in range(2015, 2019):
     else:
         formatTime = '%d/%m/%Y %H:%M'
 
-    df['time'] = pd.to_datetime(df['time'], format=formatTime).astype(np.int64) // 10 ** 9
+    df['time'] = to_datetime(df['time'], format=formatTime).astype(int64) // 10 ** 9
 
     data_frame = data_frame.append(df, sort=True)
 

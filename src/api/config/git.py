@@ -2,8 +2,8 @@ from datetime import datetime
 from io import BytesIO, StringIO
 from os import environ, path
 
-import pandas as pd
 from github import Github, InputGitTreeElement
+from pandas import read_csv
 
 from definitions import ROOT_DIR, github_token_env_value
 
@@ -21,8 +21,8 @@ def append_commit_files(file_list, file_names, root, data, file):
 def merge_csv_files(repo_name, file_name, data):
     repo = g.get_user().get_repo(repo_name)
     repo_file = repo.get_contents(file_name)
-    repo_file_content = pd.read_csv(BytesIO(repo_file.decoded_content))
-    local_file_content = pd.read_csv(StringIO(data))
+    repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
+    local_file_content = read_csv(StringIO(data))
     repo_file_content = repo_file_content.append(local_file_content, ignore_index=True, sort=True)
     repo_file_content.drop_duplicates(inplace=True)
     return repo_file_content.to_csv(index=False)

@@ -1,9 +1,9 @@
-import os
 import warnings
+from os import makedirs, path
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import seaborn as sns
+from pandas import DataFrame, read_csv
 
 from definitions import RESULTS_ERRORS_PATH, regression_models
 
@@ -29,9 +29,9 @@ def draw_errors(city, sensor, pollutant):
     sns.set_style('white')
 
     for error_type in error_types:
-        dataframe_algorithms = pd.DataFrame(columns=['algorithm', pollutant])
+        dataframe_algorithms = DataFrame(columns=['algorithm', pollutant])
         for algorithm in regression_models:
-            dataframe_errors = pd.read_csv(
+            dataframe_errors = read_csv(
                 RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/'
                 + algorithm + '/error.csv')
             dataframe_algorithms = dataframe_algorithms.append(
@@ -59,9 +59,9 @@ def draw_errors(city, sensor, pollutant):
                    fontsize=22, rotation=30)
 
         fig.tight_layout()
-        if not os.path.exists(
+        if not path.exists(
                 RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant):
-            os.makedirs(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
+            makedirs(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
         plt.savefig(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
                     + '/' + error_type + '.png', bbox_inches='tight')
         plt.close(fig)

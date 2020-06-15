@@ -1,4 +1,4 @@
-import pandas as pd
+from pandas import DataFrame
 from pymongo import ASCENDING
 
 from api.config.db import mongo
@@ -11,12 +11,12 @@ def trim_dataframe(dataframe):
 
 
 def save_dataframe(dataframe, collection, path, sensor_id):
-    db_records = pd.DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
+    db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
     db_records.drop(columns='_id', inplace=True, errors='ignore')
 
     if not db_records.empty:
-        dataframe = dataframe.merge(db_records, how='outer', on='time',
-                                    indicator=True).loc[lambda x: x['_merge'] == 'left_only']
+        dataframe = dataframe.merge_air_quality_data(db_records, how='outer', on='time',
+                                                     indicator=True).loc[lambda x: x['_merge'] == 'left_only']
 
     dataframe.drop(columns='_merge', inplace=True, errors='ignore')
     trim_dataframe(dataframe)

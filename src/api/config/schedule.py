@@ -1,9 +1,9 @@
-import base64
+from base64 import b64encode
 from datetime import datetime
 from os import path, walk
 
-import pandas as pd
 from apscheduler.schedulers.background import BackgroundScheduler
+from pandas import read_csv
 
 from api.config.git import append_commit_files, merge_csv_files, update_git_files
 from api.resources import current_hour, fetch_cities, fetch_city_data, fetch_sensors, next_hour, train_city_sensors
@@ -19,12 +19,12 @@ def data_dump():
         for file in files:
             file_path = path.join(root, file)
             if file.endswith('.csv'):
-                data = pd.read_csv(file_path).to_csv(index=False)
+                data = read_csv(file_path).to_csv(index=False)
                 data = merge_csv_files(repo_name, file_path, data)
                 append_commit_files(file_list, file_names, root, data, file)
             elif file.endswith('.png'):
                 with open(file_path, 'rb') as input_file:
-                    data = base64.b64encode(input_file.read())
+                    data = b64encode(input_file.read())
                 append_commit_files(file_list, file_names, root, data, file)
 
     if file_list:
