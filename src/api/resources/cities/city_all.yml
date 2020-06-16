@@ -1,5 +1,5 @@
 tags:
-  - city
+  - cities
 #    description: Data for all cities or a specific city
 summary: Returns a json object of all available cities
 description: Fetches detailed data for each available city which has sensors collecting pollution data.
