@@ -10,7 +10,7 @@ from processing import calculate_aqi, calculate_co_aqi, calculate_no2_aqi, calcu
 
 
 def drop_numerical_outliers(df, z_thresh=3):
-    # Constrains will contain `True` or `False` depending on if it is a value below the threshold.
+    # Constrains will contain 'True' or 'False' depending on if it is a value below the threshold.
     constrains = df.select_dtypes(include=[number]).apply(lambda x: abs(stats.zscore(x)) < z_thresh,
                                                           result_type='reduce').all(axis=1)
     # Drop (inplace) values set to be rejected

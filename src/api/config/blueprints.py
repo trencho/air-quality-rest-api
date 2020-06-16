@@ -1,18 +1,18 @@
-from api.resources.city import city
+from api.resources.city import cities
 from api.resources.fetch import fetch
 from api.resources.forecast import forecast
 from api.resources.history import history
 from api.resources.pollutant import pollutant
-from api.resources.sensor import sensor
+from api.resources.sensor import sensors
 from api.resources.train import train
 
 __all__ = [
-    'city',
+    'cities',
     'fetch',
     'forecast',
     'history',
     'pollutant',
-    'sensor',
+    'sensors',
     'train'
 ]
 
