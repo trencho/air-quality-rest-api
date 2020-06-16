@@ -1,5 +1,5 @@
 tags:
-  - sensor
+  - sensors
 #    description: Data for all sensors or a specific sensors
 summary: Returns json data of a specified sensor for a specific city
 description: Searches for a sensor in a city and returns a detailed list of the specified sensor as a json object.
