@@ -1,1 +1,1 @@
-from .city import cities
+from .cities import cities
