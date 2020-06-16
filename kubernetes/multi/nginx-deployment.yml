@@ -2,43 +2,43 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose convert -f docker/single/docker-compose.single.yaml
+    kompose.cmd: kompose convert -f docker/multi/docker-compose.multi.yml
     kompose.version: 1.21.0 (992df58d8)
   creationTimestamp: null
   labels:
-    io.kompose.service: flask
-  name: flask
+    io.kompose.service: nginx
+  name: nginx
 spec:
   replicas: 4
   selector:
     matchLabels:
-      io.kompose.service: flask
+      io.kompose.service: nginx
   strategy:
     type: Recreate
   template:
     metadata:
       annotations:
-        kompose.cmd: kompose convert -f docker/single/docker-compose.single.yaml
+        kompose.cmd: kompose convert -f docker/multi/docker-compose.multi.yml
         kompose.version: 1.21.0 (992df58d8)
       creationTimestamp: null
       labels:
         io.kompose.network/network: true
-        io.kompose.service: flask
+        io.kompose.service: nginx
     spec:
       containers:
-        - name: flask
-          image: flask
+        - name: nginx
+          image: nginx
           imagePullPolicy: ''
           ports:
             - containerPort: 80
           resources: {}
           volumeMounts:
-            - mountPath: /var/api
-              name: flaskdata
+            - mountPath: /var/log/nginx
+              name: nginxdata
       restartPolicy: Always
       serviceAccountName: ''
       volumes:
-        - name: flaskdata
+        - name: nginxdata
           persistentVolumeClaim:
-            claimName: flaskdata
+            claimName: nginxdata
 status: {}
