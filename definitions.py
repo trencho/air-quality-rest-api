@@ -30,22 +30,20 @@ HTTP_NOT_FOUND = 404
 dark_sky_env_value = 'DARK_SKY_CREDENTIALS'
 pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
 
-mongo_db_host_env_value = 'MONGODB_HOSTNAME'
-mongo_db_name_env_value = 'MONGODB_DATABASE'
-mongo_db_port_env_value = 'MONGODB_PORT'
 mongo_db_user_name_env_value = 'MONGODB_USERNAME'
 mongo_db_user_pass_env_value = 'MONGODB_PASSWORD'
+mongo_db_host_env_value = 'MONGODB_HOSTNAME'
+mongo_db_name_env_value = 'MONGODB_DATABASE'
 
 github_token_env_value = 'GITHUB_TOKEN'
 
 environment_variables = [
     dark_sky_env_value,
     pulse_eco_env_value,
-    mongo_db_host_env_value,
-    mongo_db_name_env_value,
-    # mongo_db_port_env_value,
     mongo_db_user_name_env_value,
     mongo_db_user_pass_env_value,
+    mongo_db_host_env_value,
+    mongo_db_name_env_value,
     github_token_env_value
 ]
 
@@ -63,9 +61,9 @@ pollutants = {
 }
 
 collections = [
+    'weather',
     'pollution',
-    'summary',
-    'weather'
+    'summary'
 ]
 
 regression_models = {
@@ -80,6 +78,8 @@ regression_models = {
     'XGBoostRegressionModel': 'XGBoost'
 }
 
+hour_in_secs = 3600
+week_in_seconds = 604800
 dummy_leap_year = 2000  # dummy leap year to allow input X-02-29 (leap day)
 seasons = [
     ('winter', (date(dummy_leap_year, 1, 1), date(dummy_leap_year, 3, 20))),
