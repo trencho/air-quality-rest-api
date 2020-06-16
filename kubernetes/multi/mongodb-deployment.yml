@@ -2,43 +2,43 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose convert -f docker/multi/docker-compose.multi.yaml
+    kompose.cmd: kompose convert -f docker/multi/docker-compose.multi.yml
     kompose.version: 1.21.0 (992df58d8)
   creationTimestamp: null
   labels:
-    io.kompose.service: flask
-  name: flask
+    io.kompose.service: mongodb
+  name: mongodb
 spec:
   replicas: 4
   selector:
     matchLabels:
-      io.kompose.service: flask
+      io.kompose.service: mongodb
   strategy:
     type: Recreate
   template:
     metadata:
       annotations:
-        kompose.cmd: kompose convert -f docker/multi/docker-compose.multi.yaml
+        kompose.cmd: kompose convert -f docker/multi/docker-compose.multi.yml
         kompose.version: 1.21.0 (992df58d8)
       creationTimestamp: null
       labels:
         io.kompose.network/network: true
-        io.kompose.service: flask
+        io.kompose.service: mongodb
     spec:
       containers:
-        - name: flask
-          image: flask
+        - name: mongodb
+          image: mongodb
           imagePullPolicy: ''
           ports:
-            - containerPort: 5000
+            - containerPort: 27017
           resources: {}
           volumeMounts:
-            - mountPath: /var/api
-              name: flaskdata
+            - mountPath: /data/db
+              name: mongodbdata
       restartPolicy: Always
       serviceAccountName: ''
       volumes:
-        - name: flaskdata
+        - name: mongodbdata
           persistentVolumeClaim:
-            claimName: flaskdata
+            claimName: mongodbdata
 status: {}
