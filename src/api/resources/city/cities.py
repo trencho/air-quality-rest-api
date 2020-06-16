@@ -4,13 +4,13 @@ from flask import Blueprint, jsonify, make_response
 from api.resources import check_city, fetch_cities
 from definitions import HTTP_NOT_FOUND
 
-cities = Blueprint('city', __name__)
+cities = Blueprint('cities', __name__)
 
 
 @cities.route('/cities/', endpoint='city_all', methods=['GET'])
 @cities.route('/cities/<string:city_name>/', endpoint='city_name', methods=['GET'])
-@swag_from('city_all.yml', endpoint='city.city_all', methods=['GET'])
-@swag_from('city_name.yml', endpoint='city.city_name', methods=['GET'])
+@swag_from('city_all.yml', endpoint='cities.city_all', methods=['GET'])
+@swag_from('city_name.yml', endpoint='cities.city_name', methods=['GET'])
 def fetch_city(city_name=None):
     if city_name is None:
         message = fetch_cities()
