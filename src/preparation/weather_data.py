@@ -5,16 +5,13 @@ from os import environ
 from pandas import DataFrame, json_normalize
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, dark_sky_env_value
+from definitions import DATA_EXTERNAL_PATH, dark_sky_env_value, hour_in_secs
 from preparation import save_dataframe
-
-url = 'https://api.darksky.net/forecast'
-params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
-
-hour_in_secs = 3600
 
 
 def extract_weather_json(city_name, sensor, start_time, end_time):
+    url = 'https://api.darksky.net/forecast'
+    params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
     dark_sky_env = environ.get(dark_sky_env_value)
     with open(dark_sky_env) as dark_sky_file:
         dark_sky_json = json_load(dark_sky_file)
