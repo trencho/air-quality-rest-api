@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, make_response, Response
 from api.resources import check_city, check_sensor, fetch_dataframe
 from definitions import HTTP_NOT_FOUND, pollutants
 
-pollutant = Blueprint('pollutant', __name__)
+pollutant = Blueprint('pollutants', __name__)
 
 
 def fetch_measurements(dataframe):
@@ -20,9 +20,9 @@ def fetch_measurements(dataframe):
     return measurements
 
 
-@pollutant.route('/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/', endpoint='pollutant',
+@pollutant.route('/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/', endpoint='pollutants_all',
                  methods=['GET'])
-@swag_from('pollutant.yml', endpoint='pollutant.pollutant', methods=['GET'])
+@swag_from('pollutants_all.yml', endpoint='pollutants.pollutants_all', methods=['GET'])
 def fetch_pollutant(city_name, sensor_id):
     city = check_city(city_name)
     if city is None:
