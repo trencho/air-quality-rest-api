@@ -4,11 +4,11 @@ from flask import Blueprint, jsonify, make_response
 from api.resources import check_city, check_sensor, fetch_sensors
 from definitions import HTTP_NOT_FOUND
 
-sensor = Blueprint('sensor', __name__)
+sensors = Blueprint('sensor', __name__)
 
 
-@sensor.route('/cities/<string:city_name>/sensors/', endpoint='sensor_all', methods=['GET'])
-@sensor.route('/cities/<string:city_name>/sensors/<string:sensor_id>/', endpoint='sensor_id', methods=['GET'])
+@sensors.route('/cities/<string:city_name>/sensors/', endpoint='sensor_all', methods=['GET'])
+@sensors.route('/cities/<string:city_name>/sensors/<string:sensor_id>/', endpoint='sensor_id', methods=['GET'])
 @swag_from('sensor_all.yml', endpoint='sensor.sensor_all', methods=['GET'])
 @swag_from('sensor_id.yml', endpoint='sensor.sensor_id', methods=['GET'])
 def fetch_city_sensor(city_name, sensor_id=None):

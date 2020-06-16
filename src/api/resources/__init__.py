@@ -150,7 +150,6 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     if isinstance(load_model, tuple):
         model, model_features = load_model
     elif isinstance(load_model, Response):
-        # return empty dict
         return {}
 
     features_dict = {}
