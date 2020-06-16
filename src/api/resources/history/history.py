@@ -10,8 +10,8 @@ history = Blueprint('history', __name__)
 
 
 @history.route('/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/<string:pollutant_name>/history/',
-               endpoint='history_pollutant', methods=['GET'])
-@swag_from('history.yml', endpoint='history.history_pollutant', methods=['GET'])
+               endpoint='pollutant_history', methods=['GET'])
+@swag_from('history.yml', endpoint='history.pollutant_history', methods=['GET'])
 def history_pollutant(city_name, sensor_id, pollutant_name):
     city = check_city(city_name)
     if city is None:
