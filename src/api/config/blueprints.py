@@ -2,7 +2,7 @@ from api.resources.cities import cities
 from api.resources.fetch import fetch
 from api.resources.forecast import forecast
 from api.resources.history import history
-from api.resources.pollutant import pollutant
+from api.resources.pollutants import pollutant
 from api.resources.sensors import sensors
 from api.resources.train import train
 
