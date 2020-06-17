@@ -9,7 +9,10 @@ from api.config.git import append_commit_files, merge_csv_files, update_git_file
 from api.resources import current_hour, fetch_cities, fetch_city_data, fetch_sensors, next_hour, train_city_sensors
 from definitions import pollutants, ROOT_DIR
 
+scheduler = BackgroundScheduler()
 
+
+@scheduler.scheduled_job(trigger='cron', day=1)
 def data_dump():
     repo_name = 'air-quality-data-dump'
 
@@ -33,6 +36,7 @@ def data_dump():
         update_git_files(file_names, file_list, repo_name, branch, commit_message)
 
 
+@scheduler.scheduled_job(trigger='cron', minute=0)
 def fetch_hourly_data():
     current_datetime = current_hour(datetime.now())
     current_timestamp = int(datetime.timestamp(current_datetime))
@@ -49,6 +53,7 @@ def fetch_hourly_data():
             fetch_city_data(city['cityName'], sensor, start_time, end_time)
 
 
+@scheduler.scheduled_job(trigger='cron', day=1)
 def model_training():
     cities = fetch_cities()
     for city in cities:
@@ -59,9 +64,4 @@ def model_training():
 
 
 def schedule_operations():
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=data_dump, trigger='cron', day=1)
-    scheduler.add_job(func=fetch_hourly_data, trigger='cron', minute=0)
-    scheduler.add_job(func=model_training, trigger='cron', day=1)
-
     scheduler.start()
