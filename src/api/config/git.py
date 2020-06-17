@@ -7,8 +7,7 @@ from pandas import read_csv
 
 from definitions import ROOT_DIR, github_token_env_value
 
-access_token = environ.get(github_token_env_value)
-g = Github(access_token)
+g = Github(environ.get(github_token_env_value))
 
 
 def append_commit_files(file_list, file_names, root, data, file):
