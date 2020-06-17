@@ -1,8 +1,8 @@
 tags:
   - fetch
-#    description: Fetch weather and pollution data for all availables cities or for a specified city
+#    description: Fetch weather and pollution data for all available cities or for a specified city
 summary: Fetch weather and pollution data for all available cities
-description: Fetches detailed data for all available cities which have active sensors that collection pollution data.
+description: Fetches detailed data for all available cities which have active sensors that collect pollution data.
 parameters:
   - in: query
     name: start_time
