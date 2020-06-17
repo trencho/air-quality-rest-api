@@ -30,21 +30,21 @@ HTTP_NOT_FOUND = 404
 dark_sky_env_value = 'DARK_SKY_CREDENTIALS'
 pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
 
+github_token_env_value = 'GITHUB_TOKEN'
+
 mongo_db_user_name_env_value = 'MONGODB_USERNAME'
 mongo_db_user_pass_env_value = 'MONGODB_PASSWORD'
 mongo_db_host_env_value = 'MONGODB_HOSTNAME'
 mongo_db_name_env_value = 'MONGODB_DATABASE'
 
-github_token_env_value = 'GITHUB_TOKEN'
-
 environment_variables = [
     dark_sky_env_value,
     pulse_eco_env_value,
+    github_token_env_value,
     mongo_db_user_name_env_value,
     mongo_db_user_pass_env_value,
     mongo_db_host_env_value,
-    mongo_db_name_env_value,
-    github_token_env_value
+    mongo_db_name_env_value
 ]
 
 OPEN_API_VERSION = '3.0.3'
