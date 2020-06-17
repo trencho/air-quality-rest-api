@@ -10,7 +10,7 @@ def trim_dataframe(dataframe):
     dataframe.sort_values(by='time', inplace=True)
 
 
-def save_dataframe(dataframe, collection, path, sensor_id):
+def save_dataframe(dataframe, collection, collection_path, sensor_id):
     db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
     db_records.drop(columns='_id', inplace=True, errors='ignore')
 
@@ -29,4 +29,4 @@ def save_dataframe(dataframe, collection, path, sensor_id):
         dataframe = dataframe.append(db_records, ignore_index=True)
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
         trim_dataframe(dataframe)
-        dataframe.to_csv(path, index=False)
+        dataframe.to_csv(collection_path, index=False)
