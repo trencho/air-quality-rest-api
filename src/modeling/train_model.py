@@ -1,5 +1,5 @@
 from math import inf
-from os import makedirs, path, remove as os_remove
+from os import cpu_count, makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
 
 from pandas import read_csv
@@ -85,8 +85,8 @@ def create_model_lock(city_name, sensor_id, pollutant, model_name):
 
 
 def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollutant):
-    # dt_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=os.cpu_count() // 2, cv=5)
-    dt_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
+    # dt_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
+    dt_cv = RandomizedSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
     dt_cv.fit(X_train, y_train)
 
     with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(model).__name__ +
