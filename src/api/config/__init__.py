@@ -3,7 +3,7 @@ from flask import Flask
 from .blueprints import register_blueprints
 from .db import mongo, configure_database
 from .environment import check_environment_variables, fetch_mongodb_data
-from .schedule import schedule_operations
+from .schedule import schedule_jobs
 from .swagger import swagger, configure_swagger
 
 
@@ -11,7 +11,7 @@ def create_app():
     # Comment these 2 lines to skip the environment variable check and scheduling of api operations when running app in
     # debug mode
     check_environment_variables()
-    schedule_operations()
+    schedule_jobs()
 
     app = Flask(__name__)
 
