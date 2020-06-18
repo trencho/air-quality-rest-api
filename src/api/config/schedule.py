@@ -63,5 +63,5 @@ def model_training():
                 train_city_sensors(city, sensor, pollutant)
 
 
-def schedule_operations():
+def schedule_jobs():
     scheduler.start()
