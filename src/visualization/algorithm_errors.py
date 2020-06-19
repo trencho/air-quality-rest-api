@@ -1,11 +1,12 @@
 import warnings
-from os import makedirs, path
+from os import path
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pandas import DataFrame, read_csv
 
 from definitions import RESULTS_ERRORS_PATH, regression_models
+from visualization.handle_plot import save_plot
 
 warnings.filterwarnings(action='once')
 
@@ -58,9 +59,4 @@ def draw_errors(city, sensor, pollutant):
         plt.xticks(dataframe_algorithms.index, dataframe_algorithms['algorithm'], horizontalalignment='center',
                    fontsize=22, rotation=30)
 
-        fig.tight_layout()
-        if not path.exists(path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant)):
-            makedirs(path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant))
-        plt.savefig(path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant,
-                              error_type + '.png'), bbox_inches='tight')
-        plt.close(fig)
+        save_plot(fig, plt, city['cityName'], sensor['sensorId'], pollutant, error_type)
