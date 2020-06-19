@@ -4,7 +4,7 @@ from numpy import abs, array, mean, sqrt
 from pandas import DataFrame
 from sklearn import metrics
 
-from definitions import RESULTS_ERRORS_PATH
+from definitions import RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 
 
 def mean_absolute_percentage_error(y_true, y_pred):
@@ -27,5 +27,6 @@ def save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_pred):
 
 def save_results(city_name, sensor_id, pollutant, model_name, y_test, y_pred):
     df = DataFrame({'Actual': y_test, 'Predicted': y_pred})
-    df.to_csv(path.join(RESULTS_ERRORS_PATH, 'data', city_name, sensor_id, pollutant, model_name, 'prediction.csv'),
-              index=False)
+    df.to_csv(
+        path.join(RESULTS_PREDICTIONS_PATH, 'data', city_name, sensor_id, pollutant, model_name, 'prediction.csv'),
+        index=False)

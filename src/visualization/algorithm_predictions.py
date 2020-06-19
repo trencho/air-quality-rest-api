@@ -1,10 +1,11 @@
 import warnings
-from os import makedirs, path
+from os import path
 
 import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv, to_datetime
 
-from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, regression_models
+from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, regression_models
+from visualization.handle_plot import save_plot
 
 warnings.filterwarnings(action='once')
 
@@ -54,17 +55,11 @@ def draw_predictions(city, sensor, pollutant):
     # ax (left Y axis)
     ax.set_xlabel('Dates', fontsize=22)
     ax.tick_params(axis='x', rotation=0, labelsize=18)
-    ax.set_ylabel(pollutant + ' values', fontsize=22)
+    ax.set_ylabel(pollutants[pollutant] + ' values', fontsize=22)
     ax.tick_params(axis='y', rotation=0)
     ax.set_title(city['siteName'] + ' - ' + sensor['description'], fontsize=22)
     ax.grid(alpha=.4)
     ax.legend(fontsize=16)
 
-    fig.tight_layout()
     plt.gcf().autofmt_xdate()
-
-    if not path.exists(path.join(RESULTS_PREDICTIONS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant)):
-        makedirs(path.join(RESULTS_PREDICTIONS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant))
-    plt.savefig(path.join(RESULTS_PREDICTIONS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant,
-                          'predictions.png'), bbox_inches='tight')
-    plt.close(fig)
+    save_plot(fig, plt, city['cityName'], sensor['sensorId'], pollutant, 'prediction')
