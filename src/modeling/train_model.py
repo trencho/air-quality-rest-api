@@ -53,7 +53,7 @@ def split_dataset(dataset, pollutant):
 def save_selected_features(city_name, sensor_id, pollutant, selected_features):
     if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant)):
         makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.txt', 'wb')) as out_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.txt'), 'wb') as out_file:
         pickle_dump(selected_features, out_file)
 
 
@@ -78,7 +78,7 @@ def check_model_lock(city_name, sensor_id, pollutant, model_name):
 
 
 def create_model_lock(city_name, sensor_id, pollutant, model_name):
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, '.lock', 'w')):
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, '.lock'), 'w'):
         pass
 
 
@@ -88,7 +88,7 @@ def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollut
     dt_cv.fit(X_train, y_train)
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
-                        'HyperparameterOptimization.txt', 'wb')) as out_file:
+                        'HyperparameterOptimization.txt'), 'wb') as out_file:
         pickle_dump(dt_cv.best_params_, out_file)
 
     return dt_cv.best_params_
@@ -99,7 +99,7 @@ def remove_model_lock(city_name, sensor_id, pollutant, model_name):
 
 
 def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl', 'wb')) as out_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl'), 'wb') as out_file:
         pickle_dump(best_model, out_file, HIGHEST_PROTOCOL)
 
 
