@@ -1,6 +1,6 @@
 import traceback
 from json import load as json_load
-from os import environ
+from os import environ, path
 
 from pandas import DataFrame, json_normalize
 from requests import get as requests_get
@@ -40,5 +40,5 @@ def extract_weather_json(city_name, sensor, start_time, end_time):
         link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
 
     if not dataframe.empty:
-        weather_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/weather_report.csv'
+        weather_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'weather_report.csv')
         save_dataframe(dataframe, 'weather', weather_data_path, sensor['sensorId'])

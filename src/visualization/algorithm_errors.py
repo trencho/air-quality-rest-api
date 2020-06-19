@@ -32,8 +32,8 @@ def draw_errors(city, sensor, pollutant):
         dataframe_algorithms = DataFrame(columns=['algorithm', pollutant])
         for algorithm in regression_models:
             dataframe_errors = read_csv(
-                RESULTS_ERRORS_PATH + '/data/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant + '/'
-                + algorithm + '/error.csv')
+                path.join(RESULTS_ERRORS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant, algorithm,
+                          'error.csv'))
             dataframe_algorithms = dataframe_algorithms.append(
                 [{'algorithm': regression_models[algorithm], pollutant: dataframe_errors.iloc[0][error_type]}],
                 ignore_index=True)
@@ -50,18 +50,17 @@ def draw_errors(city, sensor, pollutant):
         for i, value in enumerate(dataframe_algorithms[pollutant]):
             ax.text(i, value + 0.5, round(value, 1), fontsize=22, horizontalalignment='center')
 
-        y_lim = dataframe_algorithms[pollutant].max() + 10 - (dataframe_algorithms[pollutant].max() % 10)
         # Title, Label, Ticks and Ylim
         ax.set_title(city['siteName'] + ' - ' + sensor['description'], fontdict={'size': 22})
         ax.set_ylabel(error_type, fontsize=22)
+        y_lim = dataframe_algorithms[pollutant].max() + 10 - (dataframe_algorithms[pollutant].max() % 10)
         ax.set_ylim(ymin=0, ymax=y_lim)
         plt.xticks(dataframe_algorithms.index, dataframe_algorithms['algorithm'], horizontalalignment='center',
                    fontsize=22, rotation=30)
 
         fig.tight_layout()
-        if not path.exists(
-                RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant):
-            makedirs(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant)
-        plt.savefig(RESULTS_ERRORS_PATH + '/plots/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
-                    + '/' + error_type + '.png', bbox_inches='tight')
+        if not path.exists(path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant)):
+            makedirs(path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant))
+        plt.savefig(path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant,
+                              error_type + '.png'), bbox_inches='tight')
         plt.close(fig)
