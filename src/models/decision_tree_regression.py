@@ -33,10 +33,10 @@ class DecisionTreeRegressionModel:
 
     def save(self, city_name, sensor_id, pollutant):
         with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
-                            'decision_tree_regression_model.pkl', 'wb')) as out_file:
+                            'decision_tree_regression_model.pkl'), 'wb') as out_file:
             pickle_dump(self.reg, out_file, HIGHEST_PROTOCOL)
 
     def load(self, city_name, sensor_id, pollutant):
         with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
-                            'decision_tree_regression_model.pkl', 'rb')) as in_file:
+                            'decision_tree_regression_model.pkl'), 'rb') as in_file:
             self.reg = pickle_load(in_file)
