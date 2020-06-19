@@ -1,7 +1,7 @@
 import traceback
 from datetime import datetime
 from json import load as json_load
-from os import environ
+from os import environ, path
 
 from numpy import int64
 from pandas import DataFrame, json_normalize, to_datetime as pandas_to_datetime, to_numeric
@@ -84,5 +84,5 @@ def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
         dataframe.sort_values(by='time', inplace=True)
 
         dataframe = normalize_pollution_data(dataframe)
-        pollution_data_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor['sensorId'] + '/pollution_report.csv'
+        pollution_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'pollution_report.csv')
         save_dataframe(dataframe, 'pollution', pollution_data_path, sensor['sensorId'])

@@ -17,7 +17,7 @@ from processing import encode_categorical_data, merge_air_quality_data
 
 def fetch_dataframe(city_name, sensor_id):
     try:
-        dataframe = read_csv(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/summary_report.csv')
+        dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'summary_report.csv'))
     except FileNotFoundError:
         message = 'Cannot return historical data because the data is missing for that city and sensor.'
         return make_response(jsonify(message))
@@ -71,8 +71,8 @@ def check_sensor(city_name, sensor_id):
 
 
 def create_data_path(city_name, sensor_id):
-    if not path.exists(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/'):
-        makedirs(DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/')
+    if not path.exists(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id)):
+        makedirs(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id))
 
 
 def merge_city_sensor_data(threads, city_name, sensor_id):
@@ -127,19 +127,19 @@ def train_city_sensors(city, sensor, pollutant):
 
 
 def load_regression_model(city, sensor, pollutant):
-    if not path.exists(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
-                       + '/best_regression_model.pkl'):
+    if not path.exists(
+            path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
         train_city_sensors(city, sensor, pollutant)
         message = 'Value cannot be predicted because the model is not trained yet. Try again later.'
         status_code = HTTP_NOT_FOUND
         return make_response(jsonify(error_message=message), status_code)
 
-    with open(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
-              + '/best_regression_model.pkl', 'rb') as in_file:
+    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl',
+                        'rb')) as in_file:
         model = pickle_load(in_file)
 
-    with open(MODELS_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/' + pollutant
-              + '/selected_features.txt', 'rb') as in_file:
+    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'selected_features.txt',
+                        'rb')) as in_file:
         model_features = pickle_load(in_file)
 
     return model, model_features

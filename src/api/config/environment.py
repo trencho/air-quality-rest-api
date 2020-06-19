@@ -26,7 +26,7 @@ def check_collection_path(collection_path):
 
 
 def fetch_collection(collection, city_name, sensor_id):
-    collection_path = DATA_EXTERNAL_PATH + '/' + city_name + '/' + sensor_id + '/' + collection + '_report.csv'
+    collection_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, collection + '_report.csv')
     if not check_collection_path(collection_path):
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
         if not db_records.empty:

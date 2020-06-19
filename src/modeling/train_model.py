@@ -51,22 +51,20 @@ def split_dataset(dataset, pollutant):
 
 
 def save_selected_features(city_name, sensor_id, pollutant, selected_features):
-    if not path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/'):
-        makedirs(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/')
-    with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/selected_features.txt',
-              'wb') as out_file:
+    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant)):
+        makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.txt', 'wb')) as out_file:
         pickle_dump(selected_features, out_file)
 
 
 def create_models_path(city_name, sensor_id, pollutant, model_name):
-    if not path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/'):
-        makedirs(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/')
+    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
+        makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name))
 
 
 def create_results_path(results_path, city_name, sensor_id, pollutant, model_name):
-    if not path.exists(
-            results_path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/'):
-        makedirs(results_path + '/data/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/')
+    if not path.exists(path.join(results_path, 'data', city_name, sensor_id, pollutant, model_name)):
+        makedirs(path.join(results_path, 'data', city_name, sensor_id, pollutant, model_name))
 
 
 def create_paths(city_name, sensor_id, pollutant, model_name):
@@ -76,11 +74,11 @@ def create_paths(city_name, sensor_id, pollutant, model_name):
 
 
 def check_model_lock(city_name, sensor_id, pollutant, model_name):
-    return path.exists(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/.lock')
+    return path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, '.lock'))
 
 
 def create_model_lock(city_name, sensor_id, pollutant, model_name):
-    with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/.lock', 'w'):
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, '.lock', 'w')):
         pass
 
 
@@ -89,20 +87,19 @@ def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollut
     dt_cv = RandomizedSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
     dt_cv.fit(X_train, y_train)
 
-    with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(model).__name__ +
-              '/HyperparameterOptimization.txt', 'wb') as out_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
+                        'HyperparameterOptimization.txt', 'wb')) as out_file:
         pickle_dump(dt_cv.best_params_, out_file)
 
     return dt_cv.best_params_
 
 
 def remove_model_lock(city_name, sensor_id, pollutant, model_name):
-    os_remove(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + model_name + '/.lock')
+    os_remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, '.lock'))
 
 
 def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
-    with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/best_regression_model.pkl',
-              'wb') as out_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl', 'wb')) as out_file:
         pickle_dump(best_model, out_file, HIGHEST_PROTOCOL)
 
 
@@ -148,6 +145,6 @@ def generate_regression_model(dataset, city, sensor, pollutant):
 
 
 def train(city, sensor, pollutant):
-    dataset = read_csv(DATA_EXTERNAL_PATH + '/' + city['cityName'] + '/' + sensor['sensorId'] + '/summary_report.csv')
+    dataset = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary_report.csv'))
     if pollutant in dataset.columns:
         generate_regression_model(dataset, city, sensor, pollutant)
