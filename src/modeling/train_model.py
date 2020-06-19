@@ -144,7 +144,7 @@ def generate_regression_model(dataset, city, sensor, pollutant):
     draw_predictions(city, sensor, pollutant)
 
 
-def train(city, sensor, pollutant):
+def train_regression_model(city, sensor, pollutant):
     dataset = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary_report.csv'))
     if pollutant in dataset.columns:
         generate_regression_model(dataset, city, sensor, pollutant)
