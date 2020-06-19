@@ -10,7 +10,7 @@ from requests import get as requests_get
 
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, status_active, \
     dark_sky_env_value, dummy_leap_year, seasons
-from modeling import train
+from modeling import train_regression_model
 from preparation import extract_pollution_json, extract_weather_json
 from processing import encode_categorical_data, merge_air_quality_data
 
@@ -123,7 +123,7 @@ def forecast_sensor(sensor, start_time):
 
 
 def train_city_sensors(city, sensor, pollutant):
-    Thread(target=train, args=(city, sensor, pollutant)).start()
+    Thread(target=train_regression_model, args=(city, sensor, pollutant)).start()
 
 
 def load_regression_model(city, sensor, pollutant):
