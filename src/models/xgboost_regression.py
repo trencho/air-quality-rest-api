@@ -1,4 +1,4 @@
-from os import cpu_count
+from os import cpu_count, path
 from pickle import dump as pickle_dump, load as pickle_load, HIGHEST_PROTOCOL
 
 from xgboost.sklearn import XGBRegressor
@@ -35,11 +35,11 @@ class XGBoostRegressionModel:
         return y_pred
 
     def save(self, city_name, sensor_id, pollutant):
-        with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(self).__name__
-                  + '/xgboost_regression_model.pkl', 'wb') as out_file:
+        with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
+                            'xgboost_regression_model.pkl', 'wb')) as out_file:
             pickle_dump(self.reg, out_file, HIGHEST_PROTOCOL)
 
     def load(self, city_name, sensor_id, pollutant):
-        with open(MODELS_PATH + '/' + city_name + '/' + sensor_id + '/' + pollutant + '/' + type(self).__name__
-                  + '/xgboost_regression_model.pkl', 'rb') as in_file:
+        with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
+                            'xgboost_regression_model.pkl', 'rb')) as in_file:
             self.reg = pickle_load(in_file)
