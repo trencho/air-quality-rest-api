@@ -19,11 +19,11 @@ def previous_value_overwrite(X):
 
 
 def draw_predictions(city, sensor, pollutant):
-    dataset = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary_report.csv'))
-    validation_split = len(dataset) * 3 // 4
+    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary_report.csv'))
+    validation_split = len(dataframe) * 3 // 4
 
-    test_dataset = dataset.iloc[validation_split:]
-    test_dataset.reset_index(drop=True, inplace=True)
+    test_dataframe = dataframe.iloc[validation_split:]
+    test_dataframe.reset_index(drop=True, inplace=True)
 
     dataframe_algorithms = DataFrame(columns=['algorithm', pollutant])
     for algorithm in regression_models:
@@ -38,7 +38,7 @@ def draw_predictions(city, sensor, pollutant):
         path.join(RESULTS_PREDICTIONS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant,
                   dataframe_algorithms.iloc[algorithm_index]['algorithm'], 'prediction.csv'))
 
-    X_test = test_dataset.drop(columns=pollutant, errors='ignore')
+    X_test = test_dataframe.drop(columns=pollutant, errors='ignore')
     X_test = previous_value_overwrite(X_test)
     x = X_test['time']
     x = to_datetime(x, unit='s').dt.normalize()
