@@ -24,30 +24,20 @@ def previous_value_overwrite(X, y):
     return X, y
 
 
-def split_dataset(dataset, pollutant):
-    validation_split = len(dataset) * 3 // 4
-    train_dataset = dataset.iloc[:validation_split]
-    test_dataset = dataset.iloc[validation_split:]
+def drop_columns(dataframe, columns):
+    return dataframe.drop(columns=columns, errors='ignore')
 
-    X_train = train_dataset.drop(columns=pollutants, errors='ignore')
-    X_train = value_scaling(X_train)
-    y_train = train_dataset[pollutant]
 
-    X_train, y_train = previous_value_overwrite(X_train, y_train)
+def split_dataframe(dataframe, pollutant, selected_features=None):
+    X = drop_columns(dataframe, pollutants)
+    X = value_scaling(X)
+    y = dataframe[pollutant]
 
-    selected_features = backward_elimination(X_train, y_train)
-    X_train = X_train[selected_features]
+    X, y = previous_value_overwrite(X, y)
+    selected_features = backward_elimination(X, y) if selected_features is None else selected_features
+    X = X[selected_features]
 
-    X_test = test_dataset.drop(columns=pollutants, errors='ignore')
-    X_test = value_scaling(X_test)
-
-    y_test = test_dataset[pollutant]
-
-    X_test, y_test = previous_value_overwrite(X_test, y_test)
-
-    X_test = X_test[selected_features]
-
-    return X_train, X_test, y_train, y_test
+    return X, y
 
 
 def save_selected_features(city_name, sensor_id, pollutant, selected_features):
@@ -103,10 +93,15 @@ def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
         pickle_dump(best_model, out_file, HIGHEST_PROTOCOL)
 
 
-def generate_regression_model(dataset, city, sensor, pollutant):
-    dataframe = generate_features(dataset)
+def generate_regression_model(dataframe, city, sensor, pollutant):
+    dataframe = generate_features(dataframe)
 
-    X_train, X_test, y_train, y_test = split_dataset(dataframe, pollutant)
+    validation_split = int(len(dataframe) * 3 / 4)
+
+    train_dataframe = dataframe.iloc[:validation_split]
+    X_train, y_train = split_dataframe(train_dataframe, pollutant)
+    test_dataframe = dataframe.iloc[validation_split:]
+    X_test, y_test = split_dataframe(test_dataframe, pollutant, X_train.columns)
 
     selected_features = list(X_train.columns)
     save_selected_features(city['cityName'], sensor['sensorId'], pollutant, selected_features)
@@ -133,18 +128,21 @@ def generate_regression_model(dataset, city, sensor, pollutant):
 
         model_error = save_errors(city['cityName'], sensor['sensorId'], pollutant, model_name, y_test, y_pred)
         if model_error < best_model_error:
-            best_model = model.reg
+            best_model = model
             best_model_error = model_error
 
         remove_model_lock(city['cityName'], sensor['sensorId'], pollutant, model_name)
 
-    save_best_regression_model(city['cityName'], sensor['sensorId'], pollutant, best_model)
+    if best_model is not None:
+        X_train, y_train = split_dataframe(dataframe, pollutant)
+        best_model.train(X_train, y_train)
+        save_best_regression_model(city['cityName'], sensor['sensorId'], pollutant, best_model.reg)
 
     draw_errors(city, sensor, pollutant)
     draw_predictions(city, sensor, pollutant)
 
 
 def train_regression_model(city, sensor, pollutant):
-    dataset = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary_report.csv'))
-    if pollutant in dataset.columns:
-        generate_regression_model(dataset, city, sensor, pollutant)
+    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary_report.csv'))
+    if pollutant in dataframe.columns:
+        generate_regression_model(dataframe, city, sensor, pollutant)
