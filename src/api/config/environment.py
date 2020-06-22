@@ -4,7 +4,7 @@ from threading import Thread
 from pandas import DataFrame
 
 from api.resources import fetch_cities, fetch_sensors
-from definitions import environment_variables, DATA_EXTERNAL_PATH, collections
+from definitions import DATA_EXTERNAL_PATH, environment_variables, collections
 from preparation import save_dataframe
 from .db import mongo
 
@@ -26,7 +26,7 @@ def check_collection_path(collection_path):
 
 
 def fetch_collection(collection, city_name, sensor_id):
-    collection_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, collection + '_report.csv')
+    collection_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id)
     if not check_collection_path(collection_path):
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
         if not db_records.empty:
