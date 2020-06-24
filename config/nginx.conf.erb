@@ -10,15 +10,13 @@ error_log logs/nginx/error.log warn;
 events {
   # Efficient method for connection processing
   use epoll;
-  # Worker processes will accept new connections by turn
-  accept_mutex on;
   # Define the maximum number of simultaneous connections that can be opened by a worker process
   worker_connections 1024;
 }
 
 # http block defines the parameters for how NGINX should handle HTTP web traffic
 http {
-  # Disable emitting nginx version on error pages and in the "Server" response header field
+  # Disable emitting NGINX version on error pages and in the "Server" response header field
   server_tokens off;
 
   # Include the file defining the list of file types that are supported by NGINX
@@ -34,15 +32,11 @@ http {
   # Define the location of the log of access attempts to NGINX
   access_log logs/nginx/access.log main;
 
-  # Define the parameters to optimize the delivery of static content
-  tcp_nopush on;
-  tcp_nodelay on;
-
   # Define the timeout value for keep-alive connections with the client
   keepalive_timeout 65;
 
   # Include additional parameters for virtual host(s)/server(s)
-  include whitelist.conf;
+  # include whitelist.conf;
 
   # Define the parameters for a specific virtual host/server
   server {
