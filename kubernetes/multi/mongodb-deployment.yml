@@ -22,7 +22,7 @@ spec:
         kompose.version: 1.21.0 (992df58d8)
       creationTimestamp: null
       labels:
-        io.kompose.network/network: true
+        io.kompose.network/network: 'true'
         io.kompose.service: mongodb
     spec:
       containers:
