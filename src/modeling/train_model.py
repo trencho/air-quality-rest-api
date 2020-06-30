@@ -93,7 +93,7 @@ def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
         pickle_dump(best_model, out_file, HIGHEST_PROTOCOL)
 
 
-def generate_regression_model(dataframe, city, sensor, pollutant):
+def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     dataframe = generate_features(dataframe)
 
     validation_split = int(len(dataframe) * 3 / 4)
@@ -104,45 +104,44 @@ def generate_regression_model(dataframe, city, sensor, pollutant):
     X_test, y_test = split_dataframe(test_dataframe, pollutant, X_train.columns)
 
     selected_features = list(X_train.columns)
-    save_selected_features(city['cityName'], sensor['sensorId'], pollutant, selected_features)
+    save_selected_features(city_name, sensor_id, pollutant, selected_features)
 
     best_model_error = inf
     best_model = None
     for model_name in regression_models:
-        create_paths(city['cityName'], sensor['sensorId'], pollutant, model_name)
-        is_model_locked = check_model_lock(city['cityName'], sensor['sensorId'], pollutant, model_name)
+        create_paths(city_name, sensor_id, pollutant, model_name)
+        is_model_locked = check_model_lock(city_name, sensor_id, pollutant, model_name)
         if is_model_locked:
             continue
-        create_model_lock(city['cityName'], sensor['sensorId'], pollutant, model_name)
+        create_model_lock(city_name, sensor_id, pollutant, model_name)
 
         model = make_model(model_name)
-        params = hyper_parameter_tuning(model, X_train, y_train, city['cityName'], sensor['sensorId'], pollutant)
+        params = hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollutant)
         model.set_params(**params)
         model.train(X_train, y_train)
 
-        model.save(city['cityName'], sensor['sensorId'], pollutant)
+        model.save(city_name, sensor_id, pollutant)
 
         y_pred = model.predict(X_test)
 
-        save_results(city['cityName'], sensor['sensorId'], pollutant, model_name, y_test, y_pred)
+        save_results(city_name, sensor_id, pollutant, model_name, y_test, y_pred)
 
-        model_error = save_errors(city['cityName'], sensor['sensorId'], pollutant, model_name, y_test, y_pred)
+        model_error = save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_pred)
         if model_error < best_model_error:
             best_model = model
             best_model_error = model_error
 
-        remove_model_lock(city['cityName'], sensor['sensorId'], pollutant, model_name)
+        remove_model_lock(city_name, sensor_id, pollutant, model_name)
 
     if best_model is not None:
         X_train, y_train = split_dataframe(dataframe, pollutant)
         best_model.train(X_train, y_train)
-        save_best_regression_model(city['cityName'], sensor['sensorId'], pollutant, best_model.reg)
-
-    draw_errors(city, sensor, pollutant)
-    draw_predictions(city, sensor, pollutant)
+        save_best_regression_model(city_name, sensor_id, pollutant, best_model.reg)
 
 
 def train_regression_model(city, sensor, pollutant):
     dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary_report.csv'))
     if pollutant in dataframe.columns:
-        generate_regression_model(dataframe, city, sensor, pollutant)
+        generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
+        draw_errors(city, sensor, pollutant)
+        draw_predictions(city, sensor, pollutant)
