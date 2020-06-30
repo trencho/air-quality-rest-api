@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   creationTimestamp: null
@@ -8,7 +8,7 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              io.kompose.network/network: true
+              io.kompose.network/network: 'true'
   podSelector:
     matchLabels:
-      io.kompose.network/network: true
+      io.kompose.network/network: 'true'
