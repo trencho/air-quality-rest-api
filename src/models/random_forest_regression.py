@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 
-from models.base_regression_model import BaseRegressionModel
+from .base_regression_model import BaseRegressionModel
 
 
 class RandomForestRegressionModel(BaseRegressionModel):

@@ -1,6 +1,6 @@
 from sklearn.tree import DecisionTreeRegressor
 
-from models.base_regression_model import BaseRegressionModel
+from .base_regression_model import BaseRegressionModel
 
 
 class DecisionTreeRegressionModel(BaseRegressionModel):

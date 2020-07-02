@@ -6,7 +6,7 @@ from pandas import DataFrame, json_normalize
 from requests import get as requests_get
 
 from definitions import DATA_EXTERNAL_PATH, dark_sky_env_value, hour_in_secs
-from preparation import save_dataframe
+from . import save_dataframe
 
 
 def extract_weather_json(city_name, sensor, start_time, end_time):
