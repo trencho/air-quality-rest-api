@@ -1,6 +1,6 @@
 from lightgbm import LGBMRegressor
 
-from models.base_regression_model import BaseRegressionModel
+from .base_regression_model import BaseRegressionModel
 
 
 class LightGBMRegressionModel(BaseRegressionModel):

@@ -6,7 +6,7 @@ import seaborn as sns
 from pandas import DataFrame, read_csv
 
 from definitions import RESULTS_ERRORS_PATH, regression_models
-from visualization.handle_plot import save_plot
+from .handle_plot import save_plot
 
 warnings.filterwarnings(action='once')
 

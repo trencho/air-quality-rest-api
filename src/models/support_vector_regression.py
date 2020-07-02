@@ -1,6 +1,6 @@
 from sklearn.svm import SVR
 
-from models.base_regression_model import BaseRegressionModel
+from .base_regression_model import BaseRegressionModel
 
 
 class SupportVectorRegressionModel(BaseRegressionModel):

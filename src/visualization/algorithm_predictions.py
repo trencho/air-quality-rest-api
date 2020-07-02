@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv, to_datetime
 
 from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, regression_models
-from visualization.handle_plot import save_plot
+from .handle_plot import save_plot
 
 warnings.filterwarnings(action='once')
 
