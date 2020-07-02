@@ -3,7 +3,7 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
 
-from api.resources import check_city, check_sensor, current_hour, fetch_cities, fetch_city_data, fetch_sensors, \
+from api.blueprints import check_city, check_sensor, current_hour, fetch_cities, fetch_city_data, fetch_sensors, \
     next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 

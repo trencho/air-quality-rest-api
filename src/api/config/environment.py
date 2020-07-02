@@ -3,7 +3,7 @@ from threading import Thread
 
 from pandas import DataFrame
 
-from api.resources import fetch_cities, fetch_sensors
+from api.blueprints import fetch_cities, fetch_sensors
 from definitions import DATA_EXTERNAL_PATH, environment_variables, collections
 from .db import mongo
 

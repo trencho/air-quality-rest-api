@@ -5,8 +5,8 @@ from os import path, walk
 from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
 
+from api.blueprints import current_hour, fetch_cities, fetch_city_data, fetch_sensors, next_hour, train_city_sensors
 from api.config.git import append_commit_files, merge_csv_files, update_git_files
-from api.resources import current_hour, fetch_cities, fetch_city_data, fetch_sensors, next_hour, train_city_sensors
 from definitions import pollutants, ROOT_DIR
 
 scheduler = BackgroundScheduler()
