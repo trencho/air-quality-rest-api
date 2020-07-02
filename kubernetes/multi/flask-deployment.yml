@@ -27,8 +27,8 @@ spec:
     spec:
       containers:
         - name: flask
-          image: flask
-          imagePullPolicy: ''
+          image: air_quality_flask
+          imagePullPolicy: Never
           ports:
             - containerPort: 5000
           resources: {}

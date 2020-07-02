@@ -27,8 +27,8 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx
-          imagePullPolicy: ''
+          image: air_quality_nginx
+          imagePullPolicy: Never
           ports:
             - containerPort: 80
           resources: {}
