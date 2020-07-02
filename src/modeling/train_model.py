@@ -10,7 +10,7 @@ from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RE
 from models import make_model
 from processing import backward_elimination, generate_features, value_scaling
 from visualization import draw_errors, draw_predictions
-from . import save_errors, save_results
+from .process_results import save_errors, save_results
 
 
 def previous_value_overwrite(X, y):

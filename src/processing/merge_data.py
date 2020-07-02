@@ -7,8 +7,8 @@ from sklearn.impute import KNNImputer
 
 from definitions import DATA_EXTERNAL_PATH, pollutants
 from preparation import save_dataframe
-from . import calculate_aqi, calculate_co_aqi, calculate_no2_aqi, calculate_o3_aqi, calculate_pm25_aqi, \
-    calculate_pm10_aqi, calculate_so2_aqi
+from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
+    calculate_pm25_index, calculate_pm10_index, calculate_so2_index
 
 
 def drop_numerical_outliers(df, z_thresh=3):
@@ -69,12 +69,12 @@ def merge_air_quality_data(city_name, sensor_id):
     dataframe.drop(columns=drop_columns_std, inplace=True)
 
     dataframe['aqi'] = dataframe.apply(
-        lambda row: calculate_aqi(calculate_co_aqi(row['co']) if 'co' in dataframe.columns else 0,
-                                  calculate_no2_aqi(row['no2']) if 'no2' in dataframe.columns else 0,
-                                  calculate_o3_aqi(row['o3']) if 'o3' in dataframe.columns else 0,
-                                  calculate_pm25_aqi(row['pm25']) if 'pm25' in dataframe.columns else 0,
-                                  calculate_pm10_aqi(row['pm10']) if 'pm10' in dataframe.columns else 0,
-                                  calculate_so2_aqi(row['so2']) if 'so2' in dataframe.columns else 0)
+        lambda row: calculate_aqi(calculate_co_index(row['co']) if 'co' in dataframe.columns else 0,
+                                  calculate_no2_index(row['no2']) if 'no2' in dataframe.columns else 0,
+                                  calculate_o3_index(row['o3']) if 'o3' in dataframe.columns else 0,
+                                  calculate_pm25_index(row['pm25']) if 'pm25' in dataframe.columns else 0,
+                                  calculate_pm10_index(row['pm10']) if 'pm10' in dataframe.columns else 0,
+                                  calculate_so2_index(row['so2']) if 'so2' in dataframe.columns else 0)
         if dataframe.get('aqi') is None else row['aqi'], axis=1)
 
     # dataframe = dataframe[(np.abs(stats.zscore(dataframe[df_columns])) < 3).all(axis=1)]
