@@ -24,7 +24,7 @@ def fetch_collection(collection, collection_dir, sensor_id):
         db_records.to_csv(collection_path, index=False)
 
 
-def fetch_mongodb_data():
+def fetch_db_data():
     cities = fetch_cities()
     for city in cities:
         sensors = fetch_sensors(city['cityName'])
