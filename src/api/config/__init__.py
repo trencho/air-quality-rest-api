@@ -17,7 +17,7 @@ def create_app():
 
     register_blueprints(app)
 
-    # Comment these 2 lines for the mongodb configuration when running app in debug mode
+    # Comment these 2 lines to skip the mongodb configuration when running app in debug mode
     configure_database(app)
     fetch_db_data()
 
