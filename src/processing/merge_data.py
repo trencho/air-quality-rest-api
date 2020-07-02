@@ -7,7 +7,7 @@ from sklearn.impute import KNNImputer
 
 from definitions import DATA_EXTERNAL_PATH, pollutants
 from preparation import save_dataframe
-from processing import calculate_aqi, calculate_co_aqi, calculate_no2_aqi, calculate_o3_aqi, calculate_pm25_aqi, \
+from . import calculate_aqi, calculate_co_aqi, calculate_no2_aqi, calculate_o3_aqi, calculate_pm25_aqi, \
     calculate_pm10_aqi, calculate_so2_aqi
 
 

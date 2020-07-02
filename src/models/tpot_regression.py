@@ -2,7 +2,7 @@ from os import cpu_count
 
 from tpot import TPOTRegressor
 
-from models.base_regression_model import BaseRegressionModel
+from .base_regression_model import BaseRegressionModel
 
 
 class TPOTRegressionModel(BaseRegressionModel):

@@ -1,6 +1,6 @@
 from sklearn.neural_network import MLPRegressor
 
-from models.base_regression_model import BaseRegressionModel
+from .base_regression_model import BaseRegressionModel
 
 
 class MLPRegressionModel(BaseRegressionModel):
