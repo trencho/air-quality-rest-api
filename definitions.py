@@ -32,19 +32,19 @@ pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
 
 github_token_env_value = 'GITHUB_TOKEN'
 
-mongo_db_user_name_env_value = 'MONGODB_USERNAME'
-mongo_db_user_pass_env_value = 'MONGODB_PASSWORD'
-mongo_db_host_env_value = 'MONGODB_HOSTNAME'
-mongo_db_name_env_value = 'MONGODB_DATABASE'
+mongodb_user_name_env_value = 'MONGODB_USERNAME'
+mongodb_user_pass_env_value = 'MONGODB_PASSWORD'
+mongodb_host_env_value = 'MONGODB_HOSTNAME'
+mongodb_name_env_value = 'MONGODB_DATABASE'
 
 environment_variables = [
     dark_sky_env_value,
     pulse_eco_env_value,
     github_token_env_value,
-    mongo_db_user_name_env_value,
-    mongo_db_user_pass_env_value,
-    mongo_db_host_env_value,
-    mongo_db_name_env_value
+    mongodb_user_name_env_value,
+    mongodb_user_pass_env_value,
+    mongodb_host_env_value,
+    mongodb_name_env_value
 ]
 
 OPEN_API_VERSION = '3.0.3'
