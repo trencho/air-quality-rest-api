@@ -11,10 +11,7 @@ def fetch_measurements(dataframe):
     measurements = []
     for pollutant in pollutants:
         if pollutant in dataframe.columns:
-            measurement_dict = {
-                'name': pollutants[pollutant],
-                'value': pollutant
-            }
+            measurement_dict = {'name': pollutants[pollutant], 'value': pollutant}
             measurements.append(measurement_dict)
 
     return measurements
