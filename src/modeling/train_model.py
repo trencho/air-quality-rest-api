@@ -8,20 +8,9 @@ from sklearn.model_selection import RandomizedSearchCV
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, \
     regression_models
 from models import make_model
-from processing import backward_elimination, generate_features, value_scaling
+from processing import backward_elimination, generate_features, previous_value_overwrite, value_scaling
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
-
-
-def previous_value_overwrite(X, y):
-    X = X.shift(periods=-1, axis=0)
-    X.reset_index(drop=True, inplace=True)
-    X.drop(len(X) - 1, inplace=True)
-
-    y = y.reset_index(drop=True)
-    y.drop(len(y) - 1, inplace=True)
-
-    return X, y
 
 
 def drop_columns(dataframe, columns):
@@ -33,7 +22,10 @@ def split_dataframe(dataframe, pollutant, selected_features=None):
     X = value_scaling(X)
     y = dataframe[pollutant]
 
-    X, y = previous_value_overwrite(X, y)
+    X = previous_value_overwrite(X)
+    y.reset_index(drop=True, inplace=True)
+    y.drop(len(y) - 1, inplace=True)
+
     selected_features = backward_elimination(X, y) if selected_features is None else selected_features
     X = X[selected_features]
 

@@ -5,17 +5,10 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv, to_datetime
 
 from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, regression_models
+from processing import previous_value_overwrite
 from .handle_plot import save_plot
 
 warnings.filterwarnings(action='once')
-
-
-def previous_value_overwrite(X):
-    X = X.shift(periods=-1, axis=0)
-    X.reset_index(drop=True, inplace=True)
-    X.drop(len(X) - 1, inplace=True)
-
-    return X
 
 
 def draw_predictions(city, sensor, pollutant):
