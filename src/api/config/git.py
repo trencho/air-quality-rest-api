@@ -29,10 +29,10 @@ def merge_csv_files(repo_name, file_name, data):
 
 def update_git_files(file_names, file_list, repo_name, branch, commit_message=''):
     if commit_message == '':
-        commit_message = 'Data Updated - ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        commit_message = f'Data Updated - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
 
     repo = g.get_user().get_repo(repo_name)
-    master_ref = repo.get_git_ref('heads/' + branch)
+    master_ref = repo.get_git_ref(f'heads/{branch}')
     master_sha = master_ref.object.sha
     base_tree = repo.get_git_tree(master_sha)
     element_list = []

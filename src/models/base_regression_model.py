@@ -25,10 +25,10 @@ class BaseRegressionModel:
 
     def save(self, city_name, sensor_id, pollutant):
         with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
-                            type(self).__name__ + '.pkl'), 'wb') as out_file:
+                            f'{type(self).__name__}.pkl'), 'wb') as out_file:
             pickle_dump(self.reg, out_file, HIGHEST_PROTOCOL)
 
     def load(self, city_name, sensor_id, pollutant):
         with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
-                            type(self).__name__ + '.pkl'), 'rb') as in_file:
+                            f'{type(self).__name__}.pkl'), 'rb') as in_file:
             self.reg = pickle_load(in_file)

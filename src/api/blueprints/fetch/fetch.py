@@ -52,8 +52,10 @@ def fetch_data(city_name=None, sensor_id=None):
         for sensor in sensors:
             fetch_city_data(city_name, sensor, start_time, end_time)
 
-        message = ('Started the operation to fetch weather and pollution data from the external APIs for '
-                   + city['siteName'] + ' and all active sensors.')
+        message = (
+            f'Started the operation to fetch weather and pollution data from the external APIs for {city["siteName"]} '
+            f'and all active sensors.'
+        )
         return make_response(jsonify(success=message))
     else:
         sensor = check_sensor(city_name, sensor_id)
@@ -64,6 +66,8 @@ def fetch_data(city_name=None, sensor_id=None):
 
         fetch_city_data(city_name, sensor, start_time, end_time)
 
-        message = ('Started the operation to fetch weather and pollution data from the external APIs for '
-                   + city['siteName'] + ' and ' + sensor['description'] + '.')
+        message = (
+            f'Started the operation to fetch weather and pollution data from the external APIs for '
+            f'{city["siteName"]} and {sensor["description"]}.'
+        )
         return make_response(jsonify(success=message))
