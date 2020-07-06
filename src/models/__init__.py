@@ -25,11 +25,11 @@ def get_model_class(model):
     if model in __all__:
         return globals()[model]
     else:
-        raise Exception('The agent name %s does not exist' % model)
+        raise Exception(f'The agent name {model} does not exist')
 
 
 def make_model(model):
     if model in __all__:
         return globals()[model]()
     else:
-        raise Exception('The agent name %s does not exist' % model)
+        raise Exception(f'The agent name {model} does not exist')
