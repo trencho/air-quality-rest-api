@@ -27,11 +27,11 @@ def fetch_dataframe(city_name, sensor_id):
 
 def fetch_cities():
     url = 'https://pulse.eco/rest/city/'
-    with requests_get(url) as response:
-        try:
-            cities = response.json()
-        except ValueError:
-            return []
+    response = requests_get(url)
+    try:
+        cities = response.json()
+    except ValueError:
+        return []
 
     return cities
 
@@ -46,12 +46,12 @@ def check_city(city_name):
 
 
 def fetch_sensors(city_name):
-    url = 'https://' + city_name + '.pulse.eco/rest/sensor/'
-    with requests_get(url) as response:
-        try:
-            sensors = response.json()
-        except ValueError:
-            return []
+    url = f'https://{city_name}.pulse.eco/rest/sensor/'
+    response = requests_get(url)
+    try:
+        sensors = response.json()
+    except ValueError:
+        return []
 
     active_sensors = [sensor for sensor in sensors if sensor['status'] == status_active]
 
@@ -101,20 +101,20 @@ def forecast_sensor(sensor, start_time):
     with open(dark_sky_env) as dark_sky_file:
         dark_sky_json = json_load(dark_sky_file)
     private_key = dark_sky_json.get('private_key')
-    link = url + '/' + private_key + '/' + sensor['position'] + ',' + str(start_time)
+    link = f'{url}/{private_key}/{sensor["position"]},{start_time}'
 
-    with requests_get(url=link, params=params) as weather_response:
-        try:
-            weather_json = weather_response.json()
-            hourly = weather_json.get('hourly')
-            hourly_data = hourly.get('data')
-            for hourly in hourly_data:
-                if hourly['time'] == start_time:
-                    return hourly
-        except ValueError:
-            message = 'Cannot fetch forecast data for the given timestamp.'
-            status_code = HTTP_BAD_REQUEST
-            return make_response(jsonify(error_message=message), status_code)
+    weather_response = requests_get(url=link, params=params)
+    try:
+        weather_json = weather_response.json()
+        hourly = weather_json.get('hourly')
+        hourly_data = hourly.get('data')
+        for hourly in hourly_data:
+            if hourly['time'] == start_time:
+                return hourly
+    except ValueError:
+        message = 'Cannot fetch forecast data for the given timestamp.'
+        status_code = HTTP_BAD_REQUEST
+        return make_response(jsonify(error_message=message), status_code)
 
     return {}
 

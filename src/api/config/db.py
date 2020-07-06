@@ -9,7 +9,8 @@ mongo = PyMongo()
 
 
 def configure_database(app):
-    app.config['MONGO_URI'] = ('mongodb+srv://' + environ.get(mongodb_user_name_env_value) + ':'
-                               + environ.get(mongodb_user_pass_env_value) + '@' + environ.get(mongodb_host_env_value)
-                               + '/' + environ.get(mongodb_name_env_value) + '?retryWrites=true&w=majority')
+    app.config['MONGO_URI'] = (
+        f'mongodb+srv://{environ.get(mongodb_user_name_env_value)}:{environ.get(mongodb_user_pass_env_value)}@'
+        f'{environ.get(mongodb_host_env_value)}/{environ.get(mongodb_name_env_value)}?retryWrites=true&w=majority'
+    )
     mongo.init_app(app)

@@ -23,7 +23,7 @@ def format_datetime(timestamp, tz):
 
 
 def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
-    url = 'https://' + city_name + '.pulse.eco/rest/dataRaw'
+    url = f'https://{city_name}.pulse.eco/rest/dataRaw'
 
     pulse_eco_env = environ.get(pulse_eco_env_value)
     with open(pulse_eco_env) as pulse_eco_file:
@@ -46,15 +46,14 @@ def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
     dataframe = DataFrame()
     while from_timestamp < end_timestamp:
         for pollutant in pollutants:
-            parameters = 'sensorId=' + sensor['sensorId'] + '&' + 'type=' + pollutant + '&' + 'from=' + from_datetime \
-                         + '&' + 'to=' + to_datetime
-            with requests_get(url=url, params=parameters, auth=(username, password)) as pollution_response:
-                try:
-                    pollution_json = pollution_response.json()
-                    dataframe = dataframe.append(json_normalize(pollution_json), ignore_index=True)
-                except ValueError:
-                    print(pollution_response)
-                    print(traceback.format_exc())
+            parameters = f'sensorId={sensor["sensorId"]}&type={pollutant}&from={from_datetime}&to={to_datetime}'
+            pollution_response = requests_get(url=url, params=parameters, auth=(username, password))
+            try:
+                pollution_json = pollution_response.json()
+                dataframe = dataframe.append(json_normalize(pollution_json), ignore_index=True)
+            except ValueError:
+                print(pollution_response)
+                print(traceback.format_exc())
 
         if not dataframe.empty:
             dataframe.sort_values(by='stamp', inplace=True)

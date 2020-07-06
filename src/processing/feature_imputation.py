@@ -70,10 +70,10 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
 
     # Check the content of the distances parameter
     if numeric_distance not in possible_continuous_distances:
-        print('The continuous distance ' + numeric_distance + ' is not supported.')
+        print(f'The continuous distance {numeric_distance} is not supported.')
         return None
     elif categorical_distance not in possible_binary_distances:
-        print('The binary distance ' + categorical_distance + ' is not supported.')
+        print(f'The binary distance {categorical_distance} is not supported.')
         return None
 
     # Separate the data frame into categorical and numeric attributes and normalize numeric data

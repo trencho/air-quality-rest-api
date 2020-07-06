@@ -12,7 +12,7 @@ def check_environment_variables():
     for environment_variable in environment_variables:
         env = environ.get(environment_variable)
         if env is None:
-            print('The environment variable "' + environment_variable + '" is missing')
+            print(f'The environment variable "{environment_variable}" is missing')
             exit(-1)
 
 
@@ -20,7 +20,7 @@ def fetch_collection(collection, collection_dir, sensor_id):
     db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
     if not db_records.empty:
         db_records.drop(columns='_id', inplace=True, errors='ignore')
-        collection_path = path.join(collection_dir, collection + '_report.csv')
+        collection_path = path.join(collection_dir, f'{collection}_report.csv')
         db_records.to_csv(collection_path, index=False)
 
 
