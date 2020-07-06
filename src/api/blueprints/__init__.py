@@ -53,10 +53,7 @@ def fetch_sensors(city_name):
         except ValueError:
             return []
 
-    active_sensors = []
-    for sensor in sensors:
-        if sensor['status'] == status_active:
-            active_sensors.append(sensor)
+    active_sensors = [sensor for sensor in sensors if sensor['status'] == status_active]
 
     return active_sensors
 
