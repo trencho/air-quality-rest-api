@@ -8,6 +8,6 @@ def save_plot(fig, plt, city_name, sensor_id, pollutant, file_name):
 
     if not path.exists(path.join(RESULTS_PREDICTIONS_PATH, 'plots', city_name, sensor_id, pollutant)):
         makedirs(path.join(RESULTS_PREDICTIONS_PATH, 'plots', city_name, sensor_id, pollutant))
-    plt.savefig(path.join(RESULTS_PREDICTIONS_PATH, 'plots', city_name, sensor_id, pollutant, file_name + '.png'),
+    plt.savefig(path.join(RESULTS_PREDICTIONS_PATH, 'plots', city_name, sensor_id, pollutant, f'{file_name}.png'),
                 bbox_inches='tight')
     plt.close(fig)
