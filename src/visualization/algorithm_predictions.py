@@ -48,7 +48,7 @@ def draw_predictions(city, sensor, pollutant):
     # ax (left Y axis)
     ax.set_xlabel('Dates', fontsize=22)
     ax.tick_params(axis='x', rotation=0, labelsize=18)
-    ax.set_ylabel(pollutants[pollutant] + ' values', fontsize=22)
+    ax.set_ylabel(f'{pollutants[pollutant]} values', fontsize=22)
     ax.tick_params(axis='y', rotation=0)
     ax.set_title(f'{city["siteName"]} - {sensor["description"]}', fontsize=22)
     ax.grid(alpha=.4)
