@@ -22,7 +22,7 @@ def format_datetime(timestamp, tz):
     return dt
 
 
-def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
+def extract_pollution_json(city_name, sensor, start_time, end_time):
     url = f'https://{city_name}.pulse.eco/rest/dataRaw'
 
     pulse_eco_env = environ.get(pulse_eco_env_value)
@@ -37,14 +37,14 @@ def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
     sensor_loc = tf.timezone_at(lng=longitude, lat=latitude)
     sensor_tz = timezone(sensor_loc)
 
-    from_timestamp = start_timestamp
+    from_timestamp = start_time
     from_datetime = format_datetime(from_timestamp, sensor_tz)
 
-    to_timestamp = start_timestamp + week_in_seconds
+    to_timestamp = start_time + week_in_seconds
     to_datetime = format_datetime(to_timestamp, sensor_tz)
 
     dataframe = DataFrame()
-    while from_timestamp < end_timestamp:
+    while from_timestamp < end_time:
         for pollutant in pollutants:
             parameters = f'sensorId={sensor["sensorId"]}&type={pollutant}&from={from_datetime}&to={to_datetime}'
             pollution_response = requests_get(url=url, params=parameters, auth=(username, password))
@@ -78,6 +78,8 @@ def extract_pollution_json(city_name, sensor, start_timestamp, end_timestamp):
         dataframe.rename(columns={'stamp': 'time'}, inplace=True)
         dataframe['time'] = pandas_to_datetime(dataframe['time'])
         dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
+        dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
+
         dataframe['value'] = to_numeric(dataframe['value'])
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
         dataframe.sort_values(by='time', inplace=True)

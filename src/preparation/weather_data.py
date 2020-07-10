@@ -40,5 +40,6 @@ def extract_weather_json(city_name, sensor, start_time, end_time):
         link = f'{url}/{private_key}/{sensor["position"]},{start_time}'
 
     if not dataframe.empty:
+        dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
         weather_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'weather_report.csv')
         save_dataframe(dataframe, 'weather', weather_data_path, sensor['sensorId'])
