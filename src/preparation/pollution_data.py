@@ -25,11 +25,11 @@ def format_datetime(timestamp, tz):
 def extract_pollution_json(city_name, sensor, start_time, end_time):
     url = f'https://{city_name}.pulse.eco/rest/dataRaw'
 
-    pulse_eco_env = environ.get(pulse_eco_env_value)
+    pulse_eco_env = environ[pulse_eco_env_value]
     with open(pulse_eco_env) as pulse_eco_file:
         pulse_eco_json = json_load(pulse_eco_file)
-    username = pulse_eco_json.get('username')
-    password = pulse_eco_json.get('password')
+    username = pulse_eco_json['username']
+    password = pulse_eco_json['password']
 
     tf = TimezoneFinder()
     sensor_position = sensor['position'].split(',')

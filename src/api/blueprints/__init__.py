@@ -97,21 +97,21 @@ def fetch_city_data(city_name, sensor, start_time, end_time):
 def forecast_sensor(sensor, start_time):
     url = 'https://api.darksky.net/forecast'
     params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
-    dark_sky_env = environ.get(dark_sky_env_value)
+    dark_sky_env = environ[dark_sky_env_value]
     with open(dark_sky_env) as dark_sky_file:
         dark_sky_json = json_load(dark_sky_file)
-    private_key = dark_sky_json.get('private_key')
+    private_key = dark_sky_json['private_key']
     link = f'{url}/{private_key}/{sensor["position"]},{start_time}'
 
     weather_response = requests_get(url=link, params=params)
     try:
         weather_json = weather_response.json()
-        hourly = weather_json.get('hourly')
-        hourly_data = hourly.get('data')
+        hourly = weather_json['hourly']
+        hourly_data = hourly['data']
         for hourly in hourly_data:
             if hourly['time'] == start_time:
                 return hourly
-    except ValueError:
+    except (KeyError, ValueError):
         message = 'Cannot fetch forecast data for the given timestamp.'
         status_code = HTTP_BAD_REQUEST
         return make_response(jsonify(error_message=message), status_code)
@@ -182,7 +182,7 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
             status_code = HTTP_BAD_REQUEST
             return make_response(jsonify(error_message=message, feature=model_feature), status_code)
 
-        features_dict.update({model_feature: feature})
+        features_dict[model_feature] = feature
 
     features = DataFrame(features_dict, index=[0])
     features = encode_categorical_data(features)
