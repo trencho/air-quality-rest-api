@@ -5,7 +5,7 @@ from api.config.db import mongo
 
 
 def trim_dataframe(dataframe):
-    dataframe.drop_duplicates(inplace=True)
+    dataframe.drop_duplicates(subset='time', inplace=True)
     dataframe.reset_index(drop=True, inplace=True)
     dataframe.sort_values(by='time', inplace=True)
 
@@ -21,7 +21,6 @@ def save_dataframe(dataframe, collection, collection_path, sensor_id):
     dataframe.drop(columns='_merge', inplace=True, errors='ignore')
     trim_dataframe(dataframe)
     if not dataframe.empty:
-        dataframe['sensorId'] = sensor_id
         dataframe_records = dataframe.to_dict('records')
         mongo.db[collection].insert_many(dataframe_records)
         mongo.db[collection].find().sort('time', ASCENDING)
