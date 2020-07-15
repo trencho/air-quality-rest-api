@@ -75,7 +75,7 @@ def merge_air_quality_data(city_name, sensor_id):
                                   calculate_pm25_index(row['pm25']) if 'pm25' in dataframe.columns else 0,
                                   calculate_pm10_index(row['pm10']) if 'pm10' in dataframe.columns else 0,
                                   calculate_so2_index(row['so2']) if 'so2' in dataframe.columns else 0)
-        if dataframe.get('aqi') is None else row['aqi'], axis=1)
+        if row.get('aqi') is None else row['aqi'], axis=1)
 
     # dataframe = dataframe[(np.abs(stats.zscore(dataframe[df_columns])) < 3).all(axis=1)]
     # drop_numerical_outliers(dataframe)
