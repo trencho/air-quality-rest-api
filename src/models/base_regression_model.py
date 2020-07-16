@@ -19,9 +19,7 @@ class BaseRegressionModel:
         self.reg.fit(X, y)
 
     def predict(self, X):
-        y_pred = self.reg.predict(X)
-
-        return y_pred
+        return self.reg.predict(X)
 
     def save(self, city_name, sensor_id, pollutant):
         with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
