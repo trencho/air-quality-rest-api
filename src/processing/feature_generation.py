@@ -56,9 +56,7 @@ def select_tsfresh_features(dataframe, target):
     train_y = dataframe.iloc[:validation_split][target]
 
     train_features_selected = select_features(train_x, train_y)
-    dataframe = dataframe[train_features_selected]
-
-    return dataframe
+    return dataframe[train_features_selected]
 
 
 def generate_tsfresh_features(dataframe, target):
@@ -77,7 +75,6 @@ def generate_tsfresh_features(dataframe, target):
     dataframe[target] = y
 
     dataframe = select_tsfresh_features(dataframe, target)
-
     dataframe = encode_categorical_data(dataframe)
 
     return dataframe
