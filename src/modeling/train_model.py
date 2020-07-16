@@ -13,12 +13,8 @@ from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
 
-def drop_columns(dataframe, columns):
-    return dataframe.drop(columns=columns, errors='ignore')
-
-
 def split_dataframe(dataframe, pollutant, selected_features=None):
-    X = drop_columns(dataframe, pollutants)
+    X = dataframe.drop(columns=pollutants, errors='ignore')
     X = value_scaling(X)
     y = dataframe[pollutant]
 
