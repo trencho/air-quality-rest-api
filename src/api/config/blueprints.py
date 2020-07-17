@@ -10,7 +10,7 @@ __all__ = [
     'forecast',
     'history',
     'pollutant',
-    'sensors',
+    'sensors'
     # 'train'
 ]
 
