@@ -1,3 +1,4 @@
+import traceback
 from datetime import datetime
 from io import BytesIO, StringIO
 from os import environ, path
@@ -37,8 +38,15 @@ def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, 
         commit = repo.create_git_commit(commit_message, tree, [parent])
         master_ref.edit(commit.sha)
     except:
-        commit_git_files(repo, element_list[:len(element_list) // 2], base_tree, master_sha, commit_message, master_ref)
-        commit_git_files(repo, element_list[len(element_list) // 2:], base_tree, master_sha, commit_message, master_ref)
+        if len(element_list) // 2 > 0:
+            commit_git_files(repo, element_list[:len(element_list) // 2], base_tree, master_sha, commit_message,
+                             master_ref)
+            commit_git_files(repo, element_list[len(element_list) // 2:], base_tree, master_sha, commit_message,
+                             master_ref)
+
+            return 'Update complete'
+        else:
+            return traceback.format_exc()
 
 
 def update_git_files(file_names, file_list, repo_name, branch, commit_message=''):
@@ -60,5 +68,4 @@ def update_git_files(file_names, file_list, repo_name, branch, commit_message=''
             element = InputGitTreeElement(file_names[i], '100644', 'blob', sha=file_list[i].sha)
             element_list.append(element)
 
-    commit_git_files(repo, element_list, base_tree, master_sha, commit_message, master_ref)
-    print('Update complete')
+    print(commit_git_files(repo, element_list, base_tree, master_sha, commit_message, master_ref))

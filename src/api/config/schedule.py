@@ -32,7 +32,7 @@ def data_dump():
 
     if file_list:
         branch = 'master'
-        commit_message = f'Scheduled data dump - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
+        commit_message = f'Scheduled data dump - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}'
         update_git_files(file_names, file_list, repo_name, branch, commit_message)
 
 
