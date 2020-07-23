@@ -1,1 +1,1 @@
-from .history import history
+from .history import history_blueprint

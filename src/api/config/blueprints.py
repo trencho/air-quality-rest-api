@@ -1,17 +1,17 @@
-from api.blueprints.cities import cities
-from api.blueprints.forecast import forecast
-from api.blueprints.history import history
-from api.blueprints.pollutants import pollutant
-from api.blueprints.sensors import sensors
+from api.blueprints.cities import cities_blueprint
+from api.blueprints.forecast import forecast_blueprint
+from api.blueprints.history import history_blueprint
+from api.blueprints.pollutants import pollutant_blueprint
+from api.blueprints.sensors import sensors_blueprint
 
 __all__ = [
-    'cities',
-    # 'fetch',
-    'forecast',
-    'history',
-    'pollutant',
-    'sensors'
-    # 'train'
+    'cities_blueprint',
+    # 'fetch_blueprint',
+    'forecast_blueprint',
+    'history_blueprint',
+    'pollutant_blueprint',
+    'sensors_blueprint'
+    # 'train_blueprint'
 ]
 
 

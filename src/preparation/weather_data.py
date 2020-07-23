@@ -9,7 +9,7 @@ from definitions import DATA_EXTERNAL_PATH, dark_sky_env_value, hour_in_secs
 from .handle_data import save_dataframe
 
 
-def extract_weather_json(city_name, sensor, start_time, end_time):
+def fetch_weather_data(city_name, sensor, start_time, end_time):
     url = 'https://api.darksky.net/forecast'
     params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
     dark_sky_env = environ[dark_sky_env_value]

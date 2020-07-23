@@ -3,8 +3,8 @@ from threading import Thread
 
 from pandas import DataFrame
 
-from api.blueprints import fetch_cities, fetch_sensors
 from definitions import DATA_EXTERNAL_PATH, environment_variables, collections
+from preparation import fetch_cities, fetch_sensors, fetch_locations
 from .db import mongo
 
 
@@ -25,6 +25,7 @@ def fetch_collection(collection, collection_dir, sensor_id):
 
 
 def fetch_db_data():
+    fetch_locations()
     cities = fetch_cities()
     for city in cities:
         sensors = fetch_sensors(city['cityName'])

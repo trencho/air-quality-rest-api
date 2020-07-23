@@ -1,1 +1,1 @@
-from .sensors import sensors
+from .sensors import sensors_blueprint

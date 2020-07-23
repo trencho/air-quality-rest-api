@@ -1,1 +1,1 @@
-from .forecast import forecast
+from .forecast import forecast_blueprint

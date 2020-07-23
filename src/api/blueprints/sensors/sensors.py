@@ -1,14 +1,15 @@
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response
 
-from api.blueprints import check_city, check_sensor, fetch_sensors
 from definitions import HTTP_NOT_FOUND
+from preparation import check_city, check_sensor, fetch_sensors
 
-sensors = Blueprint('sensors', __name__)
+sensors_blueprint = Blueprint('sensors', __name__)
 
 
-@sensors.route('/cities/<string:city_name>/sensors/', endpoint='sensor_all', methods=['GET'])
-@sensors.route('/cities/<string:city_name>/sensors/<string:sensor_id>/', endpoint='sensor_id', methods=['GET'])
+@sensors_blueprint.route('/cities/<string:city_name>/sensors/', endpoint='sensor_all', methods=['GET'])
+@sensors_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/', endpoint='sensor_id',
+                         methods=['GET'])
 @swag_from('sensor_all.yml', endpoint='sensors.sensor_all', methods=['GET'])
 @swag_from('sensor_id.yml', endpoint='sensors.sensor_id', methods=['GET'])
 def fetch_city_sensor(city_name, sensor_id=None):
