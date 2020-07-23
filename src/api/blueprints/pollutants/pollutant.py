@@ -1,10 +1,11 @@
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response
 
-from api.blueprints import check_city, check_sensor, fetch_dataframe
+from api.blueprints import fetch_dataframe
 from definitions import HTTP_NOT_FOUND, pollutants
+from preparation import check_city, check_sensor
 
-pollutant = Blueprint('pollutants', __name__)
+pollutant_blueprint = Blueprint('pollutants', __name__)
 
 
 def fetch_measurements(dataframe):
@@ -14,8 +15,8 @@ def fetch_measurements(dataframe):
     return measurements
 
 
-@pollutant.route('/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/', endpoint='pollutants_all',
-                 methods=['GET'])
+@pollutant_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/',
+                           endpoint='pollutants_all', methods=['GET'])
 @swag_from('pollutants_all.yml', endpoint='pollutants.pollutants_all', methods=['GET'])
 def fetch_pollutant(city_name, sensor_id):
     city = check_city(city_name)

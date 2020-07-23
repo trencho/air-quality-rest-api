@@ -8,10 +8,10 @@ from flask import jsonify, make_response, Response
 from pandas import DataFrame, read_csv
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, status_active, \
-    dark_sky_env_value, dummy_leap_year, seasons
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, dark_sky_env_value, \
+    dummy_leap_year, seasons
 from modeling import train_regression_model
-from preparation import extract_pollution_json, extract_weather_json
+from preparation import fetch_pollution_data, fetch_weather_data
 from processing import encode_categorical_data, merge_air_quality_data
 
 
@@ -23,48 +23,6 @@ def fetch_dataframe(city_name, sensor_id):
         return make_response(jsonify(message))
 
     return dataframe
-
-
-def fetch_cities():
-    url = 'https://pulse.eco/rest/city/'
-    response = requests_get(url)
-    try:
-        cities = response.json()
-    except ValueError:
-        return []
-
-    return cities
-
-
-def check_city(city_name):
-    cities = fetch_cities()
-    for city in cities:
-        if city['cityName'] == city_name:
-            return city
-
-    return None
-
-
-def fetch_sensors(city_name):
-    url = f'https://{city_name}.pulse.eco/rest/sensor/'
-    response = requests_get(url)
-    try:
-        sensors = response.json()
-    except ValueError:
-        return []
-
-    active_sensors = [sensor for sensor in sensors if sensor['status'] == status_active]
-
-    return active_sensors
-
-
-def check_sensor(city_name, sensor_id):
-    sensors = fetch_sensors(city_name)
-    for sensor in sensors:
-        if sensor['sensorId'] == sensor_id:
-            return sensor
-
-    return None
 
 
 def create_data_path(city_name, sensor_id):
@@ -83,13 +41,13 @@ def fetch_city_data(city_name, sensor, start_time, end_time):
 
     threads = []
 
-    extract_weather_thread = Thread(target=extract_weather_json, args=(city_name, sensor, start_time, end_time))
-    threads.append(extract_weather_thread)
-    extract_weather_thread.start()
+    fetch_weather_thread = Thread(target=fetch_weather_data, args=(city_name, sensor, start_time, end_time))
+    threads.append(fetch_weather_thread)
+    fetch_weather_thread.start()
 
-    extract_pollution_thread = Thread(target=extract_pollution_json, args=(city_name, sensor, start_time, end_time))
-    threads.append(extract_pollution_thread)
-    extract_pollution_thread.start()
+    fetch_pollution_thread = Thread(target=fetch_pollution_data, args=(city_name, sensor, start_time, end_time))
+    threads.append(fetch_pollution_thread)
+    fetch_pollution_thread.start()
 
     Thread(target=merge_city_sensor_data, args=(threads, city_name, sensor['sensorId'])).start()
 
