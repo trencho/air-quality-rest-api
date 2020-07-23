@@ -1,1 +1,1 @@
-from .cities import cities
+from .cities import cities_blueprint

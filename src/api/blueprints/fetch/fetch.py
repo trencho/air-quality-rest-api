@@ -3,17 +3,17 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
 
-from api.blueprints import check_city, check_sensor, current_hour, fetch_cities, fetch_city_data, fetch_sensors, \
-    next_hour
+from api.blueprints import current_hour, fetch_city_data, next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
+from preparation import check_city, check_sensor, fetch_cities, fetch_sensors
 
-fetch = Blueprint('fetch', __name__)
+fetch_blueprint = Blueprint('fetch', __name__)
 
 
-@fetch.route('/fetch/', endpoint='fetch_all', methods=['GET'])
-@fetch.route('/cities/<string:city_name>/fetch/', endpoint='fetch_city', methods=['GET'])
-@fetch.route('/cities/<string:city_name>/sensors/<string:sensor_id>/fetch/', endpoint='fetch_city_sensor',
-             methods=['GET'])
+@fetch_blueprint.route('/fetch/', endpoint='fetch_all', methods=['GET'])
+@fetch_blueprint.route('/cities/<string:city_name>/fetch/', endpoint='fetch_city', methods=['GET'])
+@fetch_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/fetch/', endpoint='fetch_city_sensor',
+                       methods=['GET'])
 @swag_from('fetch_all.yml', endpoint='fetch.fetch_all', methods=['GET'])
 @swag_from('fetch_city.yml', endpoint='fetch.fetch_city', methods=['GET'])
 @swag_from('fetch_city_sensor.yml', endpoint='fetch.fetch_city_sensor', methods=['GET'])

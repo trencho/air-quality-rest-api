@@ -1,16 +1,17 @@
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
 
-from api.blueprints import check_city, check_sensor, fetch_cities, fetch_sensors, train_city_sensors
+from api.blueprints import train_city_sensors
 from definitions import HTTP_NOT_FOUND, pollutants
+from preparation import check_city, check_sensor, fetch_cities, fetch_sensors
 
-train = Blueprint('train', __name__)
+train_blueprint = Blueprint('train', __name__)
 
 
-@train.route('/train/', endpoint='train_all', methods=['GET'])
-@train.route('/cities/<string:city_name>/train/', endpoint='train_city', methods=['GET'])
-@train.route('/cities/<string:city_name>/sensors/<string:sensor_id>/train/', endpoint='train_city_sensor',
-             methods=['GET'])
+@train_blueprint.route('/train/', endpoint='train_all', methods=['GET'])
+@train_blueprint.route('/cities/<string:city_name>/train/', endpoint='train_city', methods=['GET'])
+@train_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/train/', endpoint='train_city_sensor',
+                       methods=['GET'])
 @swag_from('train_all.yml', endpoint='train.train_all', methods=['GET'])
 @swag_from('train_city.yml', endpoint='train.train_city', methods=['GET'])
 @swag_from('train_city_sensor.yml', endpoint='train.train_city_sensor', methods=['GET'])

@@ -3,14 +3,16 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
-from api.blueprints import check_city, check_sensor, current_hour, fetch_dataframe
+from api.blueprints import current_hour, fetch_dataframe
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
+from preparation import check_city, check_sensor
 
-history = Blueprint('history', __name__)
+history_blueprint = Blueprint('history', __name__)
 
 
-@history.route('/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/<string:pollutant_name>/history/',
-               endpoint='pollutant_history', methods=['GET'])
+@history_blueprint.route(
+    '/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/<string:pollutant_name>/history/',
+    endpoint='pollutant_history', methods=['GET'])
 @swag_from('history.yml', endpoint='history.pollutant_history', methods=['GET'])
 def history_pollutant(city_name, sensor_id, pollutant_name):
     city = check_city(city_name)

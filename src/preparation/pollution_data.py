@@ -22,7 +22,7 @@ def format_datetime(timestamp, tz):
     return dt
 
 
-def extract_pollution_json(city_name, sensor, start_time, end_time):
+def fetch_pollution_data(city_name, sensor, start_time, end_time):
     url = f'https://{city_name}.pulse.eco/rest/dataRaw'
 
     pulse_eco_env = environ[pulse_eco_env_value]

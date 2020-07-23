@@ -3,17 +3,19 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
-from api.blueprints import check_city, check_sensor, fetch_cities, fetch_sensors, forecast_city_sensor, next_hour
+from api.blueprints import forecast_city_sensor, next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND, pollutants
+from preparation import check_city, check_sensor, fetch_cities, fetch_sensors
 
-forecast = Blueprint('forecast', __name__)
+forecast_blueprint = Blueprint('forecast', __name__)
 
 
-@forecast.route('/pollutants/<string:pollutant_name>/forecast', endpoint='forecast_all', methods=['GET'])
-@forecast.route('/pollutants/<string:pollutant_name>/cities/<string:city_name>/forecast', endpoint='forecast_city',
-                methods=['GET'])
-@forecast.route('/pollutants/<string:pollutant_name>/cities/<string:city_name>/sensors/<string:sensor_id>/forecast',
-                endpoint='forecast_city_sensor', methods=['GET'])
+@forecast_blueprint.route('/pollutants/<string:pollutant_name>/forecast', endpoint='forecast_all', methods=['GET'])
+@forecast_blueprint.route('/pollutants/<string:pollutant_name>/cities/<string:city_name>/forecast',
+                          endpoint='forecast_city', methods=['GET'])
+@forecast_blueprint.route(
+    '/pollutants/<string:pollutant_name>/cities/<string:city_name>/sensors/<string:sensor_id>/forecast',
+    endpoint='forecast_city_sensor', methods=['GET'])
 @swag_from('forecast_all.yml', endpoint='forecast.forecast_all', methods=['GET'])
 @swag_from('forecast_city.yml', endpoint='forecast.forecast_city', methods=['GET'])
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
