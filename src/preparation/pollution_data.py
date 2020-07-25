@@ -74,16 +74,15 @@ def fetch_pollution_data(city_name, sensor, start_time, end_time):
             to_timestamp += hour_in_secs
             to_datetime = format_datetime(to_timestamp, sensor_tz)
 
+    dataframe.rename(columns={'stamp': 'time'}, inplace=True, errors='ignore')
+    dataframe['time'] = pandas_to_datetime(dataframe['time'], errors='ignore')
+
+    dataframe['value'] = to_numeric(dataframe['value'], errors='ignore')
+    dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
+
     if not dataframe.empty:
-        dataframe.rename(columns={'stamp': 'time'}, inplace=True)
-        dataframe['time'] = pandas_to_datetime(dataframe['time'])
         dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
         dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
-
-        dataframe['value'] = to_numeric(dataframe['value'])
-        dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
-        dataframe.sort_values(by='time', inplace=True)
-
         dataframe = normalize_pollution_data(dataframe)
         pollution_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'pollution_report.csv')
         save_dataframe(dataframe, 'pollution', pollution_data_path, sensor['sensorId'])

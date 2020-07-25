@@ -1,13 +1,13 @@
 from requests import get as requests_get
 
+from api.config.db import mongo
 from definitions import status_active
 
-cities = None
-sensors = None
+cities = []
+sensors = {}
 
 
 def check_city(city_name):
-    cities = fetch_cities()
     for city in cities:
         if city['cityName'] == city_name:
             return city
@@ -16,8 +16,7 @@ def check_city(city_name):
 
 
 def check_sensor(city_name, sensor_id):
-    sensors = fetch_sensors(city_name)
-    for sensor in sensors:
+    for sensor in sensors[city_name]:
         if sensor['sensorId'] == sensor_id:
             return sensor
 
@@ -49,4 +48,6 @@ def fetch_sensors(city_name):
 
 
 def fetch_locations():
-    pass
+    cities.append(mongo.db['cities'].find())
+    for city in cities:
+        sensors.update({city['cityName']: mongo.db['sensors'].find({'cityName': city['cityName']})})

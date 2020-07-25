@@ -5,7 +5,8 @@ from flask import Blueprint, jsonify, make_response, request
 
 from api.blueprints import current_hour, fetch_city_data, next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
-from preparation import check_city, check_sensor, fetch_cities, fetch_sensors
+from preparation import check_city, check_sensor
+from preparation.location_data import cities, sensors
 
 fetch_blueprint = Blueprint('fetch', __name__)
 
@@ -32,10 +33,8 @@ def fetch_data(city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), status_code)
 
     if city_name is None:
-        cities = fetch_cities()
         for city in cities:
-            sensors = fetch_sensors(city['cityName'])
-            for sensor in sensors:
+            for sensor in sensors[city['cityName']]:
                 fetch_city_data(city['cityName'], sensor, start_time, end_time)
 
         message = 'Fetched weather and pollution data from the external APIs for all cities.'
@@ -48,8 +47,7 @@ def fetch_data(city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), status_code)
 
     if sensor_id is None:
-        sensors = fetch_sensors(city['cityName'])
-        for sensor in sensors:
+        for sensor in sensors[city['cityName']]:
             fetch_city_data(city_name, sensor, start_time, end_time)
 
         message = (
