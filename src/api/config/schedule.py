@@ -7,7 +7,7 @@ from pandas import read_csv
 
 from api.blueprints import current_hour, fetch_city_data, next_hour, train_city_sensors
 from definitions import pollutants, ROOT_DIR
-from preparation import fetch_cities, fetch_sensors
+from preparation.location_data import cities, sensors
 from .git import append_commit_files, merge_csv_files, update_git_files
 
 scheduler = BackgroundScheduler()
@@ -47,19 +47,15 @@ def fetch_hourly_data():
     next_hour_timestamp = int(datetime.timestamp(next_hour_datetime))
     end_time = next_hour_timestamp
 
-    cities = fetch_cities()
     for city in cities:
-        sensors = fetch_sensors(city['cityName'])
-        for sensor in sensors:
+        for sensor in sensors[city['cityName']]:
             fetch_city_data(city['cityName'], sensor, start_time, end_time)
 
 
 @scheduler.scheduled_job(trigger='cron', day=1)
 def model_training():
-    cities = fetch_cities()
     for city in cities:
-        sensors = fetch_sensors(city['cityName'])
-        for sensor in sensors:
+        for sensor in sensors[city['cityName']]:
             for pollutant in pollutants:
                 train_city_sensors(city, sensor, pollutant)
 

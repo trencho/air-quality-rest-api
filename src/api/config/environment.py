@@ -4,7 +4,8 @@ from threading import Thread
 from pandas import DataFrame
 
 from definitions import DATA_EXTERNAL_PATH, environment_variables, collections
-from preparation import fetch_cities, fetch_sensors, fetch_locations
+from preparation import fetch_locations
+from preparation.location_data import cities, sensors
 from .db import mongo
 
 
@@ -26,10 +27,8 @@ def fetch_collection(collection, collection_dir, sensor_id):
 
 def fetch_db_data():
     fetch_locations()
-    cities = fetch_cities()
     for city in cities:
-        sensors = fetch_sensors(city['cityName'])
-        for sensor in sensors:
+        for sensor in sensors[city['cityName']]:
             for collection in collections:
                 collection_dir = path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
                 if not path.exists(collection_dir):

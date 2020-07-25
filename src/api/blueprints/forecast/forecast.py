@@ -5,7 +5,8 @@ from flask import Blueprint, jsonify, make_response, Response, request
 
 from api.blueprints import forecast_city_sensor, next_hour
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND, pollutants
-from preparation import check_city, check_sensor, fetch_cities, fetch_sensors
+from preparation import check_city, check_sensor
+from preparation.location_data import cities, sensors
 
 forecast_blueprint = Blueprint('forecast', __name__)
 
@@ -36,10 +37,8 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
 
     forecast_results = []
     if city_name is None:
-        cities = fetch_cities()
         for city in cities:
-            sensors = fetch_sensors(city['cityName'])
-            for sensor in sensors:
+            for sensor in sensors[city['cityName']]:
                 forecast_result = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
                 if isinstance(forecast_result, Response):
                     return forecast_result
@@ -55,8 +54,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), status_code)
 
     if sensor_id is None:
-        sensors = fetch_sensors(city['cityName'])
-        for sensor in sensors:
+        for sensor in sensors[city['cityName']]:
             forecast_result = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
             if isinstance(forecast_result, Response):
                 return forecast_result

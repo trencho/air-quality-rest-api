@@ -2,7 +2,8 @@ from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response
 
 from definitions import HTTP_NOT_FOUND
-from preparation import check_city, check_sensor, fetch_sensors
+from preparation import check_city, check_sensor
+from preparation.location_data import sensors
 
 sensors_blueprint = Blueprint('sensors', __name__)
 
@@ -20,7 +21,7 @@ def fetch_city_sensor(city_name, sensor_id=None):
         return make_response(jsonify(error_message=message), status_code)
 
     if sensor_id is None:
-        message = fetch_sensors(city_name)
+        message = sensors[city['cityName']]
         return make_response(jsonify(message))
 
     sensor = check_sensor(city_name, sensor_id)

@@ -2,7 +2,8 @@ from flasgger.utils import swag_from
 from flask import Blueprint, jsonify, make_response
 
 from definitions import HTTP_NOT_FOUND
-from preparation import check_city, fetch_cities
+from preparation import check_city
+from preparation.location_data import cities
 
 cities_blueprint = Blueprint('cities', __name__)
 
@@ -13,8 +14,7 @@ cities_blueprint = Blueprint('cities', __name__)
 @swag_from('city_name.yml', endpoint='cities.city_name', methods=['GET'])
 def fetch_city(city_name=None):
     if city_name is None:
-        message = fetch_cities()
-        return make_response(jsonify(message))
+        return make_response(jsonify(cities))
 
     city = check_city(city_name)
     if city is None:
