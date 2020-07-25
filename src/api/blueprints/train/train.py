@@ -3,7 +3,8 @@ from flask import Blueprint, jsonify, make_response, request
 
 from api.blueprints import train_city_sensors
 from definitions import HTTP_NOT_FOUND, pollutants
-from preparation import check_city, check_sensor, fetch_cities, fetch_sensors
+from preparation import check_city, check_sensor
+from preparation.location_data import cities, sensors
 
 train_blueprint = Blueprint('train', __name__)
 
@@ -23,10 +24,8 @@ def train_data(city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), status_code)
 
     if city_name is None:
-        cities = fetch_cities()
         for city in cities:
-            sensors = fetch_sensors(city['cityName'])
-            for sensor in sensors:
+            for sensor in sensors[city['cityName']]:
                 if pollutant_name is None:
                     for pollutant in pollutants:
                         train_city_sensors(city, sensor, pollutant)
@@ -40,8 +39,7 @@ def train_data(city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), status_code)
 
     if sensor_id is None:
-        sensors = fetch_sensors(city['cityName'])
-        for sensor in sensors:
+        for sensor in sensors[city['cityName']]:
             if pollutant_name is None:
                 for pollutant in pollutants:
                     train_city_sensors(city, sensor, pollutant)
