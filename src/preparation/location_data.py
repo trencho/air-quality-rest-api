@@ -27,11 +27,9 @@ def fetch_cities():
     url = 'https://pulse.eco/rest/city/'
     response = requests_get(url)
     try:
-        cities_json = response.json()
+        return response.json()
     except ValueError:
         return []
-
-    return cities_json
 
 
 def fetch_sensors(city_name):
@@ -48,6 +46,6 @@ def fetch_sensors(city_name):
 
 
 def fetch_locations():
-    cities.append(mongo.db['cities'].find())
+    cities = list(mongo.db['cities'].find())
     for city in cities:
         sensors.update({city['cityName']: mongo.db['sensors'].find({'cityName': city['cityName']})})
