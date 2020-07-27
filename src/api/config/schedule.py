@@ -7,7 +7,7 @@ from pandas import read_csv
 
 from api.blueprints import current_hour, fetch_city_data, next_hour, train_city_sensors
 from definitions import pollutants, ROOT_DIR
-from preparation import fetch_cities, fetch_sensors
+from preparation import fetch_cities, fetch_sensors, location_data
 from preparation.location_data import cities, sensors
 from .db import mongo
 from .git import append_commit_files, merge_csv_files, update_git_files
@@ -64,11 +64,11 @@ def model_training():
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def update_location_data():
-    cities = fetch_cities()
-    for city in cities:
+    location_data.cities = fetch_cities()
+    for city in location_data.cities:
         mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
-        sensors[city['cityName']] = fetch_sensors(city['cityName'])
-        for sensor in sensors[city['cityName']]:
+        location_data.sensors[city['cityName']] = fetch_sensors(city['cityName'])
+        for sensor in location_data.sensors[city['cityName']]:
             sensor['cityName'] = city['cityName']
             mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
 
