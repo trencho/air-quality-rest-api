@@ -1,7 +1,7 @@
 from flask import Flask
 
 from .blueprints import register_blueprints
-from .db import mongo, configure_database
+from .db import configure_database
 from .environment import check_environment_variables, fetch_db_data
 from .schedule import schedule_jobs
 from .swagger import swagger, configure_swagger

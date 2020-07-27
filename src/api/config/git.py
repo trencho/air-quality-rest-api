@@ -49,10 +49,8 @@ def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, 
             return traceback.format_exc()
 
 
-def update_git_files(file_names, file_list, repo_name, branch, commit_message=''):
-    if commit_message == '':
-        commit_message = f'Data Updated - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}'
-
+def update_git_files(file_names, file_list, repo_name, branch,
+                     commit_message=f'Data Updated - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}'):
     repo = g.get_user().get_repo(repo_name)
     master_ref = repo.get_git_ref(f'heads/{branch}')
     master_sha = master_ref.object.sha
