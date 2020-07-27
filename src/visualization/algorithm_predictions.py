@@ -1,5 +1,5 @@
-import warnings
 from os import path
+from warnings import filterwarnings
 
 import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv, to_datetime
@@ -8,7 +8,7 @@ from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICT
 from processing import previous_value_overwrite
 from .handle_plot import save_plot
 
-warnings.filterwarnings(action='once')
+filterwarnings(action='once')
 
 
 def draw_predictions(city, sensor, pollutant):
