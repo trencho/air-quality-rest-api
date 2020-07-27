@@ -1,5 +1,5 @@
-import warnings
 from os import path
+from warnings import filterwarnings
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -8,7 +8,7 @@ from pandas import DataFrame, read_csv
 from definitions import RESULTS_ERRORS_PATH, regression_models
 from .handle_plot import save_plot
 
-warnings.filterwarnings(action='once')
+filterwarnings(action='once')
 
 
 def draw_errors(city, sensor, pollutant):
