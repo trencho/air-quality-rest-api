@@ -24,8 +24,7 @@ def check_sensor(city_name, sensor_id):
 
 
 def fetch_cities():
-    url = 'https://pulse.eco/rest/city/'
-    response = requests_get(url)
+    response = requests_get('https://pulse.eco/rest/city/')
     try:
         return response.json()
     except ValueError:
@@ -33,16 +32,12 @@ def fetch_cities():
 
 
 def fetch_sensors(city_name):
-    url = f'https://{city_name}.pulse.eco/rest/sensor/'
-    response = requests_get(url)
+    response = requests_get(f'https://{city_name}.pulse.eco/rest/sensor/')
     try:
         sensors_json = response.json()
+        return [sensor for sensor in sensors_json if sensor['status'] == status_active]
     except ValueError:
         return []
-
-    active_sensors = [sensor for sensor in sensors_json if sensor['status'] == status_active]
-
-    return active_sensors
 
 
 def fetch_locations():
