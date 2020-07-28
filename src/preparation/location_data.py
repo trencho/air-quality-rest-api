@@ -42,7 +42,8 @@ def fetch_sensors(city_name):
 
 def fetch_locations():
     global cities
-    cities = list(mongo.db['cities'].find())
+    cities.extend(list(mongo.db['cities'].find(projection={'_id': False})))
     for city in cities:
         global sensors
-        sensors.update({city['cityName']: mongo.db['sensors'].find({'cityName': city['cityName']})})
+        sensors.update({city['cityName']: list(mongo.db['sensors'].find({'cityName': city['cityName']},
+                                                                        projection={'_id': False}))})
