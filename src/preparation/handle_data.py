@@ -1,5 +1,4 @@
 from pandas import DataFrame
-from pymongo import ASCENDING
 
 from api.config.db import mongo
 
@@ -11,8 +10,7 @@ def trim_dataframe(dataframe):
 
 
 def save_dataframe(dataframe, collection, collection_path, sensor_id):
-    db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id})))
-    db_records.drop(columns='_id', inplace=True, errors='ignore')
+    db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 
     if not db_records.empty:
         dataframe = dataframe.merge(db_records, how='outer', on='time',
@@ -23,7 +21,6 @@ def save_dataframe(dataframe, collection, collection_path, sensor_id):
     if not dataframe.empty:
         dataframe_records = dataframe.to_dict('records')
         mongo.db[collection].insert_many(dataframe_records)
-        mongo.db[collection].find().sort('time', ASCENDING)
 
         dataframe = dataframe.append(db_records, ignore_index=True)
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
