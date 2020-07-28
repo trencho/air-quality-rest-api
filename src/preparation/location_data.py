@@ -31,15 +31,6 @@ def fetch_cities():
         return []
 
 
-def fetch_sensors(city_name):
-    response = requests_get(f'https://{city_name}.pulse.eco/rest/sensor/')
-    try:
-        sensors_json = response.json()
-        return [sensor for sensor in sensors_json if sensor['status'] == status_active]
-    except ValueError:
-        return []
-
-
 def fetch_locations():
     global cities
     cities.extend(list(mongo.db['cities'].find(projection={'_id': False})))
@@ -47,3 +38,12 @@ def fetch_locations():
         global sensors
         sensors.update({city['cityName']: list(mongo.db['sensors'].find({'cityName': city['cityName']},
                                                                         projection={'_id': False}))})
+
+
+def fetch_sensors(city_name):
+    response = requests_get(f'https://{city_name}.pulse.eco/rest/sensor/')
+    try:
+        sensors_json = response.json()
+        return [sensor for sensor in sensors_json if sensor['status'] == status_active]
+    except ValueError:
+        return []
