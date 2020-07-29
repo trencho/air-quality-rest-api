@@ -4,7 +4,7 @@ from .blueprints import register_blueprints
 from .db import configure_database
 from .environment import check_environment_variables, fetch_db_data
 from .schedule import schedule_jobs
-from .swagger import swagger, configure_swagger
+from .swagger import configure_swagger, swagger
 
 
 def create_app():

@@ -1,7 +1,6 @@
 from requests import get as requests_get
 
 from api.config.db import mongo
-from definitions import status_active
 
 cities = []
 sensors = {}
@@ -44,6 +43,6 @@ def fetch_sensors(city_name):
     response = requests_get(f'https://{city_name}.pulse.eco/rest/sensor/')
     try:
         sensors_json = response.json()
-        return [sensor for sensor in sensors_json if sensor['status'] == status_active]
+        return [sensor for sensor in sensors_json if sensor['status'] == 'ACTIVE']
     except ValueError:
         return []

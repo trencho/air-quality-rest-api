@@ -1,5 +1,5 @@
 from os import path
-from pickle import dump as pickle_dump, load as pickle_load, HIGHEST_PROTOCOL
+from pickle import dump as pickle_dump, HIGHEST_PROTOCOL, load as pickle_load
 
 from definitions import MODELS_PATH
 

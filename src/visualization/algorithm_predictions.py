@@ -12,7 +12,7 @@ filterwarnings(action='once')
 
 
 def draw_predictions(city, sensor, pollutant):
-    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary_report.csv'))
+    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
     validation_split = len(dataframe) * 3 // 4
 
     test_dataframe = dataframe.iloc[validation_split:]

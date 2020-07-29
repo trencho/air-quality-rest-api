@@ -9,9 +9,11 @@ from pytz import timezone
 from requests import get as requests_get
 from timezonefinder import TimezoneFinder
 
-from definitions import DATA_EXTERNAL_PATH, pulse_eco_env_value, pollutants, hour_in_secs, week_in_seconds
+from definitions import DATA_EXTERNAL_PATH, pulse_eco_env_value, pollutants, hour_in_secs
 from processing.normalize_data import normalize_pollution_data
 from .handle_data import save_dataframe
+
+week_in_seconds = 604800
 
 
 def format_datetime(timestamp, tz):
@@ -84,5 +86,5 @@ def fetch_pollution_data(city_name, sensor, start_time, end_time):
         dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
         dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
         dataframe = normalize_pollution_data(dataframe)
-        pollution_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'pollution_report.csv')
+        pollution_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'pollution.csv')
         save_dataframe(dataframe, 'pollution', pollution_data_path, sensor['sensorId'])
