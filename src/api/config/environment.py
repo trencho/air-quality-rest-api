@@ -20,7 +20,7 @@ def check_environment_variables():
 def fetch_collection(collection, collection_dir, sensor_id):
     db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
     if not db_records.empty:
-        collection_path = path.join(collection_dir, f'{collection}_report.csv')
+        collection_path = path.join(collection_dir, f'{collection}.csv')
         db_records.to_csv(collection_path, index=False)
 
 

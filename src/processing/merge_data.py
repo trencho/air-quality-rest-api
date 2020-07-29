@@ -20,8 +20,8 @@ def drop_numerical_outliers(df, z_thresh=3):
 
 
 def merge_air_quality_data(city_name, sensor_id):
-    weather_data = read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'weather_report.csv'), dtype=object)
-    pollution_data = read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'pollution_report.csv'), dtype=object)
+    weather_data = read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'weather.csv'), dtype=object)
+    pollution_data = read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'pollution.csv'), dtype=object)
 
     dataframe = pandas_merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
 
@@ -96,5 +96,5 @@ def merge_air_quality_data(city_name, sensor_id):
     # dataframe = dataframe.loc[:, cols]
 
     if not dataframe.empty:
-        summary_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'summary_report.csv')
+        summary_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'summary.csv')
         save_dataframe(dataframe, 'summary', summary_data_path, sensor_id)
