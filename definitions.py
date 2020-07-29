@@ -22,8 +22,6 @@ SRC_MODELS_PATH = path.join(SRC_PATH, 'models')
 SRC_PREPARATION_PATH = path.join(SRC_PATH, 'preparation')
 SRC_PROCESSING_PATH = path.join(SRC_PATH, 'processing')
 
-status_active = 'ACTIVE'
-
 HTTP_BAD_REQUEST = 400
 HTTP_NOT_FOUND = 404
 
@@ -32,10 +30,10 @@ pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
 
 github_token_env_value = 'GITHUB_TOKEN'
 
-mongodb_user_name_env_value = 'MONGODB_USERNAME'
-mongodb_user_pass_env_value = 'MONGODB_PASSWORD'
 mongodb_host_env_value = 'MONGODB_HOSTNAME'
 mongodb_name_env_value = 'MONGODB_DATABASE'
+mongodb_user_name_env_value = 'MONGODB_USERNAME'
+mongodb_user_pass_env_value = 'MONGODB_PASSWORD'
 
 environment_variables = [
     dark_sky_env_value,
@@ -79,7 +77,6 @@ regression_models = {
 }
 
 hour_in_secs = 3600
-week_in_seconds = 604800
 dummy_leap_year = 2000  # dummy leap year to allow input X-02-29 (leap day)
 seasons = [
     ('winter', (date(dummy_leap_year, 1, 1), date(dummy_leap_year, 3, 20))),
