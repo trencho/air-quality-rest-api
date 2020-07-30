@@ -1,5 +1,4 @@
 from os import environ, makedirs, path
-from threading import Thread
 
 from pandas import DataFrame
 
@@ -34,4 +33,4 @@ def fetch_db_data():
                 collection_dir = path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
                 if not path.exists(collection_dir):
                     makedirs(collection_dir)
-                Thread(target=fetch_collection, args=(collection, collection_dir, sensor['sensorId'])).start()
+                fetch_collection(collection, collection_dir, sensor['sensorId'])
