@@ -1,12 +1,11 @@
 from requests import get as requests_get
 
-from api.config.db import mongo
-
-cities = []
-sensors = {}
+from api.config.cache import cache
+from api.config.database import mongo
 
 
 def check_city(city_name):
+    cities = cache.get('cities') or []
     for city in cities:
         if city['cityName'] == city_name:
             return city
@@ -15,6 +14,7 @@ def check_city(city_name):
 
 
 def check_sensor(city_name, sensor_id):
+    sensors = cache.get('sensors') or {}
     for sensor in sensors[city_name]:
         if sensor['sensorId'] == sensor_id:
             return sensor
@@ -31,12 +31,13 @@ def fetch_cities():
 
 
 def fetch_locations():
-    global cities
-    cities.extend(list(mongo.db['cities'].find(projection={'_id': False})))
+    cities = list(mongo.db['cities'].find(projection={'_id': False}))
+    cache.set('cities', cities)
+    sensors = {}
     for city in cities:
-        global sensors
-        sensors.update({city['cityName']: list(mongo.db['sensors'].find({'cityName': city['cityName']},
-                                                                        projection={'_id': False}))})
+        sensors[city['cityName']] = list(mongo.db['sensors'].find({'cityName': city['cityName']},
+                                                                  projection={'_id': False}))
+    cache.set('sensors', sensors)
 
 
 def fetch_sensors(city_name):

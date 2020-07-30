@@ -4,9 +4,9 @@ from threading import Thread
 from pandas import DataFrame
 
 from definitions import DATA_EXTERNAL_PATH, environment_variables, collections
-from preparation import fetch_locations
-from preparation.location_data import cities, sensors
-from .db import mongo
+from preparation.location_data import fetch_locations
+from .cache import cache
+from .database import mongo
 
 
 def check_environment_variables():
@@ -26,6 +26,8 @@ def fetch_collection(collection, collection_dir, sensor_id):
 
 def fetch_db_data():
     fetch_locations()
+    cities = cache.get('cities') or []
+    sensors = cache.get('sensors') or {}
     for city in cities:
         for sensor in sensors[city['cityName']]:
             for collection in collections:

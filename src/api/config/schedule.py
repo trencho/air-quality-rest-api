@@ -7,9 +7,9 @@ from pandas import read_csv
 
 from api.blueprints import current_hour, fetch_city_data, next_hour, train_city_sensors
 from definitions import pollutants, ROOT_DIR
-from preparation import fetch_cities, fetch_sensors, location_data
-from preparation.location_data import cities, sensors
-from .db import mongo
+from preparation import fetch_cities, fetch_sensors
+from .cache import cache
+from .database import mongo
 from .git import append_commit_files, merge_csv_files, update_git_files
 
 scheduler = BackgroundScheduler()
@@ -49,14 +49,18 @@ def fetch_hourly_data():
     next_hour_timestamp = int(datetime.timestamp(next_hour_datetime))
     end_time = next_hour_timestamp
 
+    cities = cache.get('cities') or []
     for city in cities:
+        sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
             fetch_city_data(city['cityName'], sensor, start_time, end_time)
 
 
 @scheduler.scheduled_job(trigger='cron', day=1)
 def model_training():
+    cities = cache.get('cities') or []
     for city in cities:
+        sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
             for pollutant in pollutants:
                 train_city_sensors(city, sensor, pollutant)
@@ -64,13 +68,17 @@ def model_training():
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def update_location_data():
-    location_data.cities = fetch_cities()
-    for city in location_data.cities:
+    updated_cities = fetch_cities()
+    cache.set('cities', updated_cities)
+    updated_sensors = {}
+    for city in updated_cities:
         mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
-        location_data.sensors[city['cityName']] = fetch_sensors(city['cityName'])
-        for sensor in location_data.sensors[city['cityName']]:
+        updated_sensors[city['cityName']] = fetch_sensors(city['cityName'])
+        for sensor in updated_sensors[city['cityName']]:
             sensor['cityName'] = city['cityName']
             mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
+
+    cache.set('sensors', updated_sensors)
 
 
 def schedule_jobs():
