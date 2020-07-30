@@ -2,9 +2,9 @@ from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
 
 from api.blueprints import train_city_sensors
+from api.config.cache import cache
 from definitions import HTTP_NOT_FOUND, pollutants
 from preparation import check_city, check_sensor
-from preparation.location_data import cities, sensors
 
 train_blueprint = Blueprint('train', __name__)
 
@@ -24,6 +24,8 @@ def train_data(city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), status_code)
 
     if city_name is None:
+        cities = cache.get('cities') or []
+        sensors = cache.get('sensors') or {}
         for city in cities:
             for sensor in sensors[city['cityName']]:
                 if pollutant_name is None:
@@ -39,6 +41,7 @@ def train_data(city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), status_code)
 
     if sensor_id is None:
+        sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
             if pollutant_name is None:
                 for pollutant in pollutants:

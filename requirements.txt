@@ -1,7 +1,8 @@
 apscheduler
 flasgger
 flask
-flask_pymongo
+flask-caching
+flask-pymongo
 joblib
 lightgbm
 matplotlib
