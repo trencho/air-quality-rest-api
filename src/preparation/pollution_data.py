@@ -1,7 +1,7 @@
-import traceback
 from datetime import datetime
 from json import load as json_load
 from os import environ, path
+from traceback import format_exc
 
 from numpy import int64
 from pandas import DataFrame, json_normalize, to_datetime as pandas_to_datetime, to_numeric
@@ -55,7 +55,7 @@ def fetch_pollution_data(city_name, sensor, start_time, end_time):
                 dataframe = dataframe.append(json_normalize(pollution_json), ignore_index=True)
             except ValueError:
                 print(pollution_response)
-                print(traceback.format_exc())
+                print(format_exc())
 
         if not dataframe.empty:
             dataframe.sort_values(by='stamp', inplace=True)

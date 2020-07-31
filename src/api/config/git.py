@@ -1,7 +1,7 @@
-import traceback
 from datetime import datetime
 from io import BytesIO, StringIO
 from os import environ, path
+from traceback import format_exc
 
 from github import Github, InputGitTreeElement
 from pandas import read_csv
@@ -46,7 +46,7 @@ def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, 
 
             return 'Update complete'
         else:
-            return traceback.format_exc()
+            return format_exc()
 
 
 def update_git_files(file_names, file_list, repo_name, branch,
