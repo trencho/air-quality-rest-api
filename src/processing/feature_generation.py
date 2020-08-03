@@ -59,8 +59,7 @@ def select_tsfresh_features(dataframe, target):
     train_x = dataframe.iloc[:validation_split].drop(columns=target)
     train_y = dataframe.iloc[:validation_split][target]
 
-    train_features_selected = select_features(train_x, train_y)
-    return dataframe[train_features_selected]
+    return select_features(train_x, train_y)
 
 
 def generate_tsfresh_features(dataframe, target):
