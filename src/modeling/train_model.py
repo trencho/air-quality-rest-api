@@ -82,7 +82,7 @@ def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
 
 
 def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
-    dataframe = generate_features(dataframe)
+    generate_features(dataframe)
 
     validation_split = int(len(dataframe) * 3 / 4)
 

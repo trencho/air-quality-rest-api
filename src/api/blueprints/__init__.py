@@ -141,7 +141,7 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
         features_dict[model_feature] = feature
 
     features = DataFrame(features_dict, index=[0])
-    features = encode_categorical_data(features)
+    encode_categorical_data(features)
 
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
