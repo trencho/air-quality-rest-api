@@ -1,6 +1,6 @@
-import traceback
 from json import load as json_load
 from os import environ, path
+from traceback import format_exc
 
 from pandas import DataFrame, json_normalize
 from requests import get as requests_get
@@ -34,7 +34,7 @@ def fetch_weather_data(city_name, sensor, start_time, end_time):
             dataframe = dataframe.append(df, ignore_index=True, sort=True)
         except (KeyError, ValueError):
             print(weather_response)
-            print(traceback.format_exc())
+            print(format_exc())
             start_time += hour_in_secs
 
         link = f'{url}/{private_key}/{sensor["position"]},{start_time}'
