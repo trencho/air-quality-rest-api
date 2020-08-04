@@ -8,11 +8,10 @@ from flask import jsonify, make_response, Response
 from pandas import DataFrame, read_csv
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, dark_sky_env_value, \
-    dummy_leap_year, seasons
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, dark_sky_env_value
 from modeling import train_regression_model
 from preparation import fetch_pollution_data, fetch_weather_data
-from processing import encode_categorical_data, merge_air_quality_data
+from processing import generate_time_features, encode_categorical_data, merge_air_quality_data
 
 
 def fetch_dataframe(city_name, sensor_id):
@@ -105,50 +104,33 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     elif isinstance(load_model, Response):
         return {}
 
-    features_dict = {}
     forecast_data = forecast_sensor(sensor, timestamp)
     date_time = datetime.fromtimestamp(timestamp)
+    data = {'time': date_time}
+    dataframe = DataFrame.from_dict(data)
+    generate_time_features(dataframe)
     for model_feature in model_features:
-        if model_feature == 'hour':
-            feature = date_time.hour
-        elif model_feature == 'month':
-            feature = date_time.month
-        elif model_feature == 'dayOfWeek':
-            feature = date_time.weekday()
-        elif model_feature == 'dayOfYear':
-            feature = date_time.timetuple().tm_yday
-        elif model_feature == 'weekOfYear':
-            feature = date_time.isocalendar()[1]
-        elif model_feature == 'isWeekend':
-            feature = 1 if date_time.weekday() in (5, 6) else 0
-        elif model_feature == 'session':
-            feature = 0 if 0 < date_time.hour <= 4 else 1 if 4 < date_time.hour <= 8 \
-                else 2 if 8 < date_time.hour <= 12 else 3 if 12 < date_time.hour <= 16 \
-                else 4 if 16 < date_time.hour <= 20 else 5
-        elif model_feature == 'season':
-            date = date_time.date().replace(year=dummy_leap_year)
-            feature = next(season for season, (start, end) in seasons if start <= date <= end)
-        else:
+        if model_feature not in dataframe.columns:
             feature = forecast_data.get(model_feature)
 
-        # Reject request that have bad or missing features
-        if feature is None:
-            message = ('Value cannot be predicted because of missing or unacceptable values. '
-                       'All values must be present and of type float.')
-            status_code = HTTP_BAD_REQUEST
-            return make_response(jsonify(error_message=message, feature=model_feature), status_code)
+            # Reject request that has bad or missing features
+            if feature is None:
+                message = ('Value cannot be predicted because of missing or unacceptable values. '
+                           'All values must be present and of type float.')
+                status_code = HTTP_BAD_REQUEST
+                return make_response(jsonify(error_message=message, feature=model_feature), status_code)
 
-        features_dict[model_feature] = feature
+            dataframe.append({model_feature: feature}, ignore_index=True)
 
-    features = DataFrame(features_dict, index=[0])
-    encode_categorical_data(features)
+    dataframe = dataframe[model_features]
+    encode_categorical_data(dataframe)
 
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
     forecast_result = {
         'latitude': latitude,
         'longitude': longitude,
-        'value': float(round(model.predict(features)[0], 2))
+        'value': float(round(model.predict(dataframe)[0], 2))
     }
 
     return forecast_result

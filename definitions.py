@@ -1,4 +1,3 @@
-from datetime import date
 from os import path
 
 ROOT_DIR = path.dirname(path.abspath(__file__))
@@ -77,11 +76,3 @@ regression_models = {
 }
 
 hour_in_secs = 3600
-dummy_leap_year = 2000  # dummy leap year to allow input X-02-29 (leap day)
-seasons = [
-    ('winter', (date(dummy_leap_year, 1, 1), date(dummy_leap_year, 3, 20))),
-    ('spring', (date(dummy_leap_year, 3, 21), date(dummy_leap_year, 6, 20))),
-    ('summer', (date(dummy_leap_year, 6, 21), date(dummy_leap_year, 9, 22))),
-    ('autumn', (date(dummy_leap_year, 9, 23), date(dummy_leap_year, 12, 20))),
-    ('winter', (date(dummy_leap_year, 12, 21), date(dummy_leap_year, 12, 31)))
-]
