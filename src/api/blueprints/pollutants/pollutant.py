@@ -22,14 +22,12 @@ def fetch_pollutant(city_name, sensor_id):
     city = check_city(city_name)
     if city is None:
         message = 'Cannot return available pollutants because the city is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     sensor = check_sensor(city_name, sensor_id)
     if sensor is None:
         message = 'Cannot return available pollutants because the sensor is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     dataframe = fetch_dataframe(city_name, sensor_id)
     if isinstance(dataframe, Response):

@@ -68,8 +68,7 @@ def forecast_sensor(sensor, start_time):
                 return hourly
     except (KeyError, ValueError):
         message = 'Cannot fetch forecast data for the given timestamp.'
-        status_code = HTTP_BAD_REQUEST
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_BAD_REQUEST)
 
     return {}
 
@@ -83,8 +82,7 @@ def load_regression_model(city, sensor, pollutant):
             path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
         train_city_sensors(city, sensor, pollutant)
         message = 'Value cannot be predicted because the model is not trained yet. Try again later.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
               'rb') as in_file:
@@ -117,8 +115,7 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
             if feature is None:
                 message = ('Value cannot be predicted because of missing or unacceptable values. '
                            'All values must be present and of type float.')
-                status_code = HTTP_BAD_REQUEST
-                return make_response(jsonify(error_message=message, feature=model_feature), status_code)
+                return make_response(jsonify(error_message=message, feature=model_feature), HTTP_BAD_REQUEST)
 
             dataframe.append({model_feature: feature}, ignore_index=True)
 
