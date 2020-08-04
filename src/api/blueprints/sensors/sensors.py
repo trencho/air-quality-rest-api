@@ -17,8 +17,7 @@ def fetch_city_sensor(city_name, sensor_id=None):
     city = check_city(city_name)
     if city is None:
         message = 'Cannot return data because the city is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     if sensor_id is None:
         sensors = cache.get('sensors') or {}
@@ -28,7 +27,6 @@ def fetch_city_sensor(city_name, sensor_id=None):
     sensor = check_sensor(city_name, sensor_id)
     if sensor is None:
         message = 'Cannot return data because the sensor is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     return make_response(jsonify(sensor))

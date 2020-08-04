@@ -20,8 +20,7 @@ def train_data(city_name=None, sensor_id=None):
     pollutant_name = request.args.get('pollutant', default=None, type=str)
     if pollutant_name is not None and pollutant_name not in pollutants:
         message = 'Data cannot be trained because the pollutant is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     if city_name is None:
         cities = cache.get('cities') or []
@@ -37,8 +36,7 @@ def train_data(city_name=None, sensor_id=None):
     city = check_city(city_name)
     if city is None:
         message = 'Data cannot be trained because the city is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     if sensor_id is None:
         sensors = cache.get('sensors') or {}
@@ -52,8 +50,7 @@ def train_data(city_name=None, sensor_id=None):
         sensor = check_sensor(city_name, sensor_id)
         if sensor is None:
             message = 'Data cannot be trained because the sensor is either missing or invalid.'
-            status_code = HTTP_NOT_FOUND
-            return make_response(jsonify(error_message=message), status_code)
+            return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
         if pollutant_name is None:
             for pollutant in pollutants:
