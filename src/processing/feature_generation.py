@@ -1,3 +1,4 @@
+from datetime import date
 from warnings import catch_warnings, simplefilter
 
 from numpy import int64
@@ -5,13 +6,20 @@ from pandas import cut as pandas_cut, to_datetime
 from tsfresh import extract_features, select_features
 from tsfresh.utilities.dataframe_functions import impute
 
-from definitions import dummy_leap_year, seasons
-
 
 def get_season(time):
+    dummy_leap_year = 2000  # dummy leap year to allow input X-02-29 (leap day)
+
     dt = time.date()
     dt = dt.replace(year=dummy_leap_year)
 
+    seasons = [
+        ('winter', (date(dummy_leap_year, 1, 1), date(dummy_leap_year, 3, 20))),
+        ('spring', (date(dummy_leap_year, 3, 21), date(dummy_leap_year, 6, 20))),
+        ('summer', (date(dummy_leap_year, 6, 21), date(dummy_leap_year, 9, 22))),
+        ('autumn', (date(dummy_leap_year, 9, 23), date(dummy_leap_year, 12, 20))),
+        ('winter', (date(dummy_leap_year, 12, 21), date(dummy_leap_year, 12, 31)))
+    ]
     return next(season for season, (start, end) in seasons if start <= dt <= end)
 
 
@@ -22,7 +30,7 @@ def encode_categorical_data(dataframe):
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
-def generate_calendar_features(dataframe):
+def generate_time_features(dataframe):
     dataframe['time'] = to_datetime(dataframe['time'], unit='s')
 
     dataframe['month'] = dataframe['time'].dt.month
@@ -68,7 +76,7 @@ def generate_tsfresh_features(dataframe, target):
 
     dataframe = dataframe.stack()
     dataframe.index.rename(['id', 'time'], inplace=True)
-    dataframe = dataframe.reset_index()
+    dataframe.reset_index(inplace=True)
 
     with catch_warnings():
         simplefilter('ignore')
@@ -84,7 +92,7 @@ def generate_tsfresh_features(dataframe, target):
 
 
 def generate_features(dataframe):
-    generate_calendar_features(dataframe)
+    generate_time_features(dataframe)
     # dataframe = generate_tsfresh_features(dataframe, pollutant)
 
     dataframe.drop(columns=['precipAccumulation', 'time'], inplace=True, errors='ignore')
