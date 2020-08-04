@@ -19,7 +19,6 @@ def fetch_city(city_name=None):
     city = check_city(city_name)
     if city is None:
         message = 'Cannot return data because the city is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     return make_response(jsonify(city))

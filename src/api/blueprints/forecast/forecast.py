@@ -23,8 +23,7 @@ forecast_blueprint = Blueprint('forecast', __name__)
 def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
     if pollutant_name not in pollutants:
         message = 'Value cannot be predicted because the pollutant is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     next_hour_time = next_hour(datetime.now())
     next_hour_timestamp = int(datetime.timestamp(next_hour_time))
@@ -32,8 +31,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
     if timestamp < next_hour_timestamp:
         message = ('Cannot forecast pollutant because the timestamp is in the past. '
                    'Send a GET request to the history endpoint for past values.')
-        status_code = HTTP_BAD_REQUEST
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_BAD_REQUEST)
 
     forecast_results = []
     if city_name is None:
@@ -52,8 +50,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
     city = check_city(city_name)
     if city is None:
         message = 'Value cannot be predicted because the city is either missing or invalid.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     if sensor_id is None:
         sensors = cache.get('sensors') or {}
@@ -69,8 +66,7 @@ def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
     sensor = check_sensor(city_name, sensor_id)
     if sensor is None:
         message = 'Value cannot be predicted because the sensor is either missing or inactive.'
-        status_code = HTTP_NOT_FOUND
-        return make_response(jsonify(error_message=message), status_code)
+        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     forecast_result = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
     if isinstance(forecast_result, Response):
