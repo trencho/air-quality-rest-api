@@ -31,7 +31,7 @@ def fetch_weather_data(city_name, sensor, start_time, end_time):
                 start_time = last_timestamp
             else:
                 start_time += hour_in_secs
-            dataframe = dataframe.append(df, ignore_index=True, sort=True)
+            dataframe = dataframe.append(df, ignore_index=True)
         except (KeyError, ValueError):
             print(weather_response)
             print(format_exc())
