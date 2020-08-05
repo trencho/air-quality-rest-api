@@ -2,6 +2,7 @@ from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response
 
 from api.blueprints import fetch_dataframe
+from api.config.cache import cache
 from definitions import HTTP_NOT_FOUND, pollutants
 from preparation import check_city, check_sensor
 
@@ -18,6 +19,7 @@ def fetch_measurements(dataframe):
 @pollutant_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/',
                            endpoint='pollutants_all', methods=['GET'])
 @swag_from('pollutants_all.yml', endpoint='pollutants.pollutants_all', methods=['GET'])
+@cache.memoize(timeout=3600)
 def fetch_pollutant(city_name, sensor_id):
     city = check_city(city_name)
     if city is None:
