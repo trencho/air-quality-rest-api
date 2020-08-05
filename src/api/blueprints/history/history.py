@@ -4,6 +4,7 @@ from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
 from api.blueprints import current_hour, fetch_dataframe
+from api.config.cache import cache
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 from preparation import check_city, check_sensor
 
@@ -14,7 +15,8 @@ history_blueprint = Blueprint('history', __name__)
     '/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/<string:pollutant_name>/history/',
     endpoint='pollutant_history', methods=['GET'])
 @swag_from('history.yml', endpoint='history.pollutant_history', methods=['GET'])
-def history_pollutant(city_name, sensor_id, pollutant_name):
+@cache.memoize(timeout=3600)
+def fetch_history(city_name, sensor_id, pollutant_name):
     city = check_city(city_name)
     if city is None:
         message = 'Cannot return historical data because the city is either missing or invalid.'

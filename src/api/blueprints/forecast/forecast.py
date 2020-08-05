@@ -20,7 +20,8 @@ forecast_blueprint = Blueprint('forecast', __name__)
 @swag_from('forecast_all.yml', endpoint='forecast.forecast_all', methods=['GET'])
 @swag_from('forecast_city.yml', endpoint='forecast.forecast_city', methods=['GET'])
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
-def forecast_pollutant(pollutant_name, city_name=None, sensor_id=None):
+@cache.memoize(timeout=3600)
+def fetch_forecast(pollutant_name, city_name=None, sensor_id=None):
     if pollutant_name not in pollutants:
         message = 'Value cannot be predicted because the pollutant is either missing or invalid.'
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
