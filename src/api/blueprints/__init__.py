@@ -105,8 +105,9 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     forecast_data = forecast_sensor(sensor, timestamp)
     date_time = datetime.fromtimestamp(timestamp)
     data = {'time': date_time}
-    dataframe = DataFrame.from_dict(data)
+    dataframe = DataFrame(data, index=[0])
     generate_time_features(dataframe)
+    data.update(dataframe.to_dict('list'))
     for model_feature in model_features:
         if model_feature not in dataframe.columns:
             feature = forecast_data.get(model_feature)
@@ -117,9 +118,9 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
                            'All values must be present and of type float.')
                 return make_response(jsonify(error_message=message, feature=model_feature), HTTP_BAD_REQUEST)
 
-            dataframe.append({model_feature: feature}, ignore_index=True)
+            data[model_feature] = feature
 
-    dataframe = dataframe[model_features]
+    dataframe = DataFrame(data, index=[0])[model_features]
     encode_categorical_data(dataframe)
 
     sensor_position = sensor['position'].split(',')
