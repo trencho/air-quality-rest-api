@@ -14,8 +14,8 @@ history_blueprint = Blueprint('history', __name__)
 @history_blueprint.route(
     '/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/<string:pollutant_name>/history/',
     endpoint='pollutant_history', methods=['GET'])
-@swag_from('history.yml', endpoint='history.pollutant_history', methods=['GET'])
 @cache.memoize(timeout=3600)
+@swag_from('history.yml', endpoint='history.pollutant_history', methods=['GET'])
 def fetch_history(city_name, sensor_id, pollutant_name):
     city = check_city(city_name)
     if city is None:
