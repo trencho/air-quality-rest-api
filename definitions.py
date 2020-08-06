@@ -24,8 +24,9 @@ SRC_PROCESSING_PATH = path.join(SRC_PATH, 'processing')
 HTTP_BAD_REQUEST = 400
 HTTP_NOT_FOUND = 404
 
-dark_sky_env_value = 'DARK_SKY_CREDENTIALS'
-pulse_eco_env_value = 'PULSE_ECO_CREDENTIALS'
+dark_sky_token_env_value = 'DARK_SKY_TOKEN'
+pulse_eco_user_name_env_value = 'PULSE_ECO_USER_NAME_CREDENTIALS'
+pulse_eco_user_pass_env_value = 'PULSE_ECO_USER_PASS_CREDENTIALS'
 
 github_token_env_value = 'GITHUB_TOKEN'
 
@@ -35,8 +36,9 @@ mongodb_user_name_env_value = 'MONGODB_USERNAME'
 mongodb_user_pass_env_value = 'MONGODB_PASSWORD'
 
 environment_variables = [
-    dark_sky_env_value,
-    pulse_eco_env_value,
+    dark_sky_token_env_value,
+    pulse_eco_user_name_env_value,
+    pulse_eco_user_pass_env_value,
     github_token_env_value,
     mongodb_user_name_env_value,
     mongodb_user_pass_env_value,
