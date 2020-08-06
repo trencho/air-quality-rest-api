@@ -36,7 +36,7 @@ def generate_time_features(dataframe):
     dataframe['month'] = dataframe['time'].dt.month
     dataframe['day'] = dataframe['time'].dt.day
     dataframe['hour'] = dataframe['time'].dt.hour
-    dataframe['weekOfYear'] = dataframe['time'].dt.weekofyear
+    dataframe['weekOfYear'] = dataframe['time'].dt.isocalendar().week
     dataframe['dayOfWeek'] = dataframe['time'].dt.dayofweek
     dataframe['dayOfYear'] = dataframe['time'].dt.dayofyear
     dataframe['weekdayName'] = dataframe['time'].dt.day_name()
