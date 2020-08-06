@@ -18,8 +18,8 @@ def fetch_measurements(dataframe):
 
 @pollutant_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/',
                            endpoint='pollutants_all', methods=['GET'])
-@swag_from('pollutants_all.yml', endpoint='pollutants.pollutants_all', methods=['GET'])
 @cache.memoize(timeout=3600)
+@swag_from('pollutants_all.yml', endpoint='pollutants.pollutants_all', methods=['GET'])
 def fetch_pollutant(city_name, sensor_id):
     city = check_city(city_name)
     if city is None:

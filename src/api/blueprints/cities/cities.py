@@ -10,9 +10,9 @@ cities_blueprint = Blueprint('cities', __name__)
 
 @cities_blueprint.route('/cities/', endpoint='city_all', methods=['GET'])
 @cities_blueprint.route('/cities/<string:city_name>/', endpoint='city_name', methods=['GET'])
+@cache.memoize(timeout=3600)
 @swag_from('city_all.yml', endpoint='cities.city_all', methods=['GET'])
 @swag_from('city_name.yml', endpoint='cities.city_name', methods=['GET'])
-@cache.memoize(timeout=3600)
 def fetch_city(city_name=None):
     if city_name is None:
         return make_response(jsonify(cache.get('cities') or []))
