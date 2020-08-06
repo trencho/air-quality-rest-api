@@ -88,10 +88,11 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
 
     train_dataframe = dataframe.iloc[:validation_split]
     X_train, y_train = split_dataframe(train_dataframe, pollutant)
-    test_dataframe = dataframe.iloc[validation_split:]
-    X_test, y_test = split_dataframe(test_dataframe, pollutant, X_train.columns)
-
     selected_features = list(X_train.columns)
+
+    test_dataframe = dataframe.iloc[validation_split:]
+    X_test, y_test = split_dataframe(test_dataframe, pollutant, selected_features)
+
     save_selected_features(city_name, sensor_id, pollutant, selected_features)
 
     best_model_error = inf
@@ -122,7 +123,7 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
         remove_model_lock(city_name, sensor_id, pollutant, model_name)
 
     if best_model is not None:
-        X_train, y_train = split_dataframe(dataframe, pollutant)
+        X_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
         best_model.train(X_train, y_train)
         save_best_regression_model(city_name, sensor_id, pollutant, best_model.reg)
 
