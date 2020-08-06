@@ -8,7 +8,7 @@ from flask import jsonify, make_response, Response
 from pandas import DataFrame, read_csv
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, dark_sky_env_value
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_BAD_REQUEST, HTTP_NOT_FOUND, dark_sky_token_env_value
 from modeling import train_regression_model
 from preparation import fetch_pollution_data, fetch_weather_data
 from processing import generate_time_features, encode_categorical_data, merge_air_quality_data
@@ -52,7 +52,7 @@ def fetch_city_data(city_name, sensor, start_time, end_time):
 def forecast_sensor(sensor, start_time):
     url = 'https://api.darksky.net/forecast'
     params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
-    dark_sky_env = environ[dark_sky_env_value]
+    dark_sky_env = environ[dark_sky_token_env_value]
     with open(dark_sky_env) as dark_sky_file:
         dark_sky_json = json_load(dark_sky_file)
     private_key = dark_sky_json['private_key']
