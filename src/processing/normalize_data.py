@@ -16,10 +16,13 @@ def flatten_json(nested_json: dict, exclude=None) -> dict:
                 if a not in exclude:
                     flatten(x[a], f'{name}{a}_')
         elif type(x) is list:
-            i = 0
-            for a in x:
-                flatten(a, f'{name}{i}_')
-                i += 1
+            if len(x) == 1:
+                flatten(x[0], f'{name}')
+            else:
+                i = 0
+                for a in x:
+                    flatten(a, f'{name}{i}_')
+                    i += 1
         else:
             out[name[:-1]] = x
 
