@@ -88,7 +88,7 @@ def load_regression_model(city, sensor, pollutant):
               'rb') as in_file:
         model = pickle_load(in_file)
 
-    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'selected_features.txt'),
+    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'selected_features.pkl'),
               'rb') as in_file:
         model_features = pickle_load(in_file)
 
