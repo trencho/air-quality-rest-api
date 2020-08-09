@@ -31,8 +31,8 @@ def split_dataframe(dataframe, pollutant, selected_features=None):
 def save_selected_features(city_name, sensor_id, pollutant, selected_features):
     if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant)):
         makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.txt'), 'wb') as out_file:
-        pickle_dump(selected_features, out_file)
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.pkl'), 'wb') as out_file:
+        pickle_dump(selected_features, out_file, HIGHEST_PROTOCOL)
 
 
 def create_models_path(city_name, sensor_id, pollutant, model_name):
@@ -66,8 +66,8 @@ def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollut
     dt_cv.fit(X_train, y_train)
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
-                        'HyperparameterOptimization.txt'), 'wb') as out_file:
-        pickle_dump(dt_cv.best_params_, out_file)
+                        'HyperparameterOptimization.pkl'), 'wb') as out_file:
+        pickle_dump(dt_cv.best_params_, out_file, HIGHEST_PROTOCOL)
 
     return dt_cv.best_params_
 
