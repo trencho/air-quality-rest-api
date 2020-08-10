@@ -14,13 +14,6 @@ RESULTS_PATH = path.join(ROOT_DIR, 'results')
 RESULTS_ERRORS_PATH = path.join(RESULTS_PATH, 'errors')
 RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, 'predictions')
 
-SRC_PATH = path.join(ROOT_DIR, 'src')
-SRC_DATA_PATH = path.join(SRC_PATH, 'data')
-SRC_MODELING_PATH = path.join(SRC_PATH, 'modeling')
-SRC_MODELS_PATH = path.join(SRC_PATH, 'models')
-SRC_PREPARATION_PATH = path.join(SRC_PATH, 'preparation')
-SRC_PROCESSING_PATH = path.join(SRC_PATH, 'processing')
-
 HTTP_BAD_REQUEST = 400
 HTTP_NOT_FOUND = 404
 
@@ -46,8 +39,6 @@ environment_variables = [
     mongodb_name_env_value
 ]
 
-OPEN_API_VERSION = '3.0.3'
-
 pollutants = {
     'co': 'CO',
     'no2': 'NO2',
@@ -58,12 +49,6 @@ pollutants = {
     'co2': 'CO2',
     'aqi': 'AQI'
 }
-
-collections = [
-    'weather',
-    'pollution',
-    'summary'
-]
 
 regression_models = {
     'DecisionTreeRegressionModel': 'Decision Tree',

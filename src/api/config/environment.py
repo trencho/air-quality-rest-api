@@ -2,10 +2,15 @@ from os import environ, makedirs, path
 
 from pandas import DataFrame
 
-from definitions import DATA_EXTERNAL_PATH, environment_variables, collections
+from definitions import DATA_EXTERNAL_PATH, environment_variables
 from preparation.location_data import fetch_locations
 from .cache import cache
 from .database import mongo
+
+collections = [
+    'summary',
+    'pollution',
+    'weather']
 
 
 def check_environment_variables():
