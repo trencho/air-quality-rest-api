@@ -1,8 +1,8 @@
 from os import path
 from warnings import filterwarnings
 
-import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib import pyplot as plt
 from pandas import DataFrame, read_csv
 
 from definitions import RESULTS_ERRORS_PATH, regression_models
