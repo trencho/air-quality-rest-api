@@ -1,7 +1,7 @@
 from os import path
 from warnings import filterwarnings
 
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 from pandas import DataFrame, read_csv, to_datetime
 
 from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, regression_models
