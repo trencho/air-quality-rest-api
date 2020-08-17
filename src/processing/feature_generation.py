@@ -1,7 +1,6 @@
 from datetime import date
 from warnings import catch_warnings, simplefilter
 
-from numpy import int64
 from pandas import cut as pandas_cut, to_datetime
 from tsfresh import extract_features, select_features
 from tsfresh.utilities.dataframe_functions import impute
@@ -56,12 +55,12 @@ def generate_time_features(dataframe):
     labels = ['Late Night', 'Early Morning', 'Morning', 'Noon', 'Eve', 'Night']
     dataframe['session'] = pandas_cut(dataframe['hour'], bins=bins, labels=labels)
 
-    dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
+    dataframe.drop(columns=['time'], inplace=True, errors='ignore')
 
     encode_categorical_data(dataframe)
 
 
-def select_tsfresh_features(dataframe, target):
+def select_time_series_features(dataframe, target):
     validation_split = len(dataframe) * 3 // 4
 
     train_x = dataframe.iloc[:validation_split].drop(columns=target)
@@ -70,7 +69,7 @@ def select_tsfresh_features(dataframe, target):
     return select_features(train_x, train_y)
 
 
-def generate_tsfresh_features(dataframe, target):
+def generate_time_series_features(dataframe, target):
     y = dataframe[target]
     dataframe.drop(columns=target, inplace=True)
 
@@ -85,7 +84,7 @@ def generate_tsfresh_features(dataframe, target):
     dataframe = impute(dataframe)
     dataframe[target] = y
 
-    dataframe = select_tsfresh_features(dataframe, target)
+    dataframe = select_time_series_features(dataframe, target)
     encode_categorical_data(dataframe)
 
     return dataframe
@@ -93,6 +92,4 @@ def generate_tsfresh_features(dataframe, target):
 
 def generate_features(dataframe):
     generate_time_features(dataframe)
-    # dataframe = generate_tsfresh_features(dataframe, pollutant)
-
-    dataframe.drop(columns=['precipAccumulation', 'time'], inplace=True, errors='ignore')
+    # dataframe = generate_time_series_features(dataframe, pollutant)
