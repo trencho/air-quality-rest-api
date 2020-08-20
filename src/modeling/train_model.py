@@ -129,8 +129,11 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
 
 
 def train_regression_model(city, sensor, pollutant):
-    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
-    if pollutant in dataframe.columns:
-        generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
-        draw_errors(city, sensor, pollutant)
-        draw_predictions(city, sensor, pollutant)
+    try:
+        dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
+        if pollutant in dataframe.columns:
+            generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
+            draw_errors(city, sensor, pollutant)
+            draw_predictions(city, sensor, pollutant)
+    except FileNotFoundError:
+        pass
