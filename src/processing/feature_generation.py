@@ -2,7 +2,7 @@ from datetime import date
 from warnings import catch_warnings, simplefilter
 
 from numpy import abs
-from pandas import cut as pandas_cut, DataFrame, Series
+from pandas import cut as pandas_cut, DataFrame, Int64Index, Series
 from statsmodels.tsa.stattools import pacf
 from tsfresh import extract_features, select_features
 from tsfresh.utilities.dataframe_functions import impute
@@ -50,8 +50,7 @@ def generate_time_features(target):
     features['month'] = target.index.month
     features['day'] = target.index.day
     features['hour'] = target.index.hour
-    # features['weekOfYear'] = Int64Index(target.index.isocalendar().week)
-    features['weekOfYear'] = target.index.weekofyear
+    features['weekOfYear'] = Int64Index(target.index.isocalendar().week)
     features['dayOfWeek'] = target.index.dayofweek
     features['dayOfYear'] = target.index.dayofyear
     features['weekdayName'] = target.index.day_name()
