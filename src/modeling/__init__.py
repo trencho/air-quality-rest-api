@@ -1,1 +1,1 @@
-from .train_model import train_regression_model
+from .train_model import split_dataframe, train_regression_model
