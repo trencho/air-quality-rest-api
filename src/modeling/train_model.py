@@ -19,7 +19,7 @@ def split_dataframe(dataframe, pollutant, selected_features=None):
     y = dataframe[pollutant]
 
     X = previous_value_overwrite(X)
-    y.drop(y.iloc[-1].index, inplace=True)
+    y.drop(y.tail(1).index, inplace=True)
 
     # selected_features = backward_elimination(X, y) if selected_features is None else selected_features
     # X = X[selected_features]
