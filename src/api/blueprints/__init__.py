@@ -84,7 +84,7 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     current_datetime = current_hour(datetime.now())
     date_time = datetime.fromtimestamp(timestamp)
     n_steps = (date_time - current_datetime).total_seconds() // 3600
-    value = recursive_forecast(dataframe[pollutant], model, model_features, n_steps).iloc[-1].values[0]
+    value = recursive_forecast(dataframe[pollutant], model, model_features, n_steps).iloc[-1]
     forecast_result = {
         'latitude': latitude,
         'longitude': longitude,
