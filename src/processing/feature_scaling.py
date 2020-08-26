@@ -12,7 +12,8 @@ def value_scaling(dataframe, scale='robust'):
     else:
         raise ValueError(f'{scale} is not a valid scaler')
 
+    dataframe_index = dataframe.index
     dataframe_columns = dataframe.columns
     dataframe = scaler.fit_transform(dataframe)
 
-    return DataFrame(dataframe, columns=dataframe_columns)
+    return DataFrame(dataframe, dataframe_index, dataframe_columns)

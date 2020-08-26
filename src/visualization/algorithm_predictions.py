@@ -4,20 +4,13 @@ from warnings import filterwarnings
 from matplotlib import pyplot as plt
 from pandas import DataFrame, read_csv, to_datetime
 
-from definitions import DATA_EXTERNAL_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, regression_models
-from processing import previous_value_overwrite
+from definitions import RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, regression_models
 from .handle_plot import save_plot
 
 filterwarnings(action='once')
 
 
 def draw_predictions(city, sensor, pollutant):
-    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
-    validation_split = len(dataframe) * 3 // 4
-
-    test_dataframe = dataframe.iloc[validation_split:]
-    test_dataframe.reset_index(drop=True, inplace=True)
-
     dataframe_algorithms = DataFrame(columns=['algorithm', pollutant])
     for algorithm in regression_models:
         dataframe_errors = read_csv(
@@ -29,13 +22,9 @@ def draw_predictions(city, sensor, pollutant):
     algorithm_index = dataframe_algorithms[pollutant].idxmin()
     dataframe_predictions = read_csv(
         path.join(RESULTS_PREDICTIONS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant,
-                  dataframe_algorithms.iloc[algorithm_index]['algorithm'], 'prediction.csv'))
+                  dataframe_algorithms.iloc[algorithm_index]['algorithm'], 'prediction.csv'), index_col='time')
 
-    X_test = test_dataframe.drop(columns=pollutant, errors='ignore')
-    X_test = previous_value_overwrite(X_test)
-    x = X_test['time']
-    x = to_datetime(x, unit='s').dt.normalize()
-
+    x = to_datetime(dataframe_predictions.index).normalize()
     y1 = dataframe_predictions['Actual']
     y2 = dataframe_predictions['Predicted']
 

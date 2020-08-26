@@ -1,19 +1,18 @@
 from pandas import date_range, Series, Timedelta
 
-from processing import generate_lag_features, generate_time_features
+from processing import generate_features, generate_lag_features, generate_time_features
 
 FORECAST_PERIOD = '1H'
-FORECAST_STEPS = 48
+FORECAST_STEPS = 1
 
 
-def direct(y, train_fn, params=None, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD):
+def direct_forecast(y, model, params=None, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD) -> Series:
     """Multi-step direct forecasting using a machine learning model to forecast each time period ahead
 
     Parameters
     ----------
     y: pd.Series holding the input time-series to forecast
-    train_fn: A function for training the model which returns as output the trained model cross-validation score and
-    test score
+    model: A model for iterative training
     params: Additional parameters for the training function
     lags: List of lags used for training the model
     n_steps: Number of time periods in the forecasting horizon
@@ -46,23 +45,24 @@ def direct(y, train_fn, params=None, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS
         last_date = y.index[-1] - Timedelta(hours=s)
         features, target = one_step_features(last_date, s)
 
-        model, cv_score, test_score = train_fn(features, target, **params)
+        model.set_params(**params)
+        model.train(features, target)
 
-        # Use the model to predict s steps ahead
+        # Use the model to predict n steps ahead
         predictions = model.predict(forecast_features)
         forecast_values.append(predictions[-1])
 
-    return Series(index=forecast_range, data=forecast_values)
+    return Series(forecast_values, forecast_range)
 
 
-def recursive(y, model, lags, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD):
+def recursive_forecast(y, model, model_features, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD) -> Series:
     """Multi-step recursive forecasting using the input time series data and a pre-trained machine learning model
 
     Parameters
     ----------
     y: pd.Series holding the input time-series to forecast
-    model: an already trained machine learning model implementing the scikit-learn interface
-    lags: List of lags used for training the model
+    model: An already trained machine learning model implementing the scikit-learn interface
+    model_features: Selected model features for forecasting
     n_steps: Number of time periods in the forecasting horizon
     step: The period of forecasting
 
@@ -84,11 +84,9 @@ def recursive(y, model, lags, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD):
         target = target.append(Series(index=[date], data=new_point))
 
         # Forecast
-        time_features = generate_time_features(target)
-        lags_features = generate_lag_features(target, lags)
-        features = time_features.join(lags_features, how='outer').dropna()
-
+        features = generate_features(target)
+        features = features[model_features]
         predictions = model.predict(features)
         forecasted_values.append(predictions[-1])
 
-    return Series(index=forecast_range, data=forecasted_values)
+    return Series(forecasted_values, forecast_range)

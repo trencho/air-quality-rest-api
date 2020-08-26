@@ -2,13 +2,13 @@ from math import inf
 from os import makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
 
-from pandas import read_csv
+from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, \
     regression_models
 from models import make_model
-from processing import backward_elimination, generate_features, previous_value_overwrite, value_scaling
+from processing import generate_features, previous_value_overwrite, value_scaling
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
@@ -19,11 +19,10 @@ def split_dataframe(dataframe, pollutant, selected_features=None):
     y = dataframe[pollutant]
 
     X = previous_value_overwrite(X)
-    y.reset_index(drop=True, inplace=True)
-    y.drop(len(y) - 1, inplace=True)
+    y.drop(y.iloc[-1].index, inplace=True)
 
-    selected_features = backward_elimination(X, y) if selected_features is None else selected_features
-    X = X[selected_features]
+    # selected_features = backward_elimination(X, y) if selected_features is None else selected_features
+    # X = X[selected_features]
 
     return X, y
 
@@ -82,9 +81,9 @@ def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
 
 
 def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
-    generate_features(dataframe)
+    dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='outer').dropna()
 
-    validation_split = int(len(dataframe) * 3 / 4)
+    validation_split = len(dataframe) * 3 // 4
 
     train_dataframe = dataframe.iloc[:validation_split]
     X_train, y_train = split_dataframe(train_dataframe, pollutant)
@@ -108,14 +107,14 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
         params = hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollutant)
         model.set_params(**params)
         model.train(X_train, y_train)
-
         model.save(city_name, sensor_id, pollutant)
 
-        y_pred = model.predict(X_test)
+        y_predicted = model.predict(X_test)
 
-        save_results(city_name, sensor_id, pollutant, model_name, y_test, y_pred)
+        results = DataFrame({'Actual': y_test, 'Predicted': y_predicted}, X_test.index)
+        save_results(city_name, sensor_id, pollutant, model_name, results)
 
-        model_error = save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_pred)
+        model_error = save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_predicted)
         if model_error < best_model_error:
             best_model = model
             best_model_error = model_error
@@ -131,6 +130,8 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
 def train_regression_model(city, sensor, pollutant):
     try:
         dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
+        dataframe.set_index(to_datetime(dataframe['time'], unit='s'), inplace=True)
+        dataframe.drop(dataframe.columns.difference([pollutant]), axis=1, inplace=True)
         if pollutant in dataframe.columns:
             generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
             draw_errors(city, sensor, pollutant)

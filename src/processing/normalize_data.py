@@ -2,7 +2,7 @@ from numpy import int64
 from pandas import DataFrame, merge as pandas_merge, to_datetime
 
 
-def flatten_json(nested_json: dict, exclude=None) -> dict:
+def flatten_json(nested_json: dict, exclude=None):
     """
     Flatten a list of nested dicts.
     """

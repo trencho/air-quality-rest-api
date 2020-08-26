@@ -1,13 +1,15 @@
 from datetime import date
 from warnings import catch_warnings, simplefilter
 
-from pandas import cut as pandas_cut, to_datetime
+from numpy import abs
+from pandas import cut as pandas_cut, DataFrame, Series
+from statsmodels.tsa.stattools import pacf
 from tsfresh import extract_features, select_features
 from tsfresh.utilities.dataframe_functions import impute
 
 
 def get_season(time):
-    dummy_leap_year = 2000  # dummy leap year to allow input X-02-29 (leap day)
+    dummy_leap_year = 2000  # Dummy leap year to allow input 29-02-X (leap day)
 
     dt = time.date()
     dt = dt.replace(year=dummy_leap_year)
@@ -23,41 +25,55 @@ def get_season(time):
 
 
 def encode_categorical_data(dataframe):
-    obj_columns = dataframe.select_dtypes(['object']).columns
-    dataframe[obj_columns] = dataframe.select_dtypes(['object']).apply(lambda x: x.astype('category'))
-    cat_columns = dataframe.select_dtypes(['category']).columns
+    obj_columns = dataframe.select_dtypes('object').columns
+    dataframe[obj_columns] = dataframe.select_dtypes('object').apply(lambda x: x.astype('category'))
+    cat_columns = dataframe.select_dtypes('category').columns
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
-def generate_time_features(dataframe):
-    dataframe['time'] = to_datetime(dataframe['time'], unit='s')
+def generate_lag_features(target, lags=48):
+    partial = Series(data=pacf(target, nlags=lags))
+    lags = list(partial[abs(partial) >= 0.2].index)
 
-    dataframe['month'] = dataframe['time'].dt.month
-    dataframe['day'] = dataframe['time'].dt.day
-    dataframe['hour'] = dataframe['time'].dt.hour
-    dataframe['weekOfYear'] = dataframe['time'].dt.isocalendar().week
-    dataframe['dayOfWeek'] = dataframe['time'].dt.dayofweek
-    dataframe['dayOfYear'] = dataframe['time'].dt.dayofyear
-    dataframe['weekdayName'] = dataframe['time'].dt.day_name()
-    dataframe['quarter'] = dataframe['time'].dt.quarter
-    dataframe['daysInMonth'] = dataframe['time'].dt.days_in_month
-    dataframe['isMonthStart'] = dataframe['time'].dt.is_month_start
-    dataframe['isMonthEnd'] = dataframe['time'].dt.is_month_end
-    dataframe['isQuarterStart'] = dataframe['time'].dt.is_quarter_start
-    dataframe['isQuarterEnd'] = dataframe['time'].dt.is_quarter_end
-    dataframe['isYearStart'] = dataframe['time'].dt.is_year_start
-    dataframe['isYearEnd'] = dataframe['time'].dt.is_year_end
-    dataframe['isLeapYear'] = dataframe['time'].dt.is_leap_year
-    dataframe['isWeekend'] = dataframe['time'].apply(lambda x: 0 if to_datetime(x).weekday() in (5, 6) else 1)
-    dataframe['season'] = dataframe['time'].apply(get_season)
+    if 0 in lags:
+        lags.remove(0)  # Do not consider itself as lag feature
+
+    features = DataFrame()
+    for lag in lags:
+        features[f'lag_{lag}'] = target.shift(lag)
+
+    return features
+
+
+def generate_time_features(target):
+    features = DataFrame()
+    features['month'] = target.index.month
+    features['day'] = target.index.day
+    features['hour'] = target.index.hour
+    # features['weekOfYear'] = Int64Index(target.index.isocalendar().week)
+    features['weekOfYear'] = target.index.weekofyear
+    features['dayOfWeek'] = target.index.dayofweek
+    features['dayOfYear'] = target.index.dayofyear
+    features['weekdayName'] = target.index.day_name()
+    features['quarter'] = target.index.quarter
+    features['daysInMonth'] = target.index.days_in_month
+    features['isMonthStart'] = target.index.is_month_start
+    features['isMonthEnd'] = target.index.is_month_end
+    features['isQuarterStart'] = target.index.is_quarter_start
+    features['isQuarterEnd'] = target.index.is_quarter_end
+    features['isYearStart'] = target.index.is_year_start
+    features['isYearEnd'] = target.index.is_year_end
+    features['isLeapYear'] = target.index.is_leap_year
+    features['isWeekend'] = target.index.to_series().apply(lambda x: 0 if x.dayofweek in (5, 6) else 1).values
+    features['season'] = target.index.to_series().apply(get_season).values
 
     bins = [0, 4, 8, 12, 16, 20, 24]
     labels = ['Late Night', 'Early Morning', 'Morning', 'Noon', 'Eve', 'Night']
-    dataframe['session'] = pandas_cut(dataframe['hour'], bins=bins, labels=labels)
+    features['session'] = pandas_cut(features['hour'], bins=bins, labels=labels)
 
-    dataframe.drop(columns=['time'], inplace=True, errors='ignore')
+    features.set_index(target.index, inplace=True)
 
-    encode_categorical_data(dataframe)
+    return features
 
 
 def select_time_series_features(dataframe, target):
@@ -71,25 +87,29 @@ def select_time_series_features(dataframe, target):
 
 def generate_time_series_features(dataframe, target):
     y = dataframe[target]
-    dataframe.drop(columns=target, inplace=True)
+    features = dataframe.drop(columns=target)
 
-    dataframe = dataframe.stack()
-    dataframe.index.rename(['id', 'time'], inplace=True)
-    dataframe.reset_index(inplace=True)
+    features = features.stack()
+    features.index.rename(['id', 'time'], inplace=True)
+    features.reset_index(inplace=True)
 
     with catch_warnings():
         simplefilter('ignore')
-        dataframe = extract_features(dataframe, column_id='id', column_sort='time')
+        features = extract_features(features, column_id='id', column_sort='time')
 
-    dataframe = impute(dataframe)
-    dataframe[target] = y
+    features = impute(features)
+    features[target] = y
 
-    dataframe = select_time_series_features(dataframe, target)
+    features = select_time_series_features(features, target)
+
+    return features
+
+
+def generate_features(target):
+    lag_features = generate_lag_features(target)
+    time_features = generate_time_features(target)
+
+    dataframe = lag_features.join(time_features, how='outer').dropna()
     encode_categorical_data(dataframe)
 
     return dataframe
-
-
-def generate_features(dataframe):
-    generate_time_features(dataframe)
-    # dataframe = generate_time_series_features(dataframe, pollutant)
