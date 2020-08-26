@@ -2,7 +2,7 @@ from os import path
 
 from numpy import abs, nan, number
 from pandas import merge as pandas_merge, read_csv, to_numeric
-from scipy import stats
+from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
 from definitions import DATA_EXTERNAL_PATH, pollutants
@@ -11,12 +11,12 @@ from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_in
     calculate_pm25_index, calculate_pm10_index, calculate_so2_index
 
 
-def drop_numerical_outliers(df, z_thresh=3):
+def drop_numerical_outliers(dataframe, z_thresh=3):
     # Constrains will contain 'True' or 'False' depending on if it is a value below the threshold.
-    constrains = df.select_dtypes(include=[number]).apply(lambda x: abs(stats.zscore(x)) < z_thresh,
-                                                          result_type='reduce').all(axis=1)
+    constrains = dataframe.select_dtypes(include=[number]).apply(lambda x: abs(zscore(x)) < z_thresh,
+                                                                 result_type='reduce').all(axis=1)
     # Drop (inplace) values set to be rejected
-    df.drop(index=df.index[~constrains], inplace=True)
+    dataframe.drop(index=dataframe.index[~constrains], inplace=True)
 
 
 def merge_air_quality_data(city_name, sensor_id):
@@ -77,7 +77,7 @@ def merge_air_quality_data(city_name, sensor_id):
                                   calculate_so2_index(row['so2']) if 'so2' in dataframe.columns else 0)
         if row.get('aqi') is None else row['aqi'], axis=1)
 
-    # dataframe = dataframe[(np.abs(stats.zscore(dataframe[df_columns])) < 3).all(axis=1)]
+    # dataframe = dataframe[(np.abs(zscore(dataframe[df_columns])) < 3).all(axis=1)]
     # drop_numerical_outliers(dataframe)
 
     # dataframe.drop(columns=[dataframe.count().idxmin()], inplace=True, errors='ignore')
