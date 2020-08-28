@@ -4,8 +4,10 @@ from traceback import format_exc
 from pandas import DataFrame, json_normalize
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, dark_sky_token_env_value, hour_in_secs
+from definitions import DATA_EXTERNAL_PATH, dark_sky_token_env_value
 from .handle_data import save_dataframe
+
+day_in_seconds = 86400
 
 
 def fetch_weather_data(city_name, sensor, start_time, end_time):
@@ -26,12 +28,12 @@ def fetch_weather_data(city_name, sensor, start_time, end_time):
             if start_time < last_timestamp:
                 start_time = last_timestamp
             else:
-                start_time += hour_in_secs
+                start_time += day_in_seconds
             dataframe = dataframe.append(df, ignore_index=True)
         except (KeyError, ValueError):
             print(weather_response)
             print(format_exc())
-            start_time += hour_in_secs
+            start_time += day_in_seconds
 
         link = f'{url}/{token}/{sensor["position"]},{start_time}'
 

@@ -8,8 +8,7 @@ from pytz import timezone
 from requests import get as requests_get
 from timezonefinder import TimezoneFinder
 
-from definitions import DATA_EXTERNAL_PATH, pulse_eco_user_name_env_value, pulse_eco_user_pass_env_value, pollutants, \
-    hour_in_secs
+from definitions import DATA_EXTERNAL_PATH, pulse_eco_user_name_env_value, pulse_eco_user_pass_env_value, pollutants
 from processing.normalize_data import normalize_pollution_data
 from .handle_data import save_dataframe
 
@@ -63,14 +62,14 @@ def fetch_pollution_data(city_name, sensor, start_time, end_time):
                 from_timestamp = last_timestamp
                 to_timestamp += week_in_seconds
             else:
-                from_timestamp += hour_in_secs
-                to_timestamp += hour_in_secs
+                from_timestamp += week_in_seconds
+                to_timestamp += week_in_seconds
             from_datetime = format_datetime(from_timestamp, sensor_tz)
             to_datetime = format_datetime(to_timestamp, sensor_tz)
         else:
-            from_timestamp += hour_in_secs
+            from_timestamp += week_in_seconds
             from_datetime = format_datetime(from_timestamp, sensor_tz)
-            to_timestamp += hour_in_secs
+            to_timestamp += week_in_seconds
             to_datetime = format_datetime(to_timestamp, sensor_tz)
 
     dataframe.rename(columns={'stamp': 'time'}, inplace=True, errors='ignore')

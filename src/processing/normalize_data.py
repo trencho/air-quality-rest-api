@@ -34,6 +34,11 @@ def current_hour(t):
     return t.replace(microsecond=0, second=0, minute=0, hour=t.hour)
 
 
+def next_hour(t):
+    return t.replace(microsecond=0, second=0, minute=0, hour=0 if t.hour == 23 else t.hour + 1,
+                     day=t.day + 1 if t.hour == 23 else t.day)
+
+
 def normalize_pollution_data(df):
     dataframe = DataFrame()
     dataframe_collection = {}

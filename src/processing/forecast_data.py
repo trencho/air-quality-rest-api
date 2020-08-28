@@ -48,7 +48,7 @@ def direct_forecast(y, model, params=None, lags=FORECAST_STEPS, n_steps=FORECAST
         model.set_params(**params)
         model.train(features, target)
 
-        # Use the model to predict n steps ahead
+        # Use the model to predict s steps ahead
         predictions = model.predict(forecast_features)
         forecast_values.append(predictions[-1])
 

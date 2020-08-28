@@ -9,7 +9,7 @@ from pandas import read_csv, to_datetime
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_NOT_FOUND
 from modeling import train_regression_model
 from preparation import fetch_pollution_data, fetch_weather_data
-from processing import merge_air_quality_data, recursive_forecast
+from processing import current_hour, merge_air_quality_data, recursive_forecast
 
 
 def fetch_dataframe(city_name, sensor_id):
@@ -92,12 +92,3 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     }
 
     return forecast_result
-
-
-def current_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour)
-
-
-def next_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0, hour=0 if t.hour == 23 else t.hour + 1,
-                     day=t.day + 1 if t.hour == 23 else t.day)
