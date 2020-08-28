@@ -3,10 +3,11 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
 
-from api.blueprints import current_hour, fetch_city_data, next_hour
+from api.blueprints import fetch_city_data
 from api.config.cache import cache
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 from preparation import check_city, check_sensor
+from processing import current_hour, next_hour
 
 fetch_blueprint = Blueprint('fetch', __name__)
 

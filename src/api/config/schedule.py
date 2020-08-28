@@ -5,9 +5,10 @@ from os import path, walk
 from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
 
-from api.blueprints import current_hour, fetch_city_data, next_hour, train_city_sensors
+from api.blueprints import fetch_city_data, train_city_sensors
 from definitions import pollutants, ROOT_DIR
 from preparation import fetch_cities, fetch_sensors
+from processing import current_hour, next_hour
 from .cache import cache
 from .database import mongo
 from .git import append_commit_files, merge_csv_files, update_git_files

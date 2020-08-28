@@ -61,5 +61,3 @@ regression_models = {
     'TPOTRegressionModel': 'TPOT',
     'XGBoostRegressionModel': 'XGBoost'
 }
-
-hour_in_secs = 3600

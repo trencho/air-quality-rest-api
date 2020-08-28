@@ -3,10 +3,11 @@ from datetime import datetime
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
 
-from api.blueprints import forecast_city_sensor, next_hour
+from api.blueprints import forecast_city_sensor
 from api.config.cache import cache
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND, pollutants
 from preparation import check_city, check_sensor
+from processing import next_hour
 
 forecast_blueprint = Blueprint('forecast', __name__)
 
