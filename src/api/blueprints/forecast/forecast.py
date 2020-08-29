@@ -18,7 +18,7 @@ forecast_blueprint = Blueprint('forecast', __name__)
 @forecast_blueprint.route(
     '/pollutants/<string:pollutant_name>/cities/<string:city_name>/sensors/<string:sensor_id>/forecast',
     endpoint='forecast_city_sensor', methods=['GET'])
-@cache.memoize(timeout=3600)
+@cache.cached(timeout=3600, query_string=True)
 @swag_from('forecast_all.yml', endpoint='forecast.forecast_all', methods=['GET'])
 @swag_from('forecast_city.yml', endpoint='forecast.forecast_city', methods=['GET'])
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
