@@ -17,4 +17,4 @@ __all__ = [
 
 def register_blueprints(app):
     for blueprint in __all__:
-        app.register_blueprint(globals()[blueprint], url_prefix='/api')
+        app.register_blueprint(globals()[blueprint], url_prefix='/api/v1')
