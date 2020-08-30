@@ -3,6 +3,7 @@ flasgger
 flask
 flask-caching
 flask-pymongo
+haversine
 joblib
 lightgbm
 matplotlib
