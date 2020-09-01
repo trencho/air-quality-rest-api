@@ -74,21 +74,12 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     if isinstance(load_model, tuple):
         model, model_features = load_model
     elif isinstance(load_model, Response):
-        return {}
+        return None
 
     dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
     dataframe.set_index(to_datetime(dataframe['time'], unit='s'), inplace=True)
 
-    sensor_position = sensor['position'].split(',')
-    latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
     current_datetime = current_hour(datetime.now())
     date_time = datetime.fromtimestamp(timestamp)
     n_steps = (date_time - current_datetime).total_seconds() // 3600
-    value = recursive_forecast(dataframe[pollutant], model, model_features, n_steps).iloc[-1]
-    forecast_result = {
-        'latitude': latitude,
-        'longitude': longitude,
-        'value': value
-    }
-
-    return forecast_result
+    return recursive_forecast(dataframe[pollutant], model, model_features, n_steps).iloc[-1]

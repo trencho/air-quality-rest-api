@@ -83,8 +83,8 @@ def recalculate_coordinate(val, _as=None):
     return degrees, minutes, seconds
 
 
-def calculate_nearest_sensor(location, sensors, radius_of_effect):
-    distances = haversine_vector(tuple(map(float, location.split(','))),
-                                 [tuple(map(float, sensor['position'].split(','))) for sensor in sensors])
+def calculate_nearest_sensor(coordinates, radius_of_effect=2):
+    sensors = [sensor for sensor_list in list(cache.get('sensors').values()) for sensor in sensor_list]
+    distances = haversine_vector(coordinates, [tuple(map(float, sensor['position'].split(','))) for sensor in sensors])
     min_distance = min(distances)
     return sensors[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None

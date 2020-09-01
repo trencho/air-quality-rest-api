@@ -1,0 +1,34 @@
+tags:
+  - forecast
+#    description: Forecast values for a specified pollutant
+summary: Returns a json object containing forecasts of all pollutants for the specified coordinates
+description: 'Fetches forecast data for all available pollutants for specific latitude and longitude coordinates
+converted to degrees. If a timestamp query parameter is present the models will predict for that hour, otherwise if the
+parameter is missing the prediction will be for the next upcoming hour.'
+parameters:
+  - in: path
+    name: latitude
+    description: Value of the geographic latitude
+    required: true
+    schema:
+      type: number
+  - in: path
+    name: longitude
+    description: Value of the geographic longitude
+    required: true
+    schema:
+      type: number
+  - in: query
+    name: timestamp
+    description: Timestamp to predict
+    required: false
+    schema:
+      type: integer
+responses:
+  200:
+    description: Returned json data of the predicted pollutant for a specific timestamp.
+  400:
+    description: Value cannot be predicted because some of the parameters are invalid.
+  404:
+    description: 'Value cannot be predicted because the coordinates are either too far of the nearest available sensor
+    or invalid.'
