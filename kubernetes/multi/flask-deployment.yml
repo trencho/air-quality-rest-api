@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 5000
-          resources: {}
+          resources: { }
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
@@ -41,4 +41,4 @@ spec:
         - name: flaskdata
           persistentVolumeClaim:
             claimName: flaskdata
-status: {}
+status: { }

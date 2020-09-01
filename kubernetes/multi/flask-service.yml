@@ -16,4 +16,4 @@ spec:
   selector:
     io.kompose.service: flask
 status:
-  loadBalancer: {}
+  loadBalancer: { }
