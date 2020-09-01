@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 80
-          resources: {}
+          resources: { }
           volumeMounts:
             - mountPath: /var/log/nginx
               name: nginxdata
@@ -41,4 +41,4 @@ spec:
         - name: nginxdata
           persistentVolumeClaim:
             claimName: nginxdata
-status: {}
+status: { }
