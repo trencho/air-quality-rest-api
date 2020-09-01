@@ -1,7 +1,7 @@
 tags:
   - forecast
 #    description: Forecast values for a specified pollutant
-summary: Returns a json object of the forecasted pollutant
+summary: Returns a json object of the forecasted pollutant for all available sensors
 description: 'Fetches forecast data of the pollutant passed in the route for all cities and all available sensors. If a
 timestamp query parameter is present the models will predict for that hour, otherwise if the parameter is missing the
 prediction will be for the next upcoming hour.'

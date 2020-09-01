@@ -1,1 +1,1 @@
-from .pollutant import pollutant_blueprint
+from .pollutants import pollutants_blueprint
