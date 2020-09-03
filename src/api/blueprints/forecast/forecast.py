@@ -7,7 +7,7 @@ from api.blueprints import forecast_city_sensor
 from api.config.cache import cache
 from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND, pollutants
 from preparation import check_city, check_sensor, calculate_nearest_sensor
-from processing import next_hour
+from processing import current_hour, next_hour
 
 forecast_blueprint = Blueprint('forecast', __name__)
 
@@ -124,4 +124,4 @@ def retrieve_forecast_timestamp():
                    'endpoint for past values.')
         return make_response(jsonify(error_message=message), HTTP_BAD_REQUEST)
 
-    return timestamp
+    return current_hour(datetime.fromtimestamp(timestamp))
