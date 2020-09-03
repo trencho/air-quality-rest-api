@@ -33,7 +33,7 @@ def fetch_pollutant(city_name, sensor_id):
 
     dataframe = fetch_dataframe(city_name, sensor_id)
     if isinstance(dataframe, Response):
-        return make_response(jsonify({}))
+        return dataframe
 
     measurements = fetch_measurements(dataframe)
     return make_response(jsonify(measurements))

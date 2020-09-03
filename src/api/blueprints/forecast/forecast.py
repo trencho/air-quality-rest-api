@@ -24,7 +24,6 @@ def append_sensor_forecast_data(sensor, pollutant, forecast_value, forecast_resu
 @forecast_blueprint.route(
     '/pollutants/<string:pollutant_name>/cities/<string:city_name>/sensors/<string:sensor_id>/forecast',
     endpoint='forecast_city_sensor', methods=['GET'])
-@cache.cached(timeout=3600, query_string=True)
 @swag_from('forecast_all.yml', endpoint='forecast.forecast_all', methods=['GET'])
 @swag_from('forecast_city.yml', endpoint='forecast.forecast_city', methods=['GET'])
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
@@ -46,8 +45,6 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
                 sensor_position = sensor['position'].split(',')
                 latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
                 forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-                if isinstance(forecast_value, Response):
-                    return forecast_value
 
                 forecast_results.append({'latitude': latitude, 'longitude': longitude, pollutant_name: forecast_value})
 
@@ -62,8 +59,6 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
         sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
             forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-            if isinstance(forecast_value, Response):
-                return forecast_value
 
             append_sensor_forecast_data(sensor, pollutant_name, forecast_value, forecast_results)
 
@@ -75,8 +70,6 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-    if isinstance(forecast_value, Response):
-        return forecast_value
 
     append_sensor_forecast_data(sensor, pollutant_name, forecast_value, forecast_results)
     return make_response(jsonify(forecast_results))
@@ -87,7 +80,6 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
 @forecast_blueprint.route(
     '/coordinates/<float:latitude>,<float:longitude>/pollutants/<string:pollutant_name>/forecast/',
     endpoint='coordinates_pollutant', methods=['GET'])
-@cache.cached(timeout=3600, query_string=True)
 @swag_from('forecast_coordinates_all.yml', endpoint='forecast.coordinates_all', methods=['GET'])
 @swag_from('forecast_coordinates_pollutant.yml', endpoint='forecast.coordinates_pollutant', methods=['GET'])
 def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
@@ -105,11 +97,7 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
             if city['cityName'] == sensor['cityName']:
                 forecast_result = {'latitude': latitude, 'longitude': longitude}
                 for pollutant in pollutants:
-                    forecast_value = forecast_city_sensor(city, sensor, pollutant, timestamp)
-                    if isinstance(forecast_value, Response):
-                        return forecast_value
-
-                    forecast_result[pollutant] = forecast_value
+                    forecast_result[pollutant] = forecast_city_sensor(city, sensor, pollutant, timestamp)
 
                 forecast_results.append(forecast_result)
                 return make_response(jsonify(forecast_results))
@@ -122,8 +110,6 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
     for city in cities:
         if city['cityName'] == sensor['cityName']:
             forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-            if isinstance(forecast_value, Response):
-                return forecast_value
 
             forecast_results.append({'latitude': latitude, 'longitude': longitude, pollutant_name: forecast_value})
             return make_response(jsonify(forecast_results))
