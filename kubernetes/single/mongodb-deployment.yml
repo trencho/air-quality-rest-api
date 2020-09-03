@@ -31,6 +31,9 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 27017
+          envFrom:
+            - secretRef:
+                name: mongodb-secret
           resources: { }
           volumeMounts:
             - mountPath: /data/db
