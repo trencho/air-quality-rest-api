@@ -3,10 +3,11 @@ from os import makedirs, path
 from pickle import load as pickle_load
 from threading import Thread
 
-from flask import jsonify, make_response, Response
+from flask import jsonify, make_response
 from pandas import read_csv, to_datetime
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, HTTP_NOT_FOUND
+from api.config.cache import cache
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH
 from modeling import train_regression_model
 from preparation import fetch_pollution_data, fetch_weather_data
 from processing import current_hour, merge_air_quality_data, recursive_forecast
@@ -55,8 +56,7 @@ def load_regression_model(city, sensor, pollutant):
     if not path.exists(
             path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
         train_city_sensors(city, sensor, pollutant)
-        message = 'Value cannot be predicted because the model is not trained yet. Try again later.'
-        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+        return None
 
     with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
               'rb') as in_file:
@@ -69,12 +69,13 @@ def load_regression_model(city, sensor, pollutant):
     return model, model_features
 
 
+@cache.memoize(timeout=3600)
 def forecast_city_sensor(city, sensor, pollutant, timestamp):
     load_model = load_regression_model(city, sensor, pollutant)
-    if isinstance(load_model, tuple):
-        model, model_features = load_model
-    elif isinstance(load_model, Response):
-        return None
+    if load_model is None:
+        return load_model
+
+    model, model_features = load_model
 
     dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
     dataframe.set_index(to_datetime(dataframe['time'], unit='s'), inplace=True)
