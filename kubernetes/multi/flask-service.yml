@@ -9,6 +9,7 @@ metadata:
     io.kompose.service: flask
   name: flask
 spec:
+  type: LoadBalancer
   ports:
     - name: '5000'
       port: 5000
