@@ -24,4 +24,4 @@ responses:
   400:
     description: Value cannot be predicted because some of the parameters are invalid.
   404:
-    description: Value cannot be predicted because the pollutant is either missing or invalid.
+    description: Value cannot be predicted because the pollutant is not found or invalid.

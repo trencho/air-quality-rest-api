@@ -36,4 +36,4 @@ responses:
   400:
     description: Value cannot be predicted because some of the parameters are invalid.
   404:
-    description: Value cannot be predicted because the city, sensor or pollutant are either missing or invalid.
+    description: Value cannot be predicted because the city, sensor or pollutant are not found or invalid.

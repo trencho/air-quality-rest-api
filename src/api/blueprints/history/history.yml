@@ -39,4 +39,4 @@ responses:
   200:
     description: Returned historical data for the specified pollutant.
   404:
-    description: Cannot return historical data because the city, sensor or pollutant are either missing or invalid.
+    description: Cannot return historical data because the city, sensor or pollutant are not found or invalid.
