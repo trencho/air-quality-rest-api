@@ -14,17 +14,17 @@ from .process_results import save_errors, save_results
 
 
 def split_dataframe(dataframe, pollutant, selected_features=None):
-    X = dataframe.drop(columns=pollutants, errors='ignore')
-    X = value_scaling(X)
+    x = dataframe.drop(columns=pollutants, errors='ignore')
+    x = value_scaling(x)
     y = dataframe[pollutant]
 
-    X = previous_value_overwrite(X)
+    x = previous_value_overwrite(x)
     y.drop(y.tail(1).index, inplace=True)
 
-    # selected_features = backward_elimination(X, y) if selected_features is None else selected_features
-    # X = X[selected_features]
+    # selected_features = backward_elimination(x, y) if selected_features is None else selected_features
+    # x = x[selected_features]
 
-    return X, y
+    return x, y
 
 
 def save_selected_features(city_name, sensor_id, pollutant, selected_features):
@@ -59,10 +59,10 @@ def create_model_lock(city_name, sensor_id, pollutant, model_name):
         pass
 
 
-def hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollutant):
+def hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant):
     # dt_cv = GridSearchCV(model.reg, model.param_grid, cv=5)
     dt_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
-    dt_cv.fit(X_train, y_train)
+    dt_cv.fit(x_train, y_train)
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
                         'HyperparameterOptimization.pkl'), 'wb') as out_file:
@@ -86,11 +86,11 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     validation_split = len(dataframe) * 3 // 4
 
     train_dataframe = dataframe.iloc[:validation_split]
-    X_train, y_train = split_dataframe(train_dataframe, pollutant)
-    selected_features = list(X_train.columns)
+    x_train, y_train = split_dataframe(train_dataframe, pollutant)
+    selected_features = list(x_train.columns)
 
     test_dataframe = dataframe.iloc[validation_split:]
-    X_test, y_test = split_dataframe(test_dataframe, pollutant, selected_features)
+    x_test, y_test = split_dataframe(test_dataframe, pollutant, selected_features)
 
     save_selected_features(city_name, sensor_id, pollutant, selected_features)
 
@@ -104,14 +104,14 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
         create_model_lock(city_name, sensor_id, pollutant, model_name)
 
         model = make_model(model_name)
-        params = hyper_parameter_tuning(model, X_train, y_train, city_name, sensor_id, pollutant)
+        params = hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant)
         model.set_params(**params)
-        model.train(X_train, y_train)
+        model.train(x_train, y_train)
         model.save(city_name, sensor_id, pollutant)
 
-        y_predicted = model.predict(X_test)
+        y_predicted = model.predict(x_test)
 
-        results = DataFrame({'Actual': y_test, 'Predicted': y_predicted}, X_test.index)
+        results = DataFrame({'Actual': y_test, 'Predicted': y_predicted}, x_test.index)
         save_results(city_name, sensor_id, pollutant, model_name, results)
 
         model_error = save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_predicted)
@@ -122,8 +122,8 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
         remove_model_lock(city_name, sensor_id, pollutant, model_name)
 
     if best_model is not None:
-        X_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
-        best_model.train(X_train, y_train)
+        x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
+        best_model.train(x_train, y_train)
         save_best_regression_model(city_name, sensor_id, pollutant, best_model.reg)
 
 
