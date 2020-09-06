@@ -29,7 +29,7 @@ def append_sensor_forecast_data(sensor, pollutant, forecast_value, forecast_resu
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
 def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
     if pollutant_name not in pollutants:
-        message = 'Value cannot be predicted because the pollutant is either missing or invalid.'
+        message = 'Value cannot be predicted because the pollutant is not found or invalid.'
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     timestamp = retrieve_forecast_timestamp()
@@ -52,7 +52,7 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
 
     city = check_city(city_name)
     if city is None:
-        message = 'Value cannot be predicted because the city is either missing or invalid.'
+        message = 'Value cannot be predicted because the city is not found or invalid.'
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     if sensor_id is None:
@@ -66,7 +66,7 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
 
     sensor = check_sensor(city_name, sensor_id)
     if sensor is None:
-        message = 'Value cannot be predicted because the sensor is either missing or inactive.'
+        message = 'Value cannot be predicted because the sensor is not found or inactive.'
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
@@ -103,7 +103,7 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
                 return make_response(jsonify(forecast_results))
 
     if pollutant_name not in pollutants:
-        message = 'Value cannot be predicted because the pollutant is either missing or invalid.'
+        message = 'Value cannot be predicted because the pollutant is not found or invalid.'
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     cities = cache.get('cities')
