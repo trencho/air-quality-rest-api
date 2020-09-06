@@ -14,4 +14,4 @@ responses:
   200:
     description: Returned json data with details for the specified city.
   404:
-    description: Cannot return data because the city is either invalid or missing.
+    description: Cannot return data because the city is not found or missing.

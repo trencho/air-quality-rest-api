@@ -18,12 +18,12 @@ history_blueprint = Blueprint('history', __name__)
 def fetch_history(city_name, sensor_id, pollutant_name):
     city = check_city(city_name)
     if city is None:
-        message = 'Cannot return historical data because the city is either missing or invalid.'
+        message = 'Cannot return historical data because the city is not found or invalid.'
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     sensor = check_sensor(city_name, sensor_id)
     if sensor is None:
-        message = 'Cannot return historical data because the sensor is either missing or invalid.'
+        message = 'Cannot return historical data because the sensor is not found or invalid.'
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     dataframe = fetch_dataframe(city_name, sensor_id)
@@ -31,7 +31,7 @@ def fetch_history(city_name, sensor_id, pollutant_name):
         return dataframe
 
     if pollutant_name not in dataframe.columns:
-        message = 'Cannot return historical data because the pollutant is either missing or invalid.'
+        message = 'Cannot return historical data because the pollutant is not found or invalid.'
         return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
     start_timestamp = dataframe.iloc[0]['time']

@@ -21,4 +21,4 @@ responses:
   200:
     description: Returned json data of the predicted pollutant for a specific timestamp.
   404:
-    description: Cannot return available pollutants because the city or sensor are either missing or invalid.
+    description: Cannot return available pollutants because the city or sensor are not found or invalid.

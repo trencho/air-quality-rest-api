@@ -44,7 +44,7 @@ def fetch_data(city_name=None, sensor_id=None):
 
     city = check_city(city_name)
     if city is None:
-        message = 'Cannot fetch data because the city is either missing or invalid.'
+        message = 'Cannot fetch data because the city is not found or invalid.'
         return make_response(jsonify(error_message=message), HTTP_BAD_REQUEST)
 
     if sensor_id is None:
@@ -58,7 +58,7 @@ def fetch_data(city_name=None, sensor_id=None):
     else:
         sensor = check_sensor(city_name, sensor_id)
         if sensor is None:
-            message = 'Data cannot be trained because the sensor is either missing or invalid.'
+            message = 'Data cannot be trained because the sensor is not found or invalid.'
             return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
 
         fetch_city_data(city_name, sensor, start_time, end_time)
