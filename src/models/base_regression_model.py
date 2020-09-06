@@ -15,11 +15,11 @@ class BaseRegressionModel:
     def set_params(self, **params):
         self.reg.set_params(**params)
 
-    def train(self, X, y):
-        self.reg.fit(X, y)
+    def train(self, x, y):
+        self.reg.fit(x, y)
 
-    def predict(self, X):
-        return self.reg.predict(X)
+    def predict(self, x):
+        return self.reg.predict(x)
 
     def save(self, city_name, sensor_id, pollutant):
         with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
