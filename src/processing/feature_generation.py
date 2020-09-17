@@ -51,6 +51,7 @@ def generate_time_features(target):
     features['day'] = target.index.day
     features['hour'] = target.index.hour
     features['weekOfYear'] = Int64Index(target.index.isocalendar().week)
+    # features['weekOfYear'] = target.index.weekofyear
     features['dayOfWeek'] = target.index.dayofweek
     features['dayOfYear'] = target.index.dayofyear
     features['weekdayName'] = target.index.day_name()

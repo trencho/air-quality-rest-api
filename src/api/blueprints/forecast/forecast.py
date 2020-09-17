@@ -124,4 +124,4 @@ def retrieve_forecast_timestamp():
                    'endpoint for past values.')
         return make_response(jsonify(error_message=message), HTTP_BAD_REQUEST)
 
-    return current_hour(datetime.fromtimestamp(timestamp))
+    return current_hour(datetime.fromtimestamp(timestamp)).timestamp()
