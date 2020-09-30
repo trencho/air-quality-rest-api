@@ -9,3 +9,4 @@ def configure_cache(app):
         'CACHE_DIR': '/tmp'
     }
     cache.init_app(app, config)
+    cache.clear()
