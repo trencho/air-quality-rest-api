@@ -7,10 +7,7 @@ from preparation.location_data import fetch_locations
 from .cache import cache
 from .database import mongo
 
-collections = [
-    'summary',
-    'pollution',
-    'weather']
+collections = ['summary', 'pollution', 'weather']
 
 
 def check_environment_variables():

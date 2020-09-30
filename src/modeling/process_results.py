@@ -13,12 +13,13 @@ def mean_absolute_percentage_error(y_true, y_predicted):
 
 
 def save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_predicted):
-    df = DataFrame({'Mean Absolute Error': [mean_absolute_error(y_test, y_predicted)],
-                    'Mean Absolute Percentage Error': [mean_absolute_percentage_error(y_test, y_predicted)],
-                    'Mean Squared Error': [mean_squared_error(y_test, y_predicted)],
-                    'Root Mean Squared Error': [sqrt(mean_squared_error(y_test, y_predicted))]},
-                   columns=['Mean Absolute Error', 'Mean Absolute Percentage Error', 'Mean Squared Error',
-                            'Root Mean Squared Error'])
+    df = DataFrame({
+        'Mean Absolute Error': [mean_absolute_error(y_test, y_predicted)],
+        'Mean Absolute Percentage Error': [mean_absolute_percentage_error(y_test, y_predicted)],
+        'Mean Squared Error': [mean_squared_error(y_test, y_predicted)],
+        'Root Mean Squared Error': [sqrt(mean_squared_error(y_test, y_predicted))]
+    }, columns=['Mean Absolute Error', 'Mean Absolute Percentage Error', 'Mean Squared Error',
+                'Root Mean Squared Error'])
     df.to_csv(path.join(RESULTS_ERRORS_PATH, 'data', city_name, sensor_id, pollutant, model_name, 'error.csv'),
               index=False)
 

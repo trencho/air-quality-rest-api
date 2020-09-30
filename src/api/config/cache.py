@@ -4,5 +4,8 @@ cache = Cache()
 
 
 def configure_cache(app):
-    app.config['CACHE_TYPE'] = 'simple'
-    cache.init_app(app)
+    config = {
+        'CACHE_TYPE': 'filesystem',
+        'CACHE_DIR': '/tmp'
+    }
+    cache.init_app(app, config)

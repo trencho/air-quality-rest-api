@@ -17,7 +17,10 @@ def draw_predictions(city, sensor, pollutant):
             path.join(RESULTS_ERRORS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant, algorithm,
                       'error.csv'))
         dataframe_algorithms = dataframe_algorithms.append(
-            [{'algorithm': algorithm, pollutant: dataframe_errors.iloc[0]['Mean Absolute Error']}], ignore_index=True)
+            [{
+                'algorithm': algorithm,
+                pollutant: dataframe_errors.iloc[0]['Mean Absolute Error']
+            }], ignore_index=True)
 
     algorithm_index = dataframe_algorithms[pollutant].idxmin()
     dataframe_predictions = read_csv(
