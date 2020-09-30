@@ -16,6 +16,7 @@ RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, 'predictions')
 
 HTTP_BAD_REQUEST = 400
 HTTP_NOT_FOUND = 404
+HTTP_INTERNAL_SERVER_ERROR = 500
 
 dark_sky_token_env_value = 'DARK_SKY_TOKEN'
 pulse_eco_user_name_env_value = 'PULSE_ECO_USER_NAME_CREDENTIALS'

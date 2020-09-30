@@ -36,8 +36,10 @@ def draw_errors(city, sensor, pollutant):
                 path.join(RESULTS_ERRORS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant, algorithm,
                           'error.csv'))
             dataframe_algorithms = dataframe_algorithms.append(
-                [{'algorithm': regression_models[algorithm], pollutant: dataframe_errors.iloc[0][error_type]}],
-                ignore_index=True)
+                [{
+                    'algorithm': regression_models[algorithm],
+                    pollutant: dataframe_errors.iloc[0][error_type]
+                }], ignore_index=True)
 
         dataframe_algorithms.sort_values(by=pollutant, ascending=False, inplace=True)
         dataframe_algorithms.reset_index(drop=True, inplace=True)
