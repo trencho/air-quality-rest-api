@@ -1,13 +1,16 @@
 from datetime import datetime
+from os import path
+from pickle import load as pickle_load
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
+from pandas import read_csv, to_datetime
 
-from api.blueprints import forecast_city_sensor
+from api.blueprints import train_city_sensors
 from api.config.cache import cache
-from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND, pollutants
+from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND, pollutants, DATA_EXTERNAL_PATH, MODELS_PATH
 from preparation import check_city, check_sensor, calculate_nearest_sensor
-from processing import current_hour, next_hour
+from processing import closest_hour, current_hour, next_hour, recursive_forecast
 
 forecast_blueprint = Blueprint('forecast', __name__)
 
@@ -15,7 +18,11 @@ forecast_blueprint = Blueprint('forecast', __name__)
 def append_sensor_forecast_data(sensor, pollutant, forecast_value, forecast_results):
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
-    forecast_results.append({'latitude': latitude, 'longitude': longitude, pollutant: forecast_value})
+    forecast_results.append({
+        'latitude': latitude,
+        'longitude': longitude,
+        pollutant: forecast_value
+    })
 
 
 @forecast_blueprint.route('/pollutants/<string:pollutant_name>/forecast', endpoint='forecast_all', methods=['GET'])
@@ -42,11 +49,8 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
         sensors = cache.get('sensors') or {}
         for city in cities:
             for sensor in sensors[city['cityName']]:
-                sensor_position = sensor['position'].split(',')
-                latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
                 forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-
-                forecast_results.append({'latitude': latitude, 'longitude': longitude, pollutant_name: forecast_value})
+                append_sensor_forecast_data(sensor, pollutant_name, forecast_value, forecast_results)
 
         return make_response(jsonify(forecast_results))
 
@@ -59,7 +63,6 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
         sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
             forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-
             append_sensor_forecast_data(sensor, pollutant_name, forecast_value, forecast_results)
 
         return make_response(jsonify(forecast_results))
@@ -95,7 +98,10 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
         cities = cache.get('cities')
         for city in cities:
             if city['cityName'] == sensor['cityName']:
-                forecast_result = {'latitude': latitude, 'longitude': longitude}
+                forecast_result = {
+                    'latitude': latitude,
+                    'longitude': longitude
+                }
                 for pollutant in pollutants:
                     forecast_result[pollutant] = forecast_city_sensor(city, sensor, pollutant, timestamp)
 
@@ -110,9 +116,42 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
     for city in cities:
         if city['cityName'] == sensor['cityName']:
             forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-
             forecast_results.append({'latitude': latitude, 'longitude': longitude, pollutant_name: forecast_value})
             return make_response(jsonify(forecast_results))
+
+
+def load_regression_model(city, sensor, pollutant):
+    if not path.exists(
+            path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
+        train_city_sensors(city, sensor, pollutant)
+        return None
+
+    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
+              'rb') as in_file:
+        model = pickle_load(in_file)
+
+    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'selected_features.pkl'),
+              'rb') as in_file:
+        model_features = pickle_load(in_file)
+
+    return model, model_features
+
+
+@cache.memoize(timeout=3600)
+def forecast_city_sensor(city, sensor, pollutant, timestamp):
+    load_model = load_regression_model(city, sensor, pollutant)
+    if load_model is None:
+        return load_model
+
+    model, model_features = load_model
+
+    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
+    dataframe.set_index(to_datetime(dataframe['time'], unit='s'), inplace=True)
+
+    current_datetime = current_hour(datetime.now())
+    date_time = datetime.fromtimestamp(timestamp)
+    n_steps = (date_time - current_datetime).total_seconds() // 3600
+    return recursive_forecast(dataframe[pollutant], sensor, model, model_features, n_steps).iloc[-1]
 
 
 def retrieve_forecast_timestamp():
@@ -124,4 +163,4 @@ def retrieve_forecast_timestamp():
                    'endpoint for past values.')
         return make_response(jsonify(error_message=message), HTTP_BAD_REQUEST)
 
-    return current_hour(datetime.fromtimestamp(timestamp)).timestamp()
+    return closest_hour(datetime.fromtimestamp(timestamp)).timestamp()
