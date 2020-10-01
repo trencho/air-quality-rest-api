@@ -109,7 +109,4 @@ def generate_features(target):
     lag_features = generate_lag_features(target)
     time_features = generate_time_features(target)
 
-    dataframe = lag_features.join(time_features, how='outer').dropna()
-    encode_categorical_data(dataframe)
-
-    return dataframe
+    return lag_features.join(time_features, how='outer').dropna()
