@@ -1,16 +1,13 @@
-from datetime import datetime
 from os import makedirs, path
-from pickle import load as pickle_load
 from threading import Thread
 
 from flask import jsonify, make_response
-from pandas import read_csv, to_datetime
+from pandas import read_csv
 
-from api.config.cache import cache
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH
+from definitions import DATA_EXTERNAL_PATH
 from modeling import train_regression_model
 from preparation import fetch_pollution_data, fetch_weather_data
-from processing import current_hour, merge_air_quality_data, recursive_forecast
+from processing import merge_air_quality_data
 
 
 def fetch_dataframe(city_name, sensor_id):
@@ -50,37 +47,3 @@ def fetch_city_data(city_name, sensor, start_time, end_time):
 
 def train_city_sensors(city, sensor, pollutant):
     Thread(target=train_regression_model, args=(city, sensor, pollutant)).start()
-
-
-def load_regression_model(city, sensor, pollutant):
-    if not path.exists(
-            path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
-        train_city_sensors(city, sensor, pollutant)
-        return None
-
-    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
-              'rb') as in_file:
-        model = pickle_load(in_file)
-
-    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'selected_features.pkl'),
-              'rb') as in_file:
-        model_features = pickle_load(in_file)
-
-    return model, model_features
-
-
-@cache.memoize(timeout=3600)
-def forecast_city_sensor(city, sensor, pollutant, timestamp):
-    load_model = load_regression_model(city, sensor, pollutant)
-    if load_model is None:
-        return load_model
-
-    model, model_features = load_model
-
-    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
-    dataframe.set_index(to_datetime(dataframe['time'], unit='s'), inplace=True)
-
-    current_datetime = current_hour(datetime.now())
-    date_time = datetime.fromtimestamp(timestamp)
-    n_steps = (date_time - current_datetime).total_seconds() // 3600
-    return recursive_forecast(dataframe[pollutant], model, model_features, n_steps).iloc[-1]

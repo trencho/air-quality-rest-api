@@ -8,7 +8,8 @@ from sklearn.model_selection import RandomizedSearchCV
 from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, \
     regression_models
 from models import make_model
-from processing import generate_features, previous_value_overwrite, value_scaling
+from processing import backward_elimination, generate_features, previous_value_overwrite, value_scaling, \
+    encode_categorical_data
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
@@ -21,8 +22,8 @@ def split_dataframe(dataframe, pollutant, selected_features=None):
     x = previous_value_overwrite(x)
     y.drop(y.tail(1).index, inplace=True)
 
-    # selected_features = backward_elimination(x, y) if selected_features is None else selected_features
-    # x = x[selected_features]
+    selected_features = backward_elimination(x, y) if selected_features is None else selected_features
+    x = x[selected_features]
 
     return x, y
 
@@ -82,7 +83,7 @@ def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
 
 def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='outer').dropna()
-
+    encode_categorical_data(dataframe)
     validation_split = len(dataframe) * 3 // 4
 
     train_dataframe = dataframe.iloc[:validation_split]
@@ -131,7 +132,6 @@ def train_regression_model(city, sensor, pollutant):
     try:
         dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
         dataframe.set_index(to_datetime(dataframe['time'], unit='s'), inplace=True)
-        dataframe.drop(dataframe.columns.difference([pollutant]), axis=1, inplace=True)
         if pollutant in dataframe.columns:
             generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
             draw_errors(city, sensor, pollutant)
