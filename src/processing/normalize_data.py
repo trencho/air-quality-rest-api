@@ -31,7 +31,8 @@ def flatten_json(nested_json: dict, exclude=None):
 
 
 def closest_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour if t.minute <= 30 else t.hour + 1)
+    return t.replace(microsecond=0, second=0, minute=0,
+                     hour=t.hour if t.minute <= 30 else 0 if t.hour == 23 else t.hour + 1)
 
 
 def current_hour(t):
