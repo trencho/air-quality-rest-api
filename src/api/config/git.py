@@ -43,10 +43,10 @@ def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, 
                              master_ref)
             commit_git_files(repo, element_list[len(element_list) // 2:], base_tree, master_sha, commit_message,
                              master_ref)
-
-            return 'Update complete'
         else:
             return format_exc()
+    finally:
+        return 'Update complete'
 
 
 def update_git_files(file_names, file_list, repo_name, branch,
