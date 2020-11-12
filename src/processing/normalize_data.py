@@ -2,6 +2,15 @@ from numpy import int64
 from pandas import DataFrame, merge as pandas_merge, to_datetime
 
 
+def closest_hour(t):
+    return t.replace(microsecond=0, second=0, minute=0,
+                     hour=t.hour if t.minute <= 30 else 0 if t.hour == 23 else t.hour + 1)
+
+
+def current_hour(t):
+    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour)
+
+
 def flatten_json(nested_json: dict, exclude=None):
     """
     Flatten a list of nested dicts.
@@ -28,15 +37,6 @@ def flatten_json(nested_json: dict, exclude=None):
 
     flatten(nested_json)
     return out
-
-
-def closest_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0,
-                     hour=t.hour if t.minute <= 30 else 0 if t.hour == 23 else t.hour + 1)
-
-
-def current_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour)
 
 
 def next_hour(t):
