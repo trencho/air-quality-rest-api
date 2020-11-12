@@ -4,7 +4,8 @@ from pandas import concat as pandas_concat, DataFrame, date_range, Series, Timed
 from requests import get as requests_get
 
 from definitions import dark_sky_token_env_value
-from processing import encode_categorical_data, generate_features, generate_lag_features, generate_time_features
+from .feature_generation import encode_categorical_data, generate_features, generate_lag_features, \
+    generate_time_features
 
 FORECAST_PERIOD = '1H'
 FORECAST_STEPS = 1

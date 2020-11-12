@@ -5,6 +5,7 @@ from pandas import DataFrame, json_normalize
 from requests import get as requests_get
 
 from definitions import DATA_EXTERNAL_PATH, dark_sky_token_env_value
+from processing.normalize_data import flatten_json
 from .handle_data import save_dataframe
 
 day_in_seconds = 86400
