@@ -7,6 +7,13 @@ services:
     container_name: nginx
     depends_on:
       - flask
+    deploy:
+      placement:
+        constraints: [ node.role == worker ]
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    image: air_quality_nginx:latest
     networks:
       network:
         aliases:
@@ -23,6 +30,12 @@ services:
     container_name: flask
     depends_on:
       - mongodb
+    deploy:
+      placement:
+        constraints: [ node.role == worker ]
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     environment:
       APP_ENV: ${APP_ENV}
       APP_NAME: ${APP_NAME}
@@ -35,8 +48,11 @@ services:
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
       MONGODB_HOSTNAME: ${MONGODB_HOSTNAME}
       MONGODB_DATABASE: ${MONGODB_DATABASE}
+    env_file:
+      - ../../.env
     expose:
       - 5000
+    image: air_quality_flask:latest
     networks:
       network:
         aliases:
@@ -49,6 +65,12 @@ services:
       context: ../..
       dockerfile: docker/mongo/Dockerfile
     container_name: mongodb
+    deploy:
+      placement:
+        constraints: [ node.role == manager ]
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     environment:
       MONGODB_INITDB_ROOT_USERNAME: ${MONGODB_INITDB_ROOT_USERNAME}
       MONGODB_INITDB_ROOT_PASSWORD: ${MONGODB_INITDB_ROOT_PASSWORD}
@@ -57,13 +79,18 @@ services:
       MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
     expose:
       - 27017
+    env_file:
+      - ../../.env
+    image: air_quality_mongodb:latest
     networks:
       - network
     volumes:
       - mongodbdata:/data/db
+
 networks:
   network:
     driver: bridge
+
 volumes:
   nginxdata:
     driver: local
