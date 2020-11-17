@@ -4,22 +4,23 @@ from traceback import format_exc
 from pandas import DataFrame, json_normalize
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, dark_sky_token_env_value
-from processing.normalize_data import flatten_json
+from definitions import DATA_EXTERNAL_PATH, dark_sky_token_env
 from .handle_data import save_dataframe
 
 day_in_seconds = 86400
 
 
 def fetch_weather_data(city_name, sensor, start_time, end_time):
-    url = 'https://api.darksky.net/forecast'
-    params = 'exclude=currently,minutely,daily,alerts,flags&extend=hourly'
-    token = environ[dark_sky_token_env_value]
-    link = f'{url}/{token}/{sensor["position"]},{start_time}'
+    domain = 'https://api.darksky.net'
+    token = environ[dark_sky_token_env]
+    url = f'{domain}/forecast/{token}/{sensor["position"]},{start_time}'
+    exclude = 'currently,minutely,daily,alerts,flags'
+    extend = 'hourly'
+    params = f'exclude={exclude}&extend={extend}'
 
     dataframe = DataFrame()
     while start_time < end_time:
-        weather_response = requests_get(url=link, params=params)
+        weather_response = requests_get(url=url, params=params)
         try:
             weather_json = weather_response.json()
             hourly = weather_json['hourly']
@@ -36,7 +37,7 @@ def fetch_weather_data(city_name, sensor, start_time, end_time):
             print(format_exc())
             start_time += day_in_seconds
 
-        link = f'{url}/{token}/{sensor["position"]},{start_time}'
+        url = f'{domain}/forecast/{token}/{sensor["position"]},{start_time}'
 
     dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
     if not dataframe.empty:

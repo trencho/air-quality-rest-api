@@ -18,26 +18,28 @@ HTTP_BAD_REQUEST = 400
 HTTP_NOT_FOUND = 404
 HTTP_INTERNAL_SERVER_ERROR = 500
 
-dark_sky_token_env_value = 'DARK_SKY_TOKEN'
-pulse_eco_user_name_env_value = 'PULSE_ECO_USER_NAME_CREDENTIALS'
-pulse_eco_user_pass_env_value = 'PULSE_ECO_USER_PASS_CREDENTIALS'
+dark_sky_token_env = 'DARK_SKY_TOKEN'
+pulse_eco_username_env = 'PULSE_ECO_USER_NAME_CREDENTIALS'
+pulse_eco_password_env = 'PULSE_ECO_USER_PASS_CREDENTIALS'
 
-github_token_env_value = 'GITHUB_TOKEN'
+github_token_env = 'GITHUB_TOKEN'
 
-mongodb_host_env_value = 'MONGODB_HOSTNAME'
-mongodb_name_env_value = 'MONGODB_DATABASE'
-mongodb_user_name_env_value = 'MONGODB_USERNAME'
-mongodb_user_pass_env_value = 'MONGODB_PASSWORD'
+mongodb_connection_env = 'MONGODB_CONNECTION'
+mongodb_username_env = 'MONGODB_USERNAME'
+mongodb_password_env = 'MONGODB_PASSWORD'
+mongodb_host_env = 'MONGODB_HOSTNAME'
+mongodb_db_name_env = 'MONGODB_DATABASE'
 
 environment_variables = [
-    dark_sky_token_env_value,
-    pulse_eco_user_name_env_value,
-    pulse_eco_user_pass_env_value,
-    github_token_env_value,
-    mongodb_user_name_env_value,
-    mongodb_user_pass_env_value,
-    mongodb_host_env_value,
-    mongodb_name_env_value
+    dark_sky_token_env,
+    pulse_eco_username_env,
+    pulse_eco_password_env,
+    github_token_env,
+    mongodb_connection_env,
+    mongodb_username_env,
+    mongodb_password_env,
+    mongodb_host_env,
+    mongodb_db_name_env
 ]
 
 pollutants = {
