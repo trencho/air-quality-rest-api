@@ -72,15 +72,15 @@ services:
       restart_policy:
         condition: on-failure
     environment:
-      MONGODB_INITDB_ROOT_USERNAME: ${MONGODB_INITDB_ROOT_USERNAME}
-      MONGODB_INITDB_ROOT_PASSWORD: ${MONGODB_INITDB_ROOT_PASSWORD}
-      MONGODB_INITDB_DATABASE: ${MONGODB_INITDB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
       MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
       MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
-    expose:
-      - 27017
     env_file:
       - ../../.env
+    expose:
+      - 27017
     image: air_quality_mongodb:latest
     networks:
       - network
@@ -89,7 +89,7 @@ services:
 
 networks:
   network:
-    driver: bridge
+    driver: overlay
 
 volumes:
   nginxdata:
