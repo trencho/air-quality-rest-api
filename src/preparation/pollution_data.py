@@ -8,7 +8,7 @@ from pytz import timezone
 from requests import get as requests_get
 from timezonefinder import TimezoneFinder
 
-from definitions import DATA_EXTERNAL_PATH, pulse_eco_user_name_env_value, pulse_eco_user_pass_env_value, pollutants
+from definitions import DATA_EXTERNAL_PATH, pulse_eco_password_env, pulse_eco_username_env, pollutants
 from processing.normalize_data import normalize_pollution_data
 from .handle_data import save_dataframe
 
@@ -26,8 +26,8 @@ def format_datetime(timestamp, tz):
 def fetch_pollution_data(city_name, sensor, start_time, end_time):
     url = f'https://{city_name}.pulse.eco/rest/dataRaw'
 
-    username = environ[pulse_eco_user_name_env_value]
-    password = environ[pulse_eco_user_pass_env_value]
+    username = environ[pulse_eco_username_env]
+    password = environ[pulse_eco_password_env]
 
     tf = TimezoneFinder()
     sensor_position = sensor['position'].split(',')
