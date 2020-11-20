@@ -14,13 +14,10 @@ RESULTS_PATH = path.join(ROOT_DIR, 'results')
 RESULTS_ERRORS_PATH = path.join(RESULTS_PATH, 'errors')
 RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, 'predictions')
 
-HTTP_BAD_REQUEST = 400
-HTTP_NOT_FOUND = 404
-HTTP_INTERNAL_SERVER_ERROR = 500
-
 dark_sky_token_env = 'DARK_SKY_TOKEN'
-pulse_eco_username_env = 'PULSE_ECO_USER_NAME_CREDENTIALS'
-pulse_eco_password_env = 'PULSE_ECO_USER_PASS_CREDENTIALS'
+open_weather_token_env = 'OPEN_WEATHER_TOKEN'
+pulse_eco_username_env = 'PULSE_ECO_USERNAME'
+pulse_eco_password_env = 'PULSE_ECO_PASSWORD'
 
 github_token_env = 'GITHUB_TOKEN'
 
@@ -32,6 +29,7 @@ mongodb_db_name_env = 'MONGODB_DATABASE'
 
 environment_variables = [
     dark_sky_token_env,
+    open_weather_token_env,
     pulse_eco_username_env,
     pulse_eco_password_env,
     github_token_env,

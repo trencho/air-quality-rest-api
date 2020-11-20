@@ -4,11 +4,12 @@ from pickle import load as pickle_load
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
+from flask_api.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from pandas import read_csv, to_datetime
 
 from api.blueprints import train_city_sensors
 from api.config.cache import cache
-from definitions import HTTP_BAD_REQUEST, HTTP_NOT_FOUND, pollutants, DATA_EXTERNAL_PATH, MODELS_PATH
+from definitions import pollutants, DATA_EXTERNAL_PATH, MODELS_PATH
 from preparation import check_city, check_sensor, calculate_nearest_sensor
 from processing import closest_hour, current_hour, next_hour, recursive_forecast
 
@@ -37,7 +38,7 @@ def append_sensor_forecast_data(sensor, pollutant, forecast_value, forecast_resu
 def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
     if pollutant_name not in pollutants:
         message = 'Value cannot be predicted because the pollutant is not found or invalid.'
-        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     timestamp = retrieve_forecast_timestamp()
     if isinstance(timestamp, Response):
@@ -57,7 +58,7 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
     city = check_city(city_name)
     if city is None:
         message = 'Value cannot be predicted because the city is not found or invalid.'
-        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     if sensor_id is None:
         sensors = cache.get('sensors') or {}
@@ -70,7 +71,7 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
     sensor = check_sensor(city_name, sensor_id)
     if sensor is None:
         message = 'Value cannot be predicted because the sensor is not found or inactive.'
-        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
 
@@ -90,7 +91,7 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
     sensor = calculate_nearest_sensor(coordinates)
     if sensor is None:
         message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
-        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     forecast_results = []
     timestamp = retrieve_forecast_timestamp()
@@ -110,7 +111,7 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
 
     if pollutant_name not in pollutants:
         message = 'Value cannot be predicted because the pollutant is not found or invalid.'
-        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     cities = cache.get('cities')
     for city in cities:
@@ -161,6 +162,6 @@ def retrieve_forecast_timestamp():
     if timestamp < next_hour_timestamp:
         message = ('Cannot forecast pollutant because the timestamp is in the past. Send a GET request to the history '
                    'endpoint for past values.')
-        return make_response(jsonify(error_message=message), HTTP_BAD_REQUEST)
+        return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
 
     return closest_hour(datetime.fromtimestamp(timestamp)).timestamp()

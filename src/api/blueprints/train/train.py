@@ -1,9 +1,10 @@
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
+from flask_api.status import HTTP_404_NOT_FOUND
 
 from api.blueprints import train_city_sensors
 from api.config.cache import cache
-from definitions import HTTP_NOT_FOUND, pollutants
+from definitions import pollutants
 from preparation import check_city, check_sensor
 
 train_blueprint = Blueprint('train', __name__)
@@ -20,7 +21,7 @@ def train_data(city_name=None, sensor_id=None):
     pollutant_name = request.args.get('pollutant', default=None, type=str)
     if pollutant_name is not None and pollutant_name not in pollutants:
         message = 'Data cannot be trained because the pollutant is not found or invalid.'
-        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     if city_name is None:
         cities = cache.get('cities') or []
@@ -36,7 +37,7 @@ def train_data(city_name=None, sensor_id=None):
     city = check_city(city_name)
     if city is None:
         message = 'Data cannot be trained because the city is not found or invalid.'
-        return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     if sensor_id is None:
         sensors = cache.get('sensors') or {}
@@ -50,7 +51,7 @@ def train_data(city_name=None, sensor_id=None):
         sensor = check_sensor(city_name, sensor_id)
         if sensor is None:
             message = 'Data cannot be trained because the sensor is not found or invalid.'
-            return make_response(jsonify(error_message=message), HTTP_NOT_FOUND)
+            return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
         if pollutant_name is None:
             for pollutant in pollutants:

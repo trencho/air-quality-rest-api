@@ -1,6 +1,7 @@
 apscheduler
 flasgger
 flask
+flask-api
 flask-caching
 flask-pymongo
 haversine
