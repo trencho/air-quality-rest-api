@@ -8,11 +8,11 @@ services:
     depends_on:
       - mongodb
     deploy:
-      placement:
-        constraints: [ node.role == worker ]
       replicas: 1
       restart_policy:
         condition: on-failure
+    env_file:
+      - ../../.env
     environment:
       APP_ENV: ${APP_ENV}
       APP_NAME: ${APP_NAME}
@@ -26,8 +26,6 @@ services:
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
       MONGODB_HOSTNAME: ${MONGODB_HOSTNAME}
       MONGODB_DATABASE: ${MONGODB_DATABASE}
-    env_file:
-      - ../../.env
     image: air_quality_flask:latest
     networks:
       network:
@@ -44,19 +42,17 @@ services:
       dockerfile: docker/mongo/Dockerfile
     container_name: mongodb
     deploy:
-      placement:
-        constraints: [ node.role == manager ]
       replicas: 1
       restart_policy:
         condition: on-failure
+    env_file:
+      - ../../.env
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
       MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
       MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
-    env_file:
-      - ../../.env
     expose:
       - 27017
     image: air_quality_mongodb:latest
