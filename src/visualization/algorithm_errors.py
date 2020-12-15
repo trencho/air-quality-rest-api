@@ -5,14 +5,19 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from pandas import DataFrame, read_csv
 
-from definitions import RESULTS_ERRORS_PATH, regression_models
+from definitions import RESULTS_ERRORS_PATH, pollutants, regression_models
 from .handle_plot import save_plot
 
 filterwarnings(action='once')
 
 
 def draw_errors(city, sensor, pollutant):
-    error_types = ['Mean Absolute Error', 'Mean Squared Error', 'Root Mean Squared Error']
+    error_types = [
+        'Mean Absolute Error',
+        'Mean Absolute Percentage Error',
+        'Mean Squared Error',
+        'Root Mean Squared Error'
+    ]
 
     large, med, small = 22, 16, 12
     params = {
@@ -39,14 +44,17 @@ def draw_errors(city, sensor, pollutant):
                 [{
                     'algorithm': regression_models[algorithm],
                     pollutant: dataframe_errors.iloc[0][error_type]
-                }], ignore_index=True)
+                }], ignore_index=True).dropna()
+
+        if dataframe_algorithms.empty:
+            continue
 
         dataframe_algorithms.sort_values(by=pollutant, ascending=False, inplace=True)
         dataframe_algorithms.reset_index(drop=True, inplace=True)
 
         fig, ax = plt.subplots(figsize=(16, 10), facecolor='white', dpi=80)
         ax.vlines(x=dataframe_algorithms.index, ymin=0, ymax=dataframe_algorithms[pollutant], color='firebrick',
-                  alpha=0.7, linewidth=40, label=pollutant)
+                  alpha=0.7, linewidth=40, label=pollutants[pollutant])
         ax.legend()
 
         # Annotate Text
@@ -61,4 +69,5 @@ def draw_errors(city, sensor, pollutant):
         plt.xticks(dataframe_algorithms.index, dataframe_algorithms['algorithm'], horizontalalignment='center',
                    fontsize=22, rotation=30)
 
-        save_plot(fig, plt, city['cityName'], sensor['sensorId'], pollutant, error_type)
+        file_path = path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant)
+        save_plot(fig, plt, file_path, error_type)

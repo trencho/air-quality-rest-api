@@ -47,4 +47,6 @@ def draw_predictions(city, sensor, pollutant):
     ax.legend(fontsize=16)
 
     plt.gcf().autofmt_xdate()
-    save_plot(fig, plt, city['cityName'], sensor['sensorId'], pollutant, 'prediction')
+
+    file_path = path.join(RESULTS_PREDICTIONS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant)
+    save_plot(fig, plt, file_path, 'prediction')
