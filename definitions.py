@@ -59,6 +59,6 @@ regression_models = {
     'MLPRegressionModel': 'Multilayer Perceptron',
     'RandomForestRegressionModel': 'Random Forest',
     'SupportVectorRegressionModel': 'Support Vector',
-    'TPOTRegressionModel': 'TPOT',
+    # 'TPOTRegressionModel': 'TPOT',
     'XGBoostRegressionModel': 'XGBoost'
 }

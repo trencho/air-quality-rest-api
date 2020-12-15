@@ -14,6 +14,5 @@ def backward_elimination(x, y):
             features.remove(feature_with_p_max)
         else:
             break
-    selected_features = features
 
-    return selected_features
+    return features
