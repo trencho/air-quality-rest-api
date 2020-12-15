@@ -109,4 +109,4 @@ def generate_features(target):
     lag_features = generate_lag_features(target)
     time_features = generate_time_features(target)
 
-    return lag_features.join(time_features, how='outer').dropna()
+    return lag_features.join(time_features, how='inner').dropna()

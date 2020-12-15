@@ -1,5 +1,5 @@
 from math import inf
-from os import makedirs, path, remove as os_remove
+from os import cpu_count, makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
 
 from pandas import DataFrame, read_csv, to_datetime
@@ -35,6 +35,15 @@ def save_selected_features(city_name, sensor_id, pollutant, selected_features):
         pickle_dump(selected_features, out_file, HIGHEST_PROTOCOL)
 
 
+def read_model(city_name, sensor_id, pollutant, algorithm, error_type):
+    dataframe_errors = read_csv(
+        path.join(RESULTS_ERRORS_PATH, 'data', city_name, sensor_id, pollutant, algorithm,
+                  'error.csv'))
+    model = make_model(algorithm)
+    model.load(city_name, sensor_id, pollutant)
+    return model, dataframe_errors.iloc[0][error_type]
+
+
 def create_models_path(city_name, sensor_id, pollutant, model_name):
     if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
         makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name))
@@ -61,8 +70,8 @@ def create_model_lock(city_name, sensor_id, pollutant, model_name):
 
 
 def hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant):
-    # dt_cv = GridSearchCV(model.reg, model.param_grid, cv=5)
-    dt_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
+    # dt_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
+    dt_cv = RandomizedSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
     dt_cv.fit(x_train, y_train)
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
@@ -82,7 +91,7 @@ def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
 
 
 def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
-    dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='outer').dropna()
+    dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='inner')
     encode_categorical_data(dataframe)
     validation_split = len(dataframe) * 3 // 4
 
@@ -98,6 +107,13 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     best_model_error = inf
     best_model = None
     for model_name in regression_models:
+        if path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
+            model, model_error = read_model(city_name, sensor_id, pollutant, model_name, 'Mean Absolute Error')
+            if model_error < best_model_error:
+                best_model = model
+                best_model_error = model_error
+            continue
+
         create_paths(city_name, sensor_id, pollutant, model_name)
         is_model_locked = check_model_lock(city_name, sensor_id, pollutant, model_name)
         if is_model_locked:
@@ -131,7 +147,8 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
 def train_regression_model(city, sensor, pollutant):
     try:
         dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
-        dataframe.set_index(to_datetime(dataframe['time'], unit='s'), inplace=True)
+        dataframe.set_index('time', inplace=True)
+        dataframe.index = to_datetime(dataframe.index, unit='s')
         if pollutant in dataframe.columns:
             generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
             draw_errors(city, sensor, pollutant)
