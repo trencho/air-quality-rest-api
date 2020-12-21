@@ -19,7 +19,6 @@ scipy
 seaborn
 statsmodels
 timezonefinder
-torch
 tpot
 tsfresh
 uwsgi
