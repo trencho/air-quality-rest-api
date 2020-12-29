@@ -3,6 +3,7 @@ from os import environ
 from pandas import concat as pandas_concat, DataFrame, date_range, Series, Timedelta
 from requests import get as requests_get
 
+from api.config.cache import cache
 from definitions import dark_sky_token_env
 from .feature_generation import encode_categorical_data, generate_features, generate_lag_features, \
     generate_time_features
@@ -11,10 +12,11 @@ FORECAST_PERIOD = '1H'
 FORECAST_STEPS = 1
 
 
-def forecast_sensor(sensor, start_time):
+@cache.memoize(timeout=3600)
+def forecast_sensor(sensor, timestamp):
     domain = 'https://api.darksky.net'
     token = environ[dark_sky_token_env]
-    url = f'{domain}/forecast/{token}/{sensor["position"]},{start_time}'
+    url = f'{domain}/forecast/{token}/{sensor["position"]},{timestamp}'
     exclude = 'currently,minutely,daily,alerts,flags'
     extend = 'hourly'
     params = f'exclude={exclude}&extend={extend}'
@@ -25,7 +27,7 @@ def forecast_sensor(sensor, start_time):
         hourly = weather_json['hourly']
         hourly_data = hourly['data']
         for hourly in hourly_data:
-            if hourly['time'] == start_time:
+            if hourly['time'] == timestamp:
                 return hourly
     except (KeyError, ValueError):
         pass
