@@ -28,8 +28,7 @@ def weighted_hamming(data):
         x_np = asarray(x_dot.replace(0, 1, inplace=False))
         categories_dist.append(x_np)
     categories_dist = array(categories_dist)
-    distances = hmean(categories_dist, axis=0)
-    return distances
+    return hmean(categories_dist, axis=0)
 
 
 def distance_matrix(data, numeric_distance='euclidean', categorical_distance='jaccard'):

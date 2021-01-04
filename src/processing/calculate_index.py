@@ -115,8 +115,7 @@ def calculate_so2_index(so2):
 
 
 def calculate_aqi(co_index, no2_index, o3_index, pm25_index, pm10_index, so2_index):
-    parameters = []
-    parameters.extend([co_index, no2_index, o3_index, pm25_index, pm10_index, so2_index])
+    parameters = [co_index, no2_index, o3_index, pm25_index, pm10_index, so2_index]
     aqi = max(parameters)
 
     return aqi
