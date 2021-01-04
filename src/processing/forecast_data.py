@@ -13,10 +13,10 @@ FORECAST_STEPS = 1
 
 
 @cache.memoize(timeout=3600)
-def forecast_sensor(sensor, timestamp):
+def forecast_sensor(sensor_position, timestamp):
     domain = 'https://api.darksky.net'
     token = environ[dark_sky_token_env]
-    url = f'{domain}/forecast/{token}/{sensor["position"]},{timestamp}'
+    url = f'{domain}/forecast/{token}/{sensor_position},{timestamp}'
     exclude = 'currently,minutely,daily,alerts,flags'
     extend = 'hourly'
     params = f'exclude={exclude}&extend={extend}'
@@ -115,7 +115,7 @@ def recursive_forecast(y, sensor, model, model_features, n_steps=FORECAST_STEPS,
 
         # Forecast
         timestamp = int(date.timestamp())
-        forecast_data = forecast_sensor(sensor, timestamp)
+        forecast_data = forecast_sensor(sensor['position'], timestamp)
         data = {}
         for model_feature in model_features:
             feature_value = forecast_data.get(model_feature)

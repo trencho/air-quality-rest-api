@@ -70,15 +70,15 @@ def create_model_lock(city_name, sensor_id, pollutant, model_name):
 
 
 def hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant):
-    # dt_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
-    dt_cv = RandomizedSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
-    dt_cv.fit(x_train, y_train)
+    # model_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
+    model_cv = RandomizedSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
+    model_cv.fit(x_train, y_train)
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
                         'HyperparameterOptimization.pkl'), 'wb') as out_file:
-        pickle_dump(dt_cv.best_params_, out_file, HIGHEST_PROTOCOL)
+        pickle_dump(model_cv.best_params_, out_file, HIGHEST_PROTOCOL)
 
-    return dt_cv.best_params_
+    return model_cv.best_params_
 
 
 def remove_model_lock(city_name, sensor_id, pollutant, model_name):

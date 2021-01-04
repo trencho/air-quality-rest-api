@@ -36,7 +36,8 @@ def generate_lag_features(target, lags=48):
     lags = list(partial[abs(partial) >= 0.2].index)
 
     if 0 in lags:
-        lags.remove(0)  # Do not consider itself as lag feature
+        # Do not consider itself as lag feature
+        lags.remove(0)
 
     features = DataFrame()
     for lag in lags:
@@ -51,7 +52,6 @@ def generate_time_features(target):
     features['day'] = target.index.day
     features['hour'] = target.index.hour
     features['weekOfYear'] = Int64Index(target.index.isocalendar().week)
-    # features['weekOfYear'] = target.index.weekofyear
     features['dayOfWeek'] = target.index.dayofweek
     features['dayOfYear'] = target.index.dayofyear
     features['weekdayName'] = target.index.day_name()
@@ -100,9 +100,7 @@ def generate_time_series_features(dataframe, target):
     features = impute(features)
     features[target] = y
 
-    features = select_time_series_features(features, target)
-
-    return features
+    return select_time_series_features(features, target)
 
 
 def generate_features(target):
