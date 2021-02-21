@@ -1,4 +1,5 @@
 apscheduler
+dnspython
 flasgger
 flask
 flask-api
