@@ -1,8 +1,6 @@
 from os import path
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL, load as pickle_load
 
-from definitions import MODELS_PATH
-
 
 class BaseRegressionModel:
     def __init__(self, reg, param_grid):
@@ -21,12 +19,10 @@ class BaseRegressionModel:
     def predict(self, x):
         return self.reg.predict(x)
 
-    def save(self, city_name, sensor_id, pollutant):
-        with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
-                            f'{type(self).__name__}.pkl'), 'wb') as out_file:
+    def save(self, file_path):
+        with open(path.join(file_path, type(self).__name__, f'{type(self).__name__}.pkl'), 'wb') as out_file:
             pickle_dump(self.reg, out_file, HIGHEST_PROTOCOL)
 
-    def load(self, city_name, sensor_id, pollutant):
-        with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(self).__name__,
-                            f'{type(self).__name__}.pkl'), 'rb') as in_file:
+    def load(self, file_path):
+        with open(path.join(file_path, type(self).__name__, f'{type(self).__name__}.pkl'), 'rb') as in_file:
             self.reg = pickle_load(in_file)
