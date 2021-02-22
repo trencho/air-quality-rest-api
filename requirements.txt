@@ -12,7 +12,7 @@ matplotlib
 numpy
 pandas
 pygithub
-pymongo[srv]
+pymongo
 pytz
 requests
 scikit-learn
