@@ -1,12 +1,12 @@
 from base64 import b64encode
 from datetime import datetime
-from os import path, walk
+from os import environ, path, walk
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data, train_city_sensors
-from definitions import pollutants, ROOT_DIR
+from definitions import app_name_env, pollutants, ROOT_DIR
 from preparation import fetch_cities, fetch_sensors
 from processing import current_hour, next_hour
 from .cache import cache
@@ -18,7 +18,7 @@ scheduler = BackgroundScheduler()
 
 @scheduler.scheduled_job(trigger='cron', day=1)
 def data_dump():
-    repo_name = 'air-quality-data-dump'
+    repo_name = environ[app_name_env]
 
     file_list = []
     file_names = []
