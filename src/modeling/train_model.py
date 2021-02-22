@@ -40,7 +40,7 @@ def read_model(city_name, sensor_id, pollutant, algorithm, error_type):
         path.join(RESULTS_ERRORS_PATH, 'data', city_name, sensor_id, pollutant, algorithm,
                   'error.csv'))
     model = make_model(algorithm)
-    model.load(city_name, sensor_id, pollutant)
+    model.load(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
     return model, dataframe_errors.iloc[0][error_type]
 
 
@@ -124,7 +124,7 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
         params = hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant)
         model.set_params(**params)
         model.train(x_train, y_train)
-        model.save(city_name, sensor_id, pollutant)
+        model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
 
         y_predicted = model.predict(x_test)
 
