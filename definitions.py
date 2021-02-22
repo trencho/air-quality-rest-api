@@ -14,6 +14,8 @@ RESULTS_PATH = path.join(ROOT_DIR, 'results')
 RESULTS_ERRORS_PATH = path.join(RESULTS_PATH, 'errors')
 RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, 'predictions')
 
+app_name_env = 'APP_NAME'
+
 dark_sky_token_env = 'DARK_SKY_TOKEN'
 open_weather_token_env = 'OPEN_WEATHER_TOKEN'
 pulse_eco_username_env = 'PULSE_ECO_USERNAME'
@@ -28,6 +30,7 @@ mongodb_host_env = 'MONGODB_HOSTNAME'
 mongodb_db_name_env = 'MONGODB_DATABASE'
 
 environment_variables = [
+    app_name_env,
     dark_sky_token_env,
     open_weather_token_env,
     pulse_eco_username_env,
