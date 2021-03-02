@@ -15,4 +15,4 @@ responses:
   200:
     description: Returned json data of all available sensors for the specified city.
   404:
-    description: Cannot return sensor data because the city is not found or invalid.
+    description: Cannot return sensor data because the city is not found or is invalid.

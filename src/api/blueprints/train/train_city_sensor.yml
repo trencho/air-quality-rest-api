@@ -27,4 +27,4 @@ responses:
   200:
     description: Initialized training operation for the predicted pollutant.
   404:
-    description: Cannot train regression models because the city, sensor or pollutant are not found or invalid.
+    description: Cannot train regression models because the city, sensor or pollutant are not found or is invalid.
