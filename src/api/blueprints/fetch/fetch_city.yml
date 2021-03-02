@@ -31,4 +31,4 @@ responses:
   400:
     description: Cannot fetch weather and pollution data because some of the parameters are invalid.
   404:
-    description: Cannot fetch weather and pollution data because the city is not found or invalid.
+    description: Cannot fetch weather and pollution data because the city is not found or is invalid.
