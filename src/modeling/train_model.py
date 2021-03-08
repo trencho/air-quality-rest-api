@@ -15,10 +15,10 @@ from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
 
-def split_dataframe(dataframe, pollutant, selected_features=None):
+def split_dataframe(dataframe, target, selected_features=None):
     x = dataframe.drop(columns=pollutants, errors='ignore')
     x = value_scaling(x)
-    y = dataframe[pollutant]
+    y = dataframe[target]
 
     x = previous_value_overwrite(x)
     y.drop(y.tail(1).index, inplace=True)
