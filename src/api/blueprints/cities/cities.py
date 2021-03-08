@@ -1,6 +1,6 @@
 from flasgger.utils import swag_from
 from flask import Blueprint, jsonify, make_response
-from flask_api.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
 from preparation import check_city
@@ -19,7 +19,7 @@ def fetch_city(city_name=None):
 
     city = check_city(city_name)
     if city is None:
-        message = 'Cannot return data because the city is not found or invalid.'
+        message = 'Cannot return data because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     return make_response(jsonify(city))
