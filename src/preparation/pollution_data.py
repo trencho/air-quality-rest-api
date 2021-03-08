@@ -76,6 +76,7 @@ def fetch_pollution_data(city_name, sensor, start_time, end_time):
     dataframe['time'] = pandas_to_datetime(dataframe['time'], errors='ignore')
     dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
     dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
+    dataframe['sensorId'] = sensor['sensorId']
     dataframe['value'] = to_numeric(dataframe['value'], errors='ignore')
 
     if not dataframe.empty:

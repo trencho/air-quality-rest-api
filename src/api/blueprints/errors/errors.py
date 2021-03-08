@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, make_response
-from flask_api.status import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 
 errors_blueprint = Blueprint('errors', __name__)
 

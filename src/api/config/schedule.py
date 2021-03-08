@@ -3,10 +3,11 @@ from datetime import datetime
 from os import environ, path, walk
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from pandas import read_csv
+from pandas import json_normalize, read_csv
 
-from api.blueprints import fetch_city_data, train_city_sensors
-from definitions import app_name_env, pollutants, ROOT_DIR
+from api.blueprints import fetch_city_data
+from definitions import ROOT_DIR, DATA_EXTERNAL_PATH, app_name_env, mongodb_connection_env, pollutants
+from modeling import train_city_sensors
 from preparation import fetch_cities, fetch_sensors
 from processing import current_hour, next_hour
 from .cache import cache
@@ -70,14 +71,19 @@ def model_training():
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def update_location_data():
     updated_cities = fetch_cities()
+    json_normalize(updated_cities).to_csv(path.join(DATA_EXTERNAL_PATH, 'cities.csv'))
     cache.set('cities', updated_cities)
     updated_sensors = {}
     for city in updated_cities:
-        mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
+        if environ.get(mongodb_connection_env) is not None:
+            mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
         updated_sensors[city['cityName']] = fetch_sensors(city['cityName'])
+        json_normalize(updated_sensors[city['cityName']]).to_csv(
+            path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.csv'))
         for sensor in updated_sensors[city['cityName']]:
             sensor['cityName'] = city['cityName']
-            mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
+            if environ.get(mongodb_connection_env) is not None:
+                mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
 
     cache.set('sensors', updated_sensors)
 
