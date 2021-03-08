@@ -1,11 +1,14 @@
 from math import modf
+from os import environ, path
 
 from haversine import haversine_vector
 from numpy import where
+from pandas import read_csv
 from requests import get as requests_get
 
 from api.config.cache import cache
 from api.config.database import mongo
+from definitions import DATA_EXTERNAL_PATH, mongodb_connection_env
 
 
 def check_city(city_name):
@@ -35,12 +38,21 @@ def fetch_cities():
 
 
 def fetch_locations():
-    cities = list(mongo.db['cities'].find(projection={'_id': False}))
+    if environ.get(mongodb_connection_env) is not None:
+        cities = list(mongo.db['cities'].find(projection={'_id': False}))
+    else:
+        cities = read_csv(path.join(DATA_EXTERNAL_PATH, 'cities.csv')).to_dict().values()
+
     cache.set('cities', cities)
     sensors = {}
     for city in cities:
-        sensors[city['cityName']] = list(mongo.db['sensors'].find({'cityName': city['cityName']},
-                                                                  projection={'_id': False}))
+        if environ.get(mongodb_connection_env) is not None:
+            sensors[city['cityName']] = list(mongo.db['sensors'].find({'cityName': city['cityName']},
+                                                                      projection={'_id': False}))
+        else:
+            sensors[city['cityName']] = read_csv(
+                path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.csv')).to_dict().values()
+
     cache.set('sensors', sensors)
 
 

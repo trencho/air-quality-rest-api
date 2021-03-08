@@ -1,6 +1,7 @@
 from math import inf
 from os import cpu_count, makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
+from threading import Thread
 
 from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
@@ -29,8 +30,7 @@ def split_dataframe(dataframe, pollutant, selected_features=None):
 
 
 def save_selected_features(city_name, sensor_id, pollutant, selected_features):
-    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant)):
-        makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
+    makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant), exist_ok=True)
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.pkl'), 'wb') as out_file:
         pickle_dump(selected_features, out_file, HIGHEST_PROTOCOL)
 
@@ -45,13 +45,11 @@ def read_model(city_name, sensor_id, pollutant, algorithm, error_type):
 
 
 def create_models_path(city_name, sensor_id, pollutant, model_name):
-    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
-        makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name))
+    makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name), exist_ok=True)
 
 
 def create_results_path(results_path, city_name, sensor_id, pollutant, model_name):
-    if not path.exists(path.join(results_path, 'data', city_name, sensor_id, pollutant, model_name)):
-        makedirs(path.join(results_path, 'data', city_name, sensor_id, pollutant, model_name))
+    makedirs(path.join(results_path, 'data', city_name, sensor_id, pollutant, model_name), exist_ok=True)
 
 
 def create_paths(city_name, sensor_id, pollutant, model_name):
@@ -155,3 +153,7 @@ def train_regression_model(city, sensor, pollutant):
             draw_predictions(city, sensor, pollutant)
     except FileNotFoundError:
         pass
+
+
+def train_city_sensors(city, sensor, pollutant):
+    Thread(target=train_regression_model, args=(city, sensor, pollutant)).start()

@@ -12,8 +12,7 @@ collections = ['summary', 'pollution', 'weather']
 
 def check_environment_variables():
     for environment_variable in environment_variables:
-        env = environ.get(environment_variable)
-        if env is None:
+        if environ.get(environment_variable) is None:
             print(f'The environment variable "{environment_variable}" is missing')
             exit(-1)
 
@@ -21,8 +20,7 @@ def check_environment_variables():
 def fetch_collection(collection, collection_dir, sensor_id):
     db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
     if not db_records.empty:
-        collection_path = path.join(collection_dir, f'{collection}.csv')
-        db_records.to_csv(collection_path, index=False)
+        db_records.to_csv(path.join(collection_dir, f'{collection}.csv'), index=False)
 
 
 def fetch_db_data():
@@ -33,6 +31,5 @@ def fetch_db_data():
         for sensor in sensors[city['cityName']]:
             for collection in collections:
                 collection_dir = path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
-                if not path.exists(collection_dir):
-                    makedirs(collection_dir)
+                makedirs(collection_dir, exist_ok=True)
                 fetch_collection(collection, collection_dir, sensor['sensorId'])

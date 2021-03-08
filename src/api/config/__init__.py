@@ -1,5 +1,8 @@
+from os import environ
+
 from flask import Flask
 
+from definitions import mongodb_connection_env
 from .blueprints import register_blueprints
 from .cache import configure_cache
 from .database import configure_database
@@ -20,9 +23,9 @@ def create_app():
 
     configure_cache(app)
 
-    # Comment these 2 lines to skip the mongodb configuration when running application in debug mode
-    configure_database(app)
-    fetch_db_data()
+    if environ.get(mongodb_connection_env) is not None:
+        configure_database(app)
+        fetch_db_data()
 
     # Comment this line to skip training regression models for all available locations during application startup
     model_training()

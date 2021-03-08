@@ -2,11 +2,10 @@ from os import makedirs, path
 from threading import Thread
 
 from flask import jsonify, make_response
-from flask_api.status import HTTP_404_NOT_FOUND
 from pandas import read_csv
+from starlette.status import HTTP_404_NOT_FOUND
 
 from definitions import DATA_EXTERNAL_PATH
-from modeling import train_regression_model
 from preparation import fetch_pollution_data, fetch_weather_data
 from processing import merge_air_quality_data
 
@@ -20,8 +19,7 @@ def fetch_dataframe(city_name, sensor_id):
 
 
 def create_data_path(city_name, sensor_id):
-    if not path.exists(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id)):
-        makedirs(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id))
+    makedirs(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id), exist_ok=True)
 
 
 def merge_city_sensor_data(threads, city_name, sensor_id):
@@ -44,7 +42,3 @@ def fetch_city_data(city_name, sensor, start_time, end_time):
     fetch_pollution_thread.start()
 
     Thread(target=merge_city_sensor_data, args=(threads, city_name, sensor['sensorId'])).start()
-
-
-def train_city_sensors(city, sensor, pollutant):
-    Thread(target=train_regression_model, args=(city, sensor, pollutant)).start()
