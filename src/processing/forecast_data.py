@@ -7,6 +7,7 @@ from api.config.cache import cache
 from definitions import dark_sky_token_env
 from .feature_generation import encode_categorical_data, generate_features, generate_lag_features, \
     generate_time_features
+from .feature_scaling import value_scaling
 
 FORECAST_PERIOD = '1H'
 FORECAST_STEPS = 1
@@ -128,6 +129,7 @@ def recursive_forecast(y, sensor, model, model_features, n_steps=FORECAST_STEPS,
                                    DataFrame(columns=list(set(model_features) - set(list(dataframe.columns))))])
         encode_categorical_data(dataframe)
         dataframe = dataframe[model_features]
+        dataframe = value_scaling(dataframe)
         predictions = model.predict(dataframe)
         forecasted_values.append(predictions[-1])
 
