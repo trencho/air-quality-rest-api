@@ -1,4 +1,5 @@
 from datetime import datetime
+from math import ceil
 from os import path
 from pickle import load as pickle_load
 
@@ -152,7 +153,7 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
 
     current_datetime = current_hour(datetime.now())
     date_time = datetime.fromtimestamp(timestamp)
-    n_steps = (date_time - current_datetime).total_seconds() // 3600
+    n_steps = ceil((date_time - current_datetime).total_seconds() / 3600)
     return recursive_forecast(dataframe[pollutant], sensor, model, model_features, n_steps).iloc[-1]
 
 
