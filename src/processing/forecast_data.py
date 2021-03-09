@@ -36,14 +36,13 @@ def forecast_sensor(sensor_position, timestamp):
     return {}
 
 
-def direct_forecast(y, model, params=None, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD) -> Series:
+def direct_forecast(y, model, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD) -> Series:
     """Multi-step direct forecasting using a machine learning model to forecast each time period ahead
 
     Parameters
     ----------
     y: pd.Series holding the input time-series to forecast
     model: A model for iterative training
-    params: Additional parameters for the training function
     lags: List of lags used for training the model
     n_steps: Number of time periods in the forecasting horizon
     step: The period of forecasting
@@ -58,7 +57,7 @@ def direct_forecast(y, model, params=None, lags=FORECAST_STEPS, n_steps=FORECAST
         tmp = y[y.index <= date]
         lags_features = generate_lag_features(tmp, lags)
         time_features = generate_time_features(tmp)
-        features = lags_features.join(time_features, how='outer').dropna()
+        features = lags_features.join(time_features, how='inner').dropna()
 
         # Build target to be ahead of the features built by the desired number of steps (the for loop index)
         target = y[y.index >= features.index[0] + Timedelta(hours=step)]
@@ -66,7 +65,6 @@ def direct_forecast(y, model, params=None, lags=FORECAST_STEPS, n_steps=FORECAST
 
         return features, target
 
-    params = {} if params is None else params
     forecast_values = []
     forecast_range = date_range(y.index[-1] + Timedelta(hours=1), periods=n_steps, freq=step)
     forecast_features, _ = one_step_features(y.index[-1], 0)
@@ -75,7 +73,6 @@ def direct_forecast(y, model, params=None, lags=FORECAST_STEPS, n_steps=FORECAST
         last_date = y.index[-1] - Timedelta(hours=s)
         features, target = one_step_features(last_date, s)
 
-        model.set_params(**params)
         model.train(features, target)
 
         # Use the model to predict s steps ahead
