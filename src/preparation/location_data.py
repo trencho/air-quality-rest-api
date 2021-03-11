@@ -8,7 +8,7 @@ from requests import get as requests_get
 
 from api.config.cache import cache
 from api.config.database import mongo
-from definitions import DATA_EXTERNAL_PATH, mongodb_connection_env
+from definitions import DATA_EXTERNAL_PATH, mongodb_connection
 
 
 def check_city(city_name):
@@ -38,7 +38,7 @@ def fetch_cities():
 
 
 def fetch_locations():
-    if environ.get(mongodb_connection_env) is not None:
+    if environ.get(mongodb_connection) is not None:
         cities = list(mongo.db['cities'].find(projection={'_id': False}))
     else:
         cities = read_csv(path.join(DATA_EXTERNAL_PATH, 'cities.csv')).to_dict().values()
@@ -46,7 +46,7 @@ def fetch_locations():
     cache.set('cities', cities)
     sensors = {}
     for city in cities:
-        if environ.get(mongodb_connection_env) is not None:
+        if environ.get(mongodb_connection) is not None:
             sensors[city['cityName']] = list(mongo.db['sensors'].find({'cityName': city['cityName']},
                                                                       projection={'_id': False}))
         else:

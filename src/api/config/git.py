@@ -6,9 +6,9 @@ from traceback import format_exc
 from github import Github, InputGitTreeElement
 from pandas import read_csv
 
-from definitions import ROOT_DIR, github_token_env
+from definitions import ROOT_DIR, github_token
 
-g = Github(environ.get(github_token_env))
+g = Github(environ.get(github_token))
 
 
 def append_commit_files(file_list, file_names, root, data, file):

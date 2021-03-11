@@ -6,7 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import json_normalize, read_csv
 
 from api.blueprints import fetch_city_data
-from definitions import ROOT_DIR, DATA_EXTERNAL_PATH, app_name_env, mongodb_connection_env, pollutants
+from definitions import ROOT_DIR, DATA_EXTERNAL_PATH, app_name, mongodb_connection, pollutants
 from modeling import train_city_sensors
 from preparation import fetch_cities, fetch_sensors
 from processing import current_hour, next_hour
@@ -19,7 +19,7 @@ scheduler = BackgroundScheduler()
 
 @scheduler.scheduled_job(trigger='cron', day=1)
 def data_dump():
-    repo_name = environ[app_name_env]
+    repo_name = environ[app_name]
 
     file_list = []
     file_names = []
@@ -75,14 +75,14 @@ def update_location_data():
     cache.set('cities', updated_cities)
     updated_sensors = {}
     for city in updated_cities:
-        if environ.get(mongodb_connection_env) is not None:
+        if environ.get(mongodb_connection) is not None:
             mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
         updated_sensors[city['cityName']] = fetch_sensors(city['cityName'])
         json_normalize(updated_sensors[city['cityName']]).to_csv(
             path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.csv'))
         for sensor in updated_sensors[city['cityName']]:
             sensor['cityName'] = city['cityName']
-            if environ.get(mongodb_connection_env) is not None:
+            if environ.get(mongodb_connection) is not None:
                 mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
 
     cache.set('sensors', updated_sensors)

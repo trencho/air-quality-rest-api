@@ -8,7 +8,7 @@ from pytz import timezone
 from requests import get as requests_get
 from timezonefinder import TimezoneFinder
 
-from definitions import DATA_EXTERNAL_PATH, pulse_eco_password_env, pulse_eco_username_env, pollutants
+from definitions import DATA_EXTERNAL_PATH, pulse_eco_password, pulse_eco_username, pollutants
 from processing.normalize_data import normalize_pollution_data
 from .handle_data import save_dataframe
 
@@ -26,8 +26,8 @@ def format_datetime(timestamp, tz):
 def fetch_pollution_data(city_name, sensor, start_time, end_time):
     url = f'https://{city_name}.pulse.eco/rest/dataRaw'
 
-    username = environ[pulse_eco_username_env]
-    password = environ[pulse_eco_password_env]
+    username = environ[pulse_eco_username]
+    password = environ[pulse_eco_password]
 
     tf = TimezoneFinder()
     sensor_position = sensor['position'].split(',')
@@ -75,7 +75,7 @@ def fetch_pollution_data(city_name, sensor, start_time, end_time):
     dataframe.rename(columns={'stamp': 'time'}, inplace=True, errors='ignore')
     dataframe['time'] = pandas_to_datetime(dataframe['time'], errors='ignore')
     dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
-    dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
+    dataframe.drop(index=dataframe.loc[start_time > dataframe['time'] > end_time].index, inplace=True, errors='ignore')
     dataframe['sensorId'] = sensor['sensorId']
     dataframe['value'] = to_numeric(dataframe['value'], errors='ignore')
 
