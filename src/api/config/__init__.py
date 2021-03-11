@@ -2,7 +2,7 @@ from os import environ
 
 from flask import Flask
 
-from definitions import mongodb_connection_env
+from definitions import mongodb_connection
 from .blueprints import register_blueprints
 from .cache import configure_cache
 from .database import configure_database
@@ -23,7 +23,7 @@ def create_app():
 
     configure_cache(app)
 
-    if environ.get(mongodb_connection_env) is not None:
+    if environ.get(mongodb_connection) is not None:
         configure_database(app)
         fetch_db_data()
 

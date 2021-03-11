@@ -4,7 +4,7 @@ from traceback import format_exc
 from pandas import DataFrame, json_normalize
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, dark_sky_token_env
+from definitions import DATA_EXTERNAL_PATH, dark_sky_token
 from .handle_data import save_dataframe
 
 day_in_seconds = 86400
@@ -12,7 +12,7 @@ day_in_seconds = 86400
 
 def fetch_weather_data(city_name, sensor, start_time, end_time):
     domain = 'https://api.darksky.net'
-    token = environ[dark_sky_token_env]
+    token = environ[dark_sky_token]
     url = f'{domain}/forecast/{token}/{sensor["position"]},{start_time}'
     exclude = 'currently,minutely,daily,alerts,flags'
     extend = 'hourly'
@@ -39,7 +39,7 @@ def fetch_weather_data(city_name, sensor, start_time, end_time):
 
         url = f'{domain}/forecast/{token}/{sensor["position"]},{start_time}'
 
-    dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
+    dataframe.drop(index=dataframe.loc[start_time > dataframe['time'] > end_time].index, inplace=True, errors='ignore')
     dataframe['sensorId'] = sensor['sensorId']
 
     if not dataframe.empty:

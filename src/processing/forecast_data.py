@@ -4,7 +4,7 @@ from pandas import concat as pandas_concat, DataFrame, date_range, Series, Timed
 from requests import get as requests_get
 
 from api.config.cache import cache
-from definitions import dark_sky_token_env
+from definitions import dark_sky_token
 from .feature_generation import encode_categorical_data, generate_features, generate_lag_features, \
     generate_time_features
 from .feature_scaling import value_scaling
@@ -16,7 +16,7 @@ FORECAST_STEPS = 1
 @cache.memoize(timeout=3600)
 def forecast_sensor(sensor_position, timestamp):
     domain = 'https://api.darksky.net'
-    token = environ[dark_sky_token_env]
+    token = environ[dark_sky_token]
     url = f'{domain}/forecast/{token}/{sensor_position},{timestamp}'
     exclude = 'currently,minutely,daily,alerts,flags'
     extend = 'hourly'

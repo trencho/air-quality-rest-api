@@ -14,34 +14,38 @@ RESULTS_PATH = path.join(ROOT_DIR, 'results')
 RESULTS_ERRORS_PATH = path.join(RESULTS_PATH, 'errors')
 RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, 'predictions')
 
-app_name_env = 'APP_NAME'
+app_env = 'APP_ENV'
+app_name = 'APP_NAME'
 
-dark_sky_token_env = 'DARK_SKY_TOKEN'
-open_weather_token_env = 'OPEN_WEATHER_TOKEN'
-pulse_eco_username_env = 'PULSE_ECO_USERNAME'
-pulse_eco_password_env = 'PULSE_ECO_PASSWORD'
+dark_sky_token = 'DARK_SKY_TOKEN'
+open_weather_token = 'OPEN_WEATHER_TOKEN'
+pulse_eco_username = 'PULSE_ECO_USERNAME'
+pulse_eco_password = 'PULSE_ECO_PASSWORD'
 
-github_token_env = 'GITHUB_TOKEN'
+github_token = 'GITHUB_TOKEN'
 
-mongodb_connection_env = 'MONGODB_CONNECTION'
-mongodb_username_env = 'MONGODB_USERNAME'
-mongodb_password_env = 'MONGODB_PASSWORD'
-mongodb_host_env = 'MONGODB_HOSTNAME'
-mongodb_db_name_env = 'MONGODB_DATABASE'
+mongodb_connection = 'MONGODB_CONNECTION'
+mongodb_username = 'MONGODB_USERNAME'
+mongodb_password = 'MONGODB_PASSWORD'
+mongodb_host = 'MONGODB_HOSTNAME'
+mongodb_db_name = 'MONGODB_DATABASE'
 
 environment_variables = [
-    app_name_env,
-    dark_sky_token_env,
-    open_weather_token_env,
-    pulse_eco_username_env,
-    pulse_eco_password_env,
-    github_token_env,
-    mongodb_connection_env,
-    mongodb_username_env,
-    mongodb_password_env,
-    mongodb_host_env,
-    mongodb_db_name_env
+    app_name,
+    dark_sky_token,
+    open_weather_token,
+    pulse_eco_username,
+    pulse_eco_password,
+    github_token,
+    mongodb_connection,
+    mongodb_username,
+    mongodb_password,
+    mongodb_host,
+    mongodb_db_name
 ]
+
+application_development = 'development'
+application_prod = 'prod'
 
 pollutants = {
     'co': 'CO',
