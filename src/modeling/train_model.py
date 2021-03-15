@@ -6,8 +6,8 @@ from threading import Thread
 from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, \
-    regression_models
+from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, app_env, \
+    application_development, pollutants, regression_models
 from models import make_model
 from processing import backward_elimination, generate_features, previous_value_overwrite, value_scaling, \
     encode_categorical_data
@@ -105,7 +105,8 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     best_model_error = inf
     best_model = None
     for model_name in regression_models:
-        if path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
+        if app_env == application_development and path.exists(
+                path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
             model, model_error = read_model(city_name, sensor_id, pollutant, model_name, 'Mean Absolute Error')
             if model_error < best_model_error:
                 best_model = model
