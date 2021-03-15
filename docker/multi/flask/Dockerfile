@@ -18,6 +18,7 @@ COPY ./requirements.txt /requirements.txt
 WORKDIR /
 
 # Install the dependencies
+RUN pip3 install --upgrade pip
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container
