@@ -8,8 +8,6 @@ services:
     depends_on:
       - flask
     deploy:
-      placement:
-        constraints: [ node.role == worker ]
       replicas: 1
       restart_policy:
         condition: on-failure
@@ -19,7 +17,8 @@ services:
         aliases:
           - aqra
     ports:
-      - 5000:80
+      - 80:80
+      - 443:443
     volumes:
       - nginxdata:/var/log/nginx
 

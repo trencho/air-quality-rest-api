@@ -9,12 +9,12 @@ metadata:
     io.kompose.service: mongodb
   name: mongodb
 spec:
-  type: LoadBalancer
   ports:
     - name: 27017
       port: 27017
       targetPort: 27017
   selector:
     io.kompose.service: mongodb
+  type: LoadBalancer
 status:
   loadBalancer: { }
