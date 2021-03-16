@@ -64,7 +64,7 @@ regression_models = {
     'LightGBMRegressionModel': 'LightGBM',
     'LinearRegressionModel': 'Linear',
     'MLPRegressionModel': 'Multilayer Perceptron',
-    'RandomForestRegressionModel': 'Random Forest',
+    # 'RandomForestRegressionModel': 'Random Forest',
     'SupportVectorRegressionModel': 'Support Vector',
     # 'TPOTRegressionModel': 'TPOT',
     'XGBoostRegressionModel': 'XGBoost'
