@@ -33,7 +33,6 @@ services:
           - aqra
     ports:
       - 80:80
-      - 443:443
     volumes:
       - flaskdata:/var/api
 
