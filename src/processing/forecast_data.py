@@ -122,7 +122,7 @@ def recursive_forecast(y, sensor, model, model_features, n_steps=FORECAST_STEPS,
                 data[model_feature] = feature_value
 
         dataframe = DataFrame(data, index=[date])
-        dataframe = dataframe.join(generate_features(target), how='outer').dropna()
+        dataframe = dataframe.join(generate_features(target), how='inner').dropna()
         dataframe = pandas_concat(
             [dataframe, DataFrame(columns=list(set(model_features) - set(list(dataframe.columns))))])
         encode_categorical_data(dataframe)
