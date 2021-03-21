@@ -20,11 +20,7 @@ forecast_blueprint = Blueprint('forecast', __name__)
 def append_forecast_data(sensor, pollutant, forecast_value, forecast_results):
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
-    forecast_results.append({
-        'latitude': latitude,
-        'longitude': longitude,
-        pollutant: forecast_value
-    })
+    forecast_results.append({'latitude': latitude, 'longitude': longitude, pollutant: forecast_value})
 
 
 @forecast_blueprint.route('/pollutants/<string:pollutant_name>/forecast', endpoint='forecast_all', methods=['GET'])
