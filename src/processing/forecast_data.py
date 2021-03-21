@@ -4,10 +4,11 @@ from pandas import concat as pandas_concat, DataFrame, date_range, Series, Timed
 from requests import get as requests_get
 
 from api.config.cache import cache
-from definitions import dark_sky_token
+from definitions import open_weather_token
 from .feature_generation import encode_categorical_data, generate_features, generate_lag_features, \
     generate_time_features
 from .feature_scaling import value_scaling
+from .normalize_data import flatten_json
 
 FORECAST_PERIOD = '1H'
 FORECAST_STEPS = 1
@@ -15,21 +16,21 @@ FORECAST_STEPS = 1
 
 @cache.memoize(timeout=3600)
 def forecast_sensor(sensor_position, timestamp):
-    domain = 'https://api.darksky.net'
-    token = environ[dark_sky_token]
-    url = f'{domain}/forecast/{token}/{sensor_position},{timestamp}'
-    exclude = 'currently,minutely,daily,alerts,flags'
-    extend = 'hourly'
-    params = f'exclude={exclude}&extend={extend}'
+    url = 'https://api.openweathermap.org/data/2.5/onecall'
+    sensor_position = sensor_position.split(',')
+    lat, lon = float(sensor_position[0]), float(sensor_position[1])
+    units = 'metric'
+    exclude = 'current,minutely,daily'
+    token = environ[open_weather_token]
+    params = f'lat={lat}&lon={lon}&units={units}&exclude={exclude}&appid={token}'
 
     weather_response = requests_get(url=url, params=params)
     try:
         weather_json = weather_response.json()
-        hourly = weather_json['hourly']
-        hourly_data = hourly['data']
+        hourly_data = weather_json['hourly']
         for hourly in hourly_data:
-            if hourly['time'] == timestamp:
-                return hourly
+            if hourly['dt'] == timestamp:
+                return flatten_json(hourly)
     except (KeyError, ValueError):
         pass
 

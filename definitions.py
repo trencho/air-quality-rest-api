@@ -17,10 +17,7 @@ RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, 'predictions')
 app_env = 'APP_ENV'
 app_name = 'APP_NAME'
 
-dark_sky_token = 'DARK_SKY_TOKEN'
 open_weather_token = 'OPEN_WEATHER_TOKEN'
-pulse_eco_username = 'PULSE_ECO_USERNAME'
-pulse_eco_password = 'PULSE_ECO_PASSWORD'
 
 github_token = 'GITHUB_TOKEN'
 
@@ -31,11 +28,9 @@ mongodb_host = 'MONGODB_HOSTNAME'
 mongodb_db_name = 'MONGODB_DATABASE'
 
 environment_variables = [
+    app_env,
     app_name,
-    dark_sky_token,
     open_weather_token,
-    pulse_eco_username,
-    pulse_eco_password,
     github_token,
     mongodb_connection,
     mongodb_username,
