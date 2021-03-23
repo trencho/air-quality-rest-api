@@ -25,7 +25,7 @@ def create_data_path(city_name, sensor_id):
 def merge_city_sensor_data(threads, city_name, sensor_id):
     for thread in threads:
         thread.join()
-    Thread(target=merge_air_quality_data, args=(city_name, sensor_id)).start()
+    Thread(target=merge_air_quality_data, args=(DATA_EXTERNAL_PATH, city_name, sensor_id)).start()
 
 
 def fetch_city_data(city_name, sensor, start_time, end_time):
