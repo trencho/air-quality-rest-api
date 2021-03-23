@@ -8,7 +8,7 @@ from requests import get as requests_get
 
 from api.config.cache import cache
 from api.config.database import mongo
-from definitions import DATA_EXTERNAL_PATH, mongodb_connection
+from definitions import DATA_EXTERNAL_PATH, mongodb_connection, countries
 
 
 def check_city(city_name):
@@ -32,7 +32,8 @@ def check_sensor(city_name, sensor_id):
 def fetch_cities():
     response = requests_get('https://pulse.eco/rest/city/')
     try:
-        return response.json()
+        cities_json = response.json()
+        return [city for city in cities_json if city['countryCode'] in countries]
     except ValueError:
         return []
 
