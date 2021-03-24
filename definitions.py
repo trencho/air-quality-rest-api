@@ -48,14 +48,15 @@ countries = {
 }
 
 pollutants = {
+    'aqi': 'AQI',
     'co': 'CO',
+    'nh3': 'NH3',
+    'no': 'NO',
     'no2': 'NO2',
     'o3': 'O3',
-    'pm25': 'PM2.5',
+    'pm2_5': 'PM2.5',
     'pm10': 'PM10',
-    'so2': 'SO2',
-    'co2': 'CO2',
-    'aqi': 'AQI'
+    'so2': 'SO2'
 }
 
 regression_models = {

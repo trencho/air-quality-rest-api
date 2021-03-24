@@ -61,14 +61,13 @@ def normalize_pollution_data(df):
         else:
             dataframe = pandas_merge(dataframe, dataframe_collection[key], how='left', on='time')
 
-    cols = list(dataframe)
-    # move the column to head of list using index, pop and insert
-    cols.insert(0, cols.pop(cols.index('time')))
+    col = dataframe.pop('time')
+    dataframe.insert(0, col.name, col)
     # use loc to reorder
-    dataframe = dataframe.loc[:, cols]
+    dataframe = dataframe.reindex(columns=dataframe.columns.tolist())
 
     dataframe['time'] = to_datetime(dataframe['time'], unit='s')
-    dataframe['time'] = dataframe.apply(lambda row: current_hour(row['time']), axis=1)
+    dataframe['time'] = dataframe['time'].map(lambda val: current_hour(val))
     dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
 
     return dataframe
