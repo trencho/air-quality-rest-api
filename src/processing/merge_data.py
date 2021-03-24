@@ -8,7 +8,7 @@ from sklearn.impute import KNNImputer
 from definitions import DATA_EXTERNAL_PATH, pollutants
 from preparation import save_dataframe
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
-    calculate_pm25_index, calculate_pm10_index, calculate_so2_index
+    calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
 
 
 def drop_numerical_outliers(dataframe, z_thresh=3):
@@ -44,7 +44,6 @@ def merge_air_quality_data(data_path, city_name, sensor_id):
     #                     break
 
     df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'sensorId', 'summary'], errors='ignore')
-    # df_columns = df_columns.drop('Type', errors='ignore')
 
     imp = KNNImputer()
     for column in df_columns:
@@ -72,28 +71,17 @@ def merge_air_quality_data(data_path, city_name, sensor_id):
         lambda row: calculate_aqi(calculate_co_index(row['co']) if 'co' in dataframe.columns else 0,
                                   calculate_no2_index(row['no2']) if 'no2' in dataframe.columns else 0,
                                   calculate_o3_index(row['o3']) if 'o3' in dataframe.columns else 0,
-                                  calculate_pm25_index(row['pm25']) if 'pm25' in dataframe.columns else 0,
+                                  calculate_pm2_5_index(row['pm2_5']) if 'pm2_5' in dataframe.columns else 0,
                                   calculate_pm10_index(row['pm10']) if 'pm10' in dataframe.columns else 0,
                                   calculate_so2_index(row['so2']) if 'so2' in dataframe.columns else 0)
         if row.get('aqi') is None else row['aqi'], axis=1)
 
-    # dataframe = dataframe[(np.abs(zscore(dataframe[df_columns])) < 3).all(axis=1)]
     # drop_numerical_outliers(dataframe)
 
-    # dataframe.drop(columns=[dataframe.count().idxmin()], inplace=True, errors='ignore')
     for i, v in dataframe.isna().values.all().iteritems():
         if dataframe.isna().values.all()[i]:
             dataframe.drop(columns=[i], inplace=True, errors='ignore')
             df_columns = df_columns.drop(i, errors='ignore')
-
-    # dataframe.rename(columns={'Data' : 'data'}, inplace=True)
-    # dataframe.rename(columns={'Type' : 'type'}, inplace=True)
-
-    # cols = list(dataframe)
-    # # move the column to head of list using index, pop and insert
-    # cols.insert(0, cols.pop(cols.index('type')))
-    # # use loc to reorder
-    # dataframe = dataframe.loc[:, cols]
 
     if not dataframe.empty:
         summary_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'summary.csv')
