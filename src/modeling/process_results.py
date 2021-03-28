@@ -30,5 +30,4 @@ def save_errors(city_name, sensor_id, pollutant, model_name, y_true, y_predicted
 
 def save_results(city_name, sensor_id, pollutant, model_name, dataframe):
     dataframe.to_csv(
-        path.join(RESULTS_PREDICTIONS_PATH, 'data', city_name, sensor_id, pollutant, model_name, 'prediction.csv'),
-        index=False)
+        path.join(RESULTS_PREDICTIONS_PATH, 'data', city_name, sensor_id, pollutant, model_name, 'prediction.csv'))

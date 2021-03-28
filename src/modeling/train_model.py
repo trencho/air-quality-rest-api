@@ -1,5 +1,5 @@
 from math import inf
-from os import cpu_count, makedirs, path, remove as os_remove
+from os import cpu_count, environ, makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
 from threading import Thread
 
@@ -105,7 +105,7 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     best_model_error = inf
     best_model = None
     for model_name in regression_models:
-        if app_env == application_development and path.exists(
+        if environ.get(app_env, application_development) == application_development and path.exists(
                 path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
             model, model_error = read_model(city_name, sensor_id, pollutant, model_name, 'Mean Absolute Error')
             if model_error < best_model_error:
