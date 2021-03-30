@@ -145,7 +145,8 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     model, model_features = load_model
 
     dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
-    dataframe.set_index(to_datetime(dataframe['time'], unit='s'), inplace=True)
+    dataframe.set_index('time', inplace=True)
+    dataframe.index = to_datetime(dataframe.index, unit='s')
 
     current_datetime = current_hour(datetime.now())
     date_time = datetime.fromtimestamp(timestamp)
