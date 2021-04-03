@@ -1,4 +1,3 @@
-from datetime import datetime
 from os import environ, path
 from traceback import format_exc
 
@@ -7,16 +6,6 @@ from requests import get as requests_get
 
 from definitions import DATA_EXTERNAL_PATH, open_weather_token
 from .handle_data import save_dataframe
-
-week_in_seconds = 604800
-
-
-def format_datetime(timestamp, tz):
-    dt = datetime.fromtimestamp(timestamp)
-    dt = tz.localize(dt)
-    dt = dt.isoformat()
-    dt = dt.replace('+', '%2b')
-    return dt
 
 
 def fetch_pollution_data(city_name, sensor, start_time, end_time):
@@ -44,8 +33,7 @@ def fetch_pollution_data(city_name, sensor, start_time, end_time):
 
     if not dataframe.empty:
         dataframe.sort_values(by='time', inplace=True)
-        dataframe.drop(index=dataframe.loc[start_time > dataframe['time'] > end_time].index, inplace=True,
-                       errors='ignore')
+        dataframe.drop(index=dataframe.loc[dataframe['time'] > end_time].index, inplace=True, errors='ignore')
         dataframe['sensorId'] = sensor['sensorId']
         pollution_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'pollution.csv')
         save_dataframe(dataframe, 'pollution', pollution_data_path, sensor['sensorId'])

@@ -14,6 +14,8 @@ from modeling import train_city_sensors
 from preparation import check_city, check_sensor, calculate_nearest_sensor
 from processing import closest_hour, current_hour, next_hour, recursive_forecast
 
+day_in_seconds = 86400
+
 forecast_blueprint = Blueprint('forecast', __name__)
 
 
@@ -151,7 +153,10 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     current_datetime = current_hour(datetime.now())
     date_time = datetime.fromtimestamp(timestamp)
     n_steps = ceil((date_time - current_datetime).total_seconds() / 3600)
-    return recursive_forecast(dataframe[pollutant], sensor, model, model_features, n_steps).iloc[-1]
+    return \
+        recursive_forecast(dataframe[pollutant], city['cityName'], sensor['sensorId'], model, model_features,
+                           n_steps).iloc[
+            -1]
 
 
 def retrieve_forecast_timestamp():
@@ -161,6 +166,13 @@ def retrieve_forecast_timestamp():
     if timestamp < next_hour_timestamp:
         message = ('Cannot forecast pollutant because the timestamp is in the past. Send a GET request to the history '
                    'endpoint for past values.')
+        return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
+
+    current_hour_time = current_hour(datetime.now())
+    current_hour_timestamp = int(datetime.timestamp(current_hour_time))
+    if timestamp > current_hour_timestamp + 2 * day_in_seconds:
+        message = ('Cannot forecast pollutant because the timestamp is beyond 48 hours in the future. Send a GET '
+                   'request to this endpoint with a timestamp that is less than 48 hours in the future.')
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
 
     return closest_hour(datetime.fromtimestamp(timestamp)).timestamp()

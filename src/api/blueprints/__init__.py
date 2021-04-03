@@ -33,7 +33,7 @@ def fetch_city_data(city_name, sensor, start_time, end_time):
 
     threads = []
 
-    fetch_weather_thread = Thread(target=fetch_weather_data, args=(city_name, sensor, start_time, end_time))
+    fetch_weather_thread = Thread(target=fetch_weather_data, args=(city_name, sensor))
     threads.append(fetch_weather_thread)
     fetch_weather_thread.start()
 
