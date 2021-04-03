@@ -44,7 +44,7 @@ def fetch_history(city_name, sensor_id, pollutant_name):
         message = 'Specify end timestamp larger than the current hour\'s timestamp.'
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
 
-    dataframe = dataframe.loc[(dataframe['time'] >= start_time) & (dataframe['time'] <= end_time)]
+    dataframe = dataframe.loc[end_time >= dataframe['time'] >= start_time]
     dataframe['time'] = dataframe['time'] * 1000
 
     history_results = dataframe[['time', pollutant_name]].to_json(orient='values')
