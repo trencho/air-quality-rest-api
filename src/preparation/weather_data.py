@@ -8,15 +8,13 @@ from definitions import DATA_EXTERNAL_PATH, open_weather_token
 from processing import flatten_json
 from .handle_data import save_dataframe
 
-day_in_seconds = 86400
 
-
-def fetch_weather_data(city_name, sensor, start_time, end_time):
+def fetch_weather_data(city_name, sensor):
     url = 'https://api.openweathermap.org/data/2.5/onecall'
     sensor_position = sensor['position'].split(',')
     lat, lon = float(sensor_position[0]), float(sensor_position[1])
     units = 'metric'
-    exclude = 'current,minutely,daily'
+    exclude = 'alerts,current,daily,minutely'
     token = environ[open_weather_token]
     params = f'lat={lat}&lon={lon}&units={units}&exclude={exclude}&appid={token}'
 
@@ -35,8 +33,6 @@ def fetch_weather_data(city_name, sensor, start_time, end_time):
     if not dataframe.empty:
         dataframe.sort_values(by='time', inplace=True)
         dataframe.drop(columns='weather', inplace=True, errors='ignore')
-        dataframe.drop(index=dataframe.loc[start_time > dataframe['time'] > end_time].index, inplace=True,
-                       errors='ignore')
         dataframe['sensorId'] = sensor['sensorId']
         weather_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'weather.csv')
         save_dataframe(dataframe, 'weather', weather_data_path, sensor['sensorId'])

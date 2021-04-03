@@ -1,39 +1,23 @@
-from os import environ
+from os import path
 
-from pandas import concat as pandas_concat, DataFrame, date_range, Series, Timedelta
-from requests import get as requests_get
+from pandas import concat as pandas_concat, DataFrame, date_range, read_csv, Series, Timedelta
 
 from api.config.cache import cache
-from definitions import open_weather_token
+from definitions import DATA_EXTERNAL_PATH
 from .feature_generation import encode_categorical_data, generate_features, generate_lag_features, \
     generate_time_features
 from .feature_scaling import value_scaling
-from .normalize_data import flatten_json
 
 FORECAST_PERIOD = '1H'
 FORECAST_STEPS = 1
 
 
 @cache.memoize(timeout=3600)
-def forecast_sensor(sensor_position, timestamp):
-    url = 'https://api.openweathermap.org/data/2.5/onecall'
-    sensor_position = sensor_position.split(',')
-    lat, lon = float(sensor_position[0]), float(sensor_position[1])
-    units = 'metric'
-    exclude = 'current,minutely,daily'
-    token = environ[open_weather_token]
-    params = f'lat={lat}&lon={lon}&units={units}&exclude={exclude}&appid={token}'
-
-    weather_response = requests_get(url=url, params=params)
-    try:
-        weather_json = weather_response.json()
-        hourly_data = weather_json['hourly']
-        for hourly in hourly_data:
-            if hourly['dt'] == timestamp:
-                return flatten_json(hourly)
-    except (KeyError, ValueError):
-        pass
-
+def forecast_sensor(city_name, sensor_id, timestamp):
+    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'weather.csv'))
+    dataframe = dataframe.loc[dataframe['time'] == timestamp]
+    if not dataframe.empty:
+        return dataframe.to_dict('records')[0]
     return {}
 
 
@@ -83,13 +67,15 @@ def direct_forecast(y, model, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=
     return Series(forecast_values, forecast_range)
 
 
-def recursive_forecast(y, sensor, model, model_features, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD) -> Series:
+def recursive_forecast(y, city_name, sensor_id, model, model_features, n_steps=FORECAST_STEPS,
+                       step=FORECAST_PERIOD) -> Series:
     """Multi-step recursive forecasting using the input time series data and a pre-trained machine learning model
 
     Parameters
     ----------
     y: pd.Series holding the input time-series to forecast
-    sensor: The sensor to forecast weather data
+    city_name: The name of the city where the sensor is located
+    sensor_id: The ID of the sensor to forecast weather data
     model: An already trained machine learning model implementing the scikit-learn interface
     model_features: Selected model features for forecasting
     n_steps: Number of time periods in the forecasting horizon
@@ -113,8 +99,8 @@ def recursive_forecast(y, sensor, model, model_features, n_steps=FORECAST_STEPS,
         target = target.append(Series(index=[date], data=new_point))
 
         # Forecast
-        timestamp = int(date.timestamp())
-        forecast_data = forecast_sensor(sensor['position'], timestamp)
+        timestamp = int((date - Timedelta(hours=1)).timestamp())
+        forecast_data = forecast_sensor(city_name, sensor_id, timestamp)
         data = {}
         for model_feature in model_features:
             feature_value = forecast_data.get(model_feature)
