@@ -153,10 +153,8 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
     current_datetime = current_hour(datetime.now())
     date_time = datetime.fromtimestamp(timestamp)
     n_steps = ceil((date_time - current_datetime).total_seconds() / 3600)
-    return \
-        recursive_forecast(dataframe[pollutant], city['cityName'], sensor['sensorId'], model, model_features,
-                           n_steps).iloc[
-            -1]
+    return recursive_forecast(
+        dataframe[pollutant], city['cityName'], sensor['sensorId'], model, model_features, n_steps).iloc[-1]
 
 
 def retrieve_forecast_timestamp():
