@@ -42,7 +42,7 @@ def data_dump():
         update_git_files(file_names, file_list, repo_name, branch, commit_message)
 
 
-@scheduler.scheduled_job(trigger='cron', minute=30)
+@scheduler.scheduled_job(trigger='cron', day_of_week='*/2')
 def fetch_hourly_data():
     current_datetime = current_hour(datetime.now())
     current_timestamp = int(datetime.timestamp(current_datetime))
