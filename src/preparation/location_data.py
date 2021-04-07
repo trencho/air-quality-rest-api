@@ -1,9 +1,9 @@
+from json import dump as json_dump
 from math import modf
-from os import environ, path
+from os import environ, makedirs, path
 
 from haversine import haversine_vector
 from numpy import where
-from pandas import read_csv
 from requests import get as requests_get
 
 from api.config.cache import cache
@@ -42,7 +42,10 @@ def fetch_locations():
     if environ.get(mongodb_connection) is not None:
         cities = list(mongo.db['cities'].find(projection={'_id': False}))
     else:
-        cities = read_csv(path.join(DATA_EXTERNAL_PATH, 'cities.csv')).to_dict().values()
+        cities = fetch_cities()
+
+    with open(path.join(DATA_EXTERNAL_PATH, 'cities.json'), 'w') as out_file:
+        json_dump(cities, out_file)
 
     cache.set('cities', cities)
     sensors = {}
@@ -51,8 +54,11 @@ def fetch_locations():
             sensors[city['cityName']] = list(mongo.db['sensors'].find({'cityName': city['cityName']},
                                                                       projection={'_id': False}))
         else:
-            sensors[city['cityName']] = read_csv(
-                path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.csv')).to_dict().values()
+            sensors[city['cityName']] = fetch_sensors(city['cityName'])
+
+        makedirs(path.join(DATA_EXTERNAL_PATH, city['cityName']), exist_ok=True)
+        with open(path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
+            json_dump(sensors[city['cityName']], out_file)
 
     cache.set('sensors', sensors)
 
