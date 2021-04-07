@@ -40,8 +40,8 @@ environment_variables = [
     mongodb_db_name
 ]
 
-application_development = 'development'
-application_prod = 'prod'
+app_dev = 'development'
+app_prod = 'production'
 
 countries = {
     'MK': 'Macedonia'
