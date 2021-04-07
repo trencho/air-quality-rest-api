@@ -1,10 +1,11 @@
 from base64 import b64encode
 from datetime import datetime
+from json import dump as json_dump
 from os import environ, path, walk
 from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from pandas import json_normalize, read_csv
+from pandas import read_csv
 
 from api.blueprints import fetch_city_data
 from definitions import ROOT_DIR, DATA_EXTERNAL_PATH, DATA_IMPORT_PATH, app_name, mongodb_connection, pollutants
@@ -32,8 +33,8 @@ def data_dump():
                 data = merge_csv_files(repo_name, file_path, data)
                 append_commit_files(file_list, file_names, root, data, file)
             elif file.endswith('.png'):
-                with open(file_path, 'rb') as input_file:
-                    data = b64encode(input_file.read())
+                with open(file_path, 'rb') as in_file:
+                    data = b64encode(in_file.read())
                 append_commit_files(file_list, file_names, root, data, file)
 
     if file_list:
@@ -91,15 +92,16 @@ def model_training():
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def update_location_data():
     updated_cities = fetch_cities()
-    json_normalize(updated_cities).to_csv(path.join(DATA_EXTERNAL_PATH, 'cities.csv'))
+    with open(path.join(DATA_EXTERNAL_PATH, 'cities.json'), 'w') as out_file:
+        json_dump(updated_cities, out_file)
     cache.set('cities', updated_cities)
     updated_sensors = {}
     for city in updated_cities:
         if environ.get(mongodb_connection) is not None:
             mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
         updated_sensors[city['cityName']] = fetch_sensors(city['cityName'])
-        json_normalize(updated_sensors[city['cityName']]).to_csv(
-            path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.csv'))
+        with open(path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
+            json_dump(updated_sensors[city['cityName']], out_file)
         for sensor in updated_sensors[city['cityName']]:
             sensor['cityName'] = city['cityName']
             if environ.get(mongodb_connection) is not None:
