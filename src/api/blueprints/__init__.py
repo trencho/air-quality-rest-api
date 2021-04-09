@@ -1,5 +1,4 @@
 from os import makedirs, path
-from threading import Thread
 
 from flask import jsonify, make_response
 from pandas import read_csv
@@ -22,23 +21,9 @@ def create_data_path(city_name, sensor_id):
     makedirs(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id), exist_ok=True)
 
 
-def merge_city_sensor_data(threads, city_name, sensor_id):
-    for thread in threads:
-        thread.join()
-    Thread(target=merge_air_quality_data, args=(DATA_EXTERNAL_PATH, city_name, sensor_id)).start()
-
-
-def fetch_city_data(city_name, sensor, start_time, end_time):
+def fetch_city_data(city_name, sensor):
     create_data_path(city_name, sensor['sensorId'])
 
-    threads = []
-
-    fetch_weather_thread = Thread(target=fetch_weather_data, args=(city_name, sensor))
-    threads.append(fetch_weather_thread)
-    fetch_weather_thread.start()
-
-    fetch_pollution_thread = Thread(target=fetch_pollution_data, args=(city_name, sensor, start_time, end_time))
-    threads.append(fetch_pollution_thread)
-    fetch_pollution_thread.start()
-
-    Thread(target=merge_city_sensor_data, args=(threads, city_name, sensor['sensorId'])).start()
+    fetch_weather_data(city_name, sensor)
+    fetch_pollution_data(city_name, sensor)
+    merge_air_quality_data(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'])

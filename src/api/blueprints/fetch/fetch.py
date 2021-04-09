@@ -37,7 +37,7 @@ def fetch_data(city_name=None, sensor_id=None):
         sensors = cache.get('sensors') or {}
         for city in cities:
             for sensor in sensors[city['cityName']]:
-                fetch_city_data(city['cityName'], sensor, start_time, end_time)
+                fetch_city_data(city['cityName'], sensor)
 
         message = 'Fetched weather and pollution data from the external APIs for all cities.'
         return make_response(jsonify(success=message))
@@ -50,7 +50,7 @@ def fetch_data(city_name=None, sensor_id=None):
     if sensor_id is None:
         sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
-            fetch_city_data(city_name, sensor, start_time, end_time)
+            fetch_city_data(city_name, sensor)
 
         message = ('Started the operation to fetch weather and pollution data from the external APIs for '
                    f'{city["siteName"]} and all active sensors.')
@@ -61,7 +61,7 @@ def fetch_data(city_name=None, sensor_id=None):
             message = 'Data cannot be trained because the sensor is not found or is invalid.'
             return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-        fetch_city_data(city_name, sensor, start_time, end_time)
+        fetch_city_data(city_name, sensor)
 
         message = ('Started the operation to fetch weather and pollution data from the external APIs for '
                    f'{city["siteName"]} and {sensor["description"]}.')
