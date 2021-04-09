@@ -3,12 +3,12 @@ from pandas import DataFrame, merge as pandas_merge, to_datetime
 
 
 def closest_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0,
-                     hour=t.hour if t.minute <= 30 else 0 if t.hour == 23 else t.hour + 1)
+    return t.replace(hour=t.hour if t.minute <= 30 else 0 if t.hour == 23 else t.hour + 1, minute=0, second=0,
+                     microsecond=0)
 
 
 def current_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0, hour=t.hour)
+    return t.replace(hour=t.hour, minute=0, second=0, microsecond=0)
 
 
 def flatten_json(nested_json: dict, exclude=None):
@@ -40,8 +40,8 @@ def flatten_json(nested_json: dict, exclude=None):
 
 
 def next_hour(t):
-    return t.replace(microsecond=0, second=0, minute=0, hour=0 if t.hour == 23 else t.hour + 1,
-                     day=t.day + 1 if t.hour == 23 else t.day)
+    return t.replace(day=t.day + 1 if t.hour == 23 else t.day, hour=0 if t.hour == 23 else t.hour + 1, minute=0,
+                     second=0, microsecond=0)
 
 
 def normalize_pollution_data(df):
