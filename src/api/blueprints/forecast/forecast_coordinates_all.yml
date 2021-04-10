@@ -31,4 +31,4 @@ responses:
     description: Value cannot be predicted because some of the parameters are invalid.
   404:
     description: 'Value cannot be predicted because the coordinates are either too far of the nearest available sensor
-    or invalid.'
+    or are invalid.'
