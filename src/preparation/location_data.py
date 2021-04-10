@@ -11,6 +11,7 @@ from api.config.database import mongo
 from definitions import DATA_EXTERNAL_PATH, mongodb_connection, countries
 
 
+@cache.memoize(timeout=3600)
 def check_city(city_name):
     cities = cache.get('cities') or []
     for city in cities:
@@ -20,6 +21,7 @@ def check_city(city_name):
     return None
 
 
+@cache.memoize(timeout=3600)
 def check_sensor(city_name, sensor_id):
     sensors = cache.get('sensors') or {}
     for sensor in sensors[city_name]:

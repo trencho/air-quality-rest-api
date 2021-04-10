@@ -8,6 +8,8 @@ from api.blueprints import fetch_dataframe
 from preparation import check_city, check_sensor
 from processing import current_hour
 
+week_in_seconds = 604800
+
 history_blueprint = Blueprint('history', __name__)
 
 
@@ -16,6 +18,11 @@ history_blueprint = Blueprint('history', __name__)
     endpoint='pollutant_history', methods=['GET'])
 @swag_from('history.yml', endpoint='history.pollutant_history', methods=['GET'])
 def fetch_history(city_name, sensor_id, pollutant_name):
+    timestamps = retrieve_history_timestamps()
+    if isinstance(timestamps, Response):
+        return timestamps
+    start_time, end_time = timestamps
+
     city = check_city(city_name)
     if city is None:
         message = 'Cannot return historical data because the city is not found or is invalid.'
@@ -34,18 +41,23 @@ def fetch_history(city_name, sensor_id, pollutant_name):
         message = 'Cannot return historical data because the pollutant is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    start_timestamp = dataframe.iloc[0]['time']
-    start_time = request.args.get('start_time', default=start_timestamp, type=int)
-
-    current_datetime = current_hour(datetime.now())
-    current_timestamp = int(datetime.timestamp(current_datetime))
-    end_time = request.args.get('end_time', default=current_timestamp, type=int)
-    if end_time <= start_time:
-        message = 'Specify end timestamp larger than the current hour\'s timestamp.'
-        return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
-
     dataframe = dataframe.loc[end_time >= dataframe['time'] >= start_time]
     dataframe['time'] = dataframe['time'] * 1000
 
     history_results = dataframe[['time', pollutant_name]].to_json(orient='values')
     return make_response(history_results)
+
+
+def retrieve_history_timestamps():
+    current_datetime = current_hour(datetime.now())
+    current_timestamp = int(datetime.timestamp(current_datetime))
+    start_time = request.args.get('start_time', default=current_timestamp, type=int)
+    end_time = request.args.get('end_time', default=current_timestamp, type=int)
+    if start_time > end_time:
+        message = 'Specify end timestamp larger than the current hour\'s timestamp.'
+        return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
+    if end_time > start_time + week_in_seconds:
+        message = 'Specify start and end time in one week range.'
+        return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
+
+    return start_time, end_time
