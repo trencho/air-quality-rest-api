@@ -19,10 +19,11 @@ day_in_seconds = 86400
 forecast_blueprint = Blueprint('forecast', __name__)
 
 
-def append_forecast_data(sensor, pollutant, forecast_value, forecast_results):
+def append_forecast_data(timestamp, sensor, pollutant, forecast_value, forecast_results):
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
-    forecast_results.append({'latitude': latitude, 'longitude': longitude, pollutant: forecast_value})
+    forecast_results.append(
+        {'time': timestamp, 'latitude': latitude, 'longitude': longitude, pollutant: forecast_value})
 
 
 @forecast_blueprint.route('/pollutants/<string:pollutant_name>/forecast', endpoint='forecast_all', methods=['GET'])
@@ -34,7 +35,7 @@ def append_forecast_data(sensor, pollutant, forecast_value, forecast_results):
 @swag_from('forecast_all.yml', endpoint='forecast.forecast_all', methods=['GET'])
 @swag_from('forecast_city.yml', endpoint='forecast.forecast_city', methods=['GET'])
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
-def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
+def fetch_city_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
     if pollutant_name not in pollutants:
         message = 'Value cannot be predicted because the pollutant is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
@@ -50,7 +51,7 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
         for city in cities:
             for sensor in sensors[city['cityName']]:
                 forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-                append_forecast_data(sensor, pollutant_name, forecast_value, forecast_results)
+                append_forecast_data(timestamp, sensor, pollutant_name, forecast_value, forecast_results)
 
         return make_response(jsonify(forecast_results))
 
@@ -63,7 +64,7 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
         sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
             forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-            append_forecast_data(sensor, pollutant_name, forecast_value, forecast_results)
+            append_forecast_data(timestamp, sensor, pollutant_name, forecast_value, forecast_results)
 
         return make_response(jsonify(forecast_results))
 
@@ -73,7 +74,7 @@ def fetch_sensor_forecast(pollutant_name, city_name=None, sensor_id=None):
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     forecast_value = forecast_city_sensor(city, sensor, pollutant_name, timestamp)
-    append_forecast_data(sensor, pollutant_name, forecast_value, forecast_results)
+    append_forecast_data(timestamp, sensor, pollutant_name, forecast_value, forecast_results)
     return make_response(jsonify(forecast_results))
 
 
@@ -91,15 +92,17 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
         message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    forecast_results = []
     timestamp = retrieve_forecast_timestamp()
     if isinstance(timestamp, Response):
         return timestamp
+
+    forecast_results = []
     if pollutant_name is None:
         cities = cache.get('cities')
         for city in cities:
             if city['cityName'] == sensor['cityName']:
                 forecast_result = {
+                    'time': timestamp,
                     'latitude': latitude,
                     'longitude': longitude
                 }
@@ -121,6 +124,7 @@ def fetch_coordinates_forecast(latitude, longitude, pollutant_name=None):
             return make_response(jsonify(forecast_results))
 
 
+@cache.memoize(timeout=3600)
 def load_regression_model(city, sensor, pollutant):
     if not path.exists(
             path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):

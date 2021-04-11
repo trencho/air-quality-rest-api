@@ -5,7 +5,8 @@ from flask import Blueprint, jsonify, make_response, Response, request
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
-from preparation import check_city, check_sensor
+from api.config.cache import cache
+from preparation import calculate_nearest_sensor, check_city, check_sensor
 from processing import current_hour
 
 week_in_seconds = 604800
@@ -13,11 +14,10 @@ week_in_seconds = 604800
 history_blueprint = Blueprint('history', __name__)
 
 
-@history_blueprint.route(
-    '/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/<string:pollutant_name>/history/',
-    endpoint='pollutant_history', methods=['GET'])
-@swag_from('history.yml', endpoint='history.pollutant_history', methods=['GET'])
-def fetch_history(city_name, sensor_id, pollutant_name):
+@history_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/history/<string:data>/',
+                         endpoint='city_sensor', methods=['GET'])
+@swag_from('history_city_sensor.yml', endpoint='history.city_sensor', methods=['GET'])
+def fetch_city_sensor_history(city_name, sensor_id, data):
     timestamps = retrieve_history_timestamps()
     if isinstance(timestamps, Response):
         return timestamps
@@ -33,19 +33,25 @@ def fetch_history(city_name, sensor_id, pollutant_name):
         message = 'Cannot return historical data because the sensor is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    dataframe = fetch_dataframe(city_name, sensor_id)
-    if isinstance(dataframe, Response):
-        return dataframe
+    return return_historical_data(city_name, sensor_id, data, start_time, end_time)
 
-    if pollutant_name not in dataframe.columns:
-        message = 'Cannot return historical data because the pollutant is not found or is invalid.'
+
+@history_blueprint.route('/coordinates/<float:latitude>,<float:longitude>/history/<string:data>/',
+                         endpoint='coordinates', methods=['GET'])
+@swag_from('history_coordinates.yml', endpoint='history.coordinates', methods=['GET'])
+def fetch_coordinates_history(latitude, longitude, data):
+    timestamps = retrieve_history_timestamps()
+    if isinstance(timestamps, Response):
+        return timestamps
+    start_time, end_time = timestamps
+
+    coordinates = (latitude, longitude)
+    sensor = calculate_nearest_sensor(coordinates)
+    if sensor is None:
+        message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    dataframe = dataframe.loc[end_time >= dataframe['time'] >= start_time]
-    dataframe['time'] = dataframe['time'] * 1000
-
-    history_results = dataframe[['time', pollutant_name]].to_json(orient='values')
-    return make_response(history_results)
+    return return_historical_data(sensor['cityName'], sensor['sensorId'], data, start_time, end_time)
 
 
 def retrieve_history_timestamps():
@@ -61,3 +67,13 @@ def retrieve_history_timestamps():
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
 
     return start_time, end_time
+
+
+@cache.memoize(timeout=3600)
+def return_historical_data(city_name, sensor_id, data, start_time, end_time):
+    dataframe = fetch_dataframe(city_name, sensor_id, data)
+    if isinstance(dataframe, Response):
+        return dataframe
+
+    dataframe = dataframe.loc[(dataframe['time'] >= start_time) & (dataframe['time'] <= end_time)]
+    return make_response(dataframe.to_json(orient='values'))

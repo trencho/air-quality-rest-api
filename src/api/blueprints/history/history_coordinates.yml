@@ -1,0 +1,42 @@
+tags:
+  - history
+#    description: Historical data for specified coordinates
+summary: Returns historical data for a specific pollutant
+description: 'Returns historical data for specific coordinates which have weather and pollution data.'
+parameters:
+  - in: path
+    name: latitude
+    description: Value of the geographic latitude
+    required: true
+    schema:
+      type: number
+  - in: path
+    name: longitude
+    description: Value of the geographic longitude
+    required: true
+    schema:
+      type: number
+  - in: path
+    name: data
+    description: Type of data to fetch history
+    required: true
+    schema:
+      type: string
+  - in: query
+    name: start_time
+    description: The start time of the historical data
+    required: false
+    schema:
+      type: integer
+  - in: query
+    name: end_time
+    description: The end time of the historical data
+    required: false
+    schema:
+      type: integer
+responses:
+  200:
+    description: Returned historical data for weather or pollution.
+  404:
+    description: 'Cannot return historical data because the coordinates are either too far of the nearest available
+    sensor or are invalid.'

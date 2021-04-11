@@ -4,14 +4,16 @@ from flask import jsonify, make_response
 from pandas import read_csv
 from starlette.status import HTTP_404_NOT_FOUND
 
+from api.config.cache import cache
 from definitions import DATA_EXTERNAL_PATH
 from preparation import fetch_pollution_data, fetch_weather_data
 from processing import merge_air_quality_data
 
 
-def fetch_dataframe(city_name, sensor_id):
+@cache.memoize(timeout=3600)
+def fetch_dataframe(city_name, sensor_id, data):
     try:
-        return read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'summary.csv'))
+        return read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, f'{data}.csv'))
     except FileNotFoundError:
         message = 'Cannot return historical data because the data is missing for that city and sensor.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
