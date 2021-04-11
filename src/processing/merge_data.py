@@ -29,7 +29,7 @@ def merge_air_quality_data(data_path, city_name, sensor_id):
     # cols_to_drop = nunique[nunique == 1].index
     # dataframe.drop(columns=cols_to_drop, inplace=True)
 
-    # dataframe.loc[:, dataframe.std() > 0]
+    # dataframe = dataframe.loc[:, dataframe.std() > 0]
 
     df_columns = dataframe.columns.copy()
 

@@ -15,14 +15,13 @@ sensors_blueprint = Blueprint('sensors', __name__)
 @swag_from('sensors_all.yml', endpoint='sensors.sensors_all', methods=['GET'])
 @swag_from('sensors_id.yml', endpoint='sensors.sensors_id', methods=['GET'])
 def fetch_city_sensor(city_name, sensor_id=None):
-    city = check_city(city_name)
-    if city is None:
+    if check_city(city_name) is None:
         message = 'Cannot return data because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     if sensor_id is None:
         sensors = cache.get('sensors') or {}
-        message = sensors[city['cityName']]
+        message = sensors[city_name]
         return make_response(jsonify(message))
 
     sensor = check_sensor(city_name, sensor_id)

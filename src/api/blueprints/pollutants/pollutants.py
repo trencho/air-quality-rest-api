@@ -32,7 +32,7 @@ def fetch_pollutant(city_name, sensor_id):
         message = 'Cannot return available pollutants because the sensor is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    dataframe = fetch_dataframe(city_name, sensor_id)
+    dataframe = fetch_dataframe(city_name, sensor_id, 'pollution')
     if isinstance(dataframe, Response):
         return dataframe
 
