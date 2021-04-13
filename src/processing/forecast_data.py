@@ -67,8 +67,7 @@ def direct_forecast(y, model, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=
     return Series(forecast_values, forecast_range)
 
 
-def recursive_forecast(y, city_name, sensor_id, model, model_features, n_steps=FORECAST_STEPS,
-                       step=FORECAST_PERIOD) -> Series:
+def recursive_forecast(y, city_name, sensor_id, model, model_features, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD):
     """Multi-step recursive forecasting using the input time series data and a pre-trained machine learning model
 
     Parameters
@@ -107,6 +106,9 @@ def recursive_forecast(y, city_name, sensor_id, model, model_features, n_steps=F
             if feature_value is not None:
                 data[model_feature] = feature_value
 
+        if not data:
+            return None
+
         dataframe = DataFrame(data, index=[date])
         dataframe = dataframe.join(generate_features(target), how='inner').dropna()
         dataframe = pandas_concat(
@@ -118,4 +120,4 @@ def recursive_forecast(y, city_name, sensor_id, model, model_features, n_steps=F
         forecasted_values.append(predictions[-1])
         target.update(Series(forecasted_values[-1], index=[target.index[-1]]))
 
-    return Series(forecasted_values, forecast_range)
+    return Series(forecasted_values, forecast_range).iloc[-1]

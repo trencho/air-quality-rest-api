@@ -58,12 +58,13 @@ def create_paths(city_name, sensor_id, pollutant, model_name):
     create_results_path(RESULTS_PREDICTIONS_PATH, city_name, sensor_id, pollutant, model_name)
 
 
-def check_model_lock(city_name, sensor_id, pollutant, model_name):
-    return path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, '.lock'))
+def check_pollutant_lock(city_name, sensor_id, pollutant):
+    return path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, '.lock'))
 
 
-def create_model_lock(city_name, sensor_id, pollutant, model_name):
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, '.lock'), 'w'):
+def create_pollutant_lock(city_name, sensor_id, pollutant):
+    makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant), exist_ok=True)
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, '.lock'), 'w'):
         pass
 
 
@@ -79,8 +80,8 @@ def hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollut
     return model_cv.best_params_
 
 
-def remove_model_lock(city_name, sensor_id, pollutant, model_name):
-    os_remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, '.lock'))
+def remove_pollutant_lock(city_name, sensor_id, pollutant):
+    os_remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, '.lock'))
 
 
 def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
@@ -89,6 +90,10 @@ def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
 
 
 def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
+    if check_pollutant_lock(city_name, sensor_id, pollutant):
+        return
+    create_pollutant_lock(city_name, sensor_id, pollutant)
+
     dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='inner')
     encode_categorical_data(dataframe)
     validation_split = len(dataframe) * 3 // 4
@@ -114,10 +119,6 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
             continue
 
         create_paths(city_name, sensor_id, pollutant, model_name)
-        is_model_locked = check_model_lock(city_name, sensor_id, pollutant, model_name)
-        if is_model_locked:
-            continue
-        create_model_lock(city_name, sensor_id, pollutant, model_name)
 
         model = make_model(model_name)
         params = hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant)
@@ -135,18 +136,18 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
             best_model = model
             best_model_error = model_error
 
-        remove_model_lock(city_name, sensor_id, pollutant, model_name)
-
     if best_model is not None:
         x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
         best_model.train(x_train, y_train)
         save_best_regression_model(city_name, sensor_id, pollutant, best_model.reg)
 
+    remove_pollutant_lock(city_name, sensor_id, pollutant)
+
 
 def train_regression_model(city, sensor, pollutant):
     try:
-        dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'))
-        dataframe.set_index('time', inplace=True)
+        dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
+                             index_col='time')
         dataframe.index = to_datetime(dataframe.index, unit='s')
         if pollutant in dataframe.columns:
             generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)

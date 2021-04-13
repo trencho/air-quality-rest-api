@@ -41,6 +41,5 @@ def fetch_pollution_data(city_name, sensor):
     dataframe.drop(index=dataframe.loc[dataframe['time'] > current_timestamp].index, inplace=True, errors='ignore')
 
     if not dataframe.empty:
-        dataframe['sensorId'] = sensor['sensorId']
         pollution_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'pollution.csv')
         save_dataframe(dataframe, 'pollution', pollution_data_path, sensor['sensorId'])
