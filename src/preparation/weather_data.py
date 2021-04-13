@@ -44,6 +44,5 @@ def fetch_weather_data(city_name, sensor):
     dataframe.drop(columns='weather', inplace=True, errors='ignore')
 
     if not dataframe.empty:
-        dataframe['sensorId'] = sensor['sensorId']
         weather_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'weather.csv')
         save_dataframe(dataframe, 'weather', weather_data_path, sensor['sensorId'])

@@ -3,8 +3,7 @@ tags:
 #    description: Forecast values for a specified pollutant
 summary: Returns a json object containing forecasts of all pollutants for the specified coordinates
 description: 'Fetches forecast data for all available pollutants for specific latitude and longitude coordinates
-converted to degrees. If a timestamp query parameter is present the models will predict for that hour, otherwise if the
-parameter is missing the prediction will be for the next upcoming hour.'
+converted to degrees. The forecast is based upon 48 hours from the moment the request is sent.'
 parameters:
   - in: path
     name: latitude
@@ -18,12 +17,6 @@ parameters:
     required: true
     schema:
       type: number
-  - in: query
-    name: timestamp
-    description: Timestamp to predict
-    required: false
-    schema:
-      type: integer
 responses:
   200:
     description: Returned json data of the predicted pollutant for a specific timestamp.
