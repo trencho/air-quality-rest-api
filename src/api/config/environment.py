@@ -2,10 +2,10 @@ from os import environ, makedirs, path
 
 from pandas import DataFrame
 
-from definitions import DATA_EXTERNAL_PATH, environment_variables
-from preparation.location_data import fetch_locations
+from definitions import DATA_EXTERNAL_PATH, environment_variables, mongodb_connection
 from .cache import cache
 from .database import mongo
+from .schedule import fetch_locations
 
 collections = ['summary', 'pollution', 'weather']
 
@@ -17,7 +17,8 @@ def check_environment_variables():
             exit(-1)
 
 
-def fetch_collection(collection, collection_dir, sensor_id):
+def fetch_collection(collection, city_name, sensor_id):
+    collection_dir = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id)
     db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
     if not db_records.empty:
         makedirs(collection_dir, exist_ok=True)
@@ -25,11 +26,15 @@ def fetch_collection(collection, collection_dir, sensor_id):
 
 
 def fetch_db_data():
-    fetch_locations()
     cities = cache.get('cities') or []
     sensors = cache.get('sensors') or {}
     for city in cities:
         for sensor in sensors[city['cityName']]:
             for collection in collections:
-                collection_dir = path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
-                fetch_collection(collection, collection_dir, sensor['sensorId'])
+                fetch_collection(collection, city['cityName'], sensor['sensorId'])
+
+
+def fetch_data():
+    fetch_locations()
+    if environ.get(mongodb_connection) is not None:
+        fetch_db_data()
