@@ -1,7 +1,3 @@
-from numpy import int64
-from pandas import DataFrame, merge as pandas_merge, to_datetime
-
-
 def closest_hour(t):
     return t.replace(hour=t.hour if t.minute <= 30 else 0 if t.hour == 23 else t.hour + 1, minute=0, second=0,
                      microsecond=0)
@@ -42,32 +38,3 @@ def flatten_json(nested_json: dict, exclude=None):
 def next_hour(t):
     return t.replace(day=t.day + 1 if t.hour == 23 else t.day, hour=0 if t.hour == 23 else t.hour + 1, minute=0,
                      second=0, microsecond=0)
-
-
-def normalize_pollution_data(df):
-    dataframe = DataFrame()
-    dataframe_collection = {}
-
-    for value in df['type'].unique():
-        df_type = df[df['type'] == value].copy()
-        df_type.rename(columns={'value': value}, inplace=True)
-        df_type.drop(columns=['position', 'type'], inplace=True, errors='ignore')
-
-        dataframe_collection[value] = df_type
-
-    for key in dataframe_collection:
-        if dataframe.empty:
-            dataframe = dataframe.append(dataframe_collection[key], ignore_index=True)
-        else:
-            dataframe = pandas_merge(dataframe, dataframe_collection[key], how='left', on='time')
-
-    col = dataframe.pop('time')
-    dataframe.insert(0, col.name, col)
-    # use loc to reorder
-    dataframe = dataframe.reindex(columns=dataframe.columns.tolist())
-
-    dataframe['time'] = to_datetime(dataframe['time'], unit='s')
-    dataframe['time'] = dataframe['time'].map(lambda val: current_hour(val))
-    dataframe['time'] = dataframe['time'].values.astype(int64) // 10 ** 9
-
-    return dataframe

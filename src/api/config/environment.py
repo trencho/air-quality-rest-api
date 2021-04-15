@@ -20,6 +20,7 @@ def check_environment_variables():
 def fetch_collection(collection, collection_dir, sensor_id):
     db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
     if not db_records.empty:
+        makedirs(collection_dir, exist_ok=True)
         db_records.to_csv(path.join(collection_dir, f'{collection}.csv'), index=False)
 
 
@@ -31,5 +32,4 @@ def fetch_db_data():
         for sensor in sensors[city['cityName']]:
             for collection in collections:
                 collection_dir = path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
-                makedirs(collection_dir, exist_ok=True)
                 fetch_collection(collection, collection_dir, sensor['sensorId'])
