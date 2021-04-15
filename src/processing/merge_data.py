@@ -78,11 +78,7 @@ def merge_air_quality_data(data_path, city_name, sensor_id):
 
     # drop_numerical_outliers(dataframe)
 
-    for i, v in dataframe.isna().values.all().iteritems():
-        if dataframe.isna().values.all()[i]:
-            dataframe.drop(columns=[i], inplace=True, errors='ignore')
-            df_columns = df_columns.drop(i, errors='ignore')
-
+    dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
     if not dataframe.empty:
         summary_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'summary.csv')
         save_dataframe(dataframe, 'summary', summary_data_path, sensor_id)
