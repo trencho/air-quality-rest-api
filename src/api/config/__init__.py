@@ -6,7 +6,7 @@ from definitions import mongodb_connection
 from .blueprints import register_blueprints
 from .cache import configure_cache
 from .database import configure_database
-from .environment import check_environment_variables, fetch_db_data
+from .environment import check_environment_variables, fetch_data
 from .schedule import model_training, schedule_jobs
 from .swagger import configure_swagger
 
@@ -25,7 +25,8 @@ def create_app():
 
     if environ.get(mongodb_connection) is not None:
         configure_database(app)
-        fetch_db_data()
+
+    fetch_data()
 
     # Comment this line to skip training regression models for all available locations during application startup
     model_training()

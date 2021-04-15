@@ -22,4 +22,4 @@ def fetch_city(city_name=None):
         message = 'Cannot return data because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    return make_response(jsonify(city))
+    return make_response(city)
