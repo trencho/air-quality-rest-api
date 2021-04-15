@@ -1,5 +1,4 @@
-from datetime import datetime
-from math import ceil
+from math import isnan
 from os import path
 from pickle import load as pickle_load
 
@@ -12,12 +11,7 @@ from api.config.cache import cache
 from definitions import pollutants, DATA_EXTERNAL_PATH, MODELS_PATH
 from modeling import train_city_sensors
 from preparation import check_city, check_sensor, calculate_nearest_sensor
-from processing import current_hour
 from processing.forecast_data import recursive_forecast
-from processing.normalize_data import next_hour
-
-hour_in_seconds = 3600
-day_in_seconds = 86400
 
 forecast_blueprint = Blueprint('forecast', __name__)
 
@@ -76,7 +70,7 @@ def load_regression_model(city, sensor, pollutant):
 
 
 @cache.memoize(timeout=3600)
-def forecast_city_sensor(city, sensor, pollutant, timestamp):
+def forecast_city_sensor(city, sensor, pollutant):
     load_model = load_regression_model(city, sensor, pollutant)
     if load_model is None:
         return load_model
@@ -87,26 +81,22 @@ def forecast_city_sensor(city, sensor, pollutant, timestamp):
                          index_col='time')
     dataframe.index = to_datetime(dataframe.index, unit='s')
 
-    date_time = datetime.fromtimestamp(timestamp)
-    current_datetime = current_hour(datetime.now())
-    n_steps = ceil((date_time - current_datetime).total_seconds() / 3600)
-    return recursive_forecast(
-        dataframe[pollutant], city['cityName'], sensor['sensorId'], model, model_features, n_steps)
+    return recursive_forecast(dataframe[pollutant], city['cityName'], sensor, model, model_features)
 
 
 @cache.memoize(timeout=3600)
-def return_forecast_result(timestamp, city, sensor):
-    forecast_result = {'time': timestamp}
-    forecast_result.update(
-        dict(zip(pollutants, [forecast_city_sensor(city, sensor, pollutant, timestamp) for pollutant in pollutants])))
-    return forecast_result
-
-
 def return_forecast_results(latitude, longitude, city, sensor):
-    next_hour_time = next_hour(datetime.now())
-    next_hour_timestamp = int(datetime.timestamp(next_hour_time))
-    forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
-    for timestamp in range(next_hour_timestamp, next_hour_timestamp + 2 * day_in_seconds, hour_in_seconds):
-        forecast_results['data'].append(return_forecast_result(timestamp, city, sensor))
+    forecast_result = {}
+    for pollutant in pollutants:
+        predictions = forecast_city_sensor(city, sensor, pollutant)
+        if predictions is None:
+            continue
 
+        for index, value in predictions.items():
+            timestamp_dict = forecast_result.get(int(index.timestamp()), {})
+            timestamp_dict.update({'time': int(index.timestamp()), pollutant: None if isnan(value) else value})
+            forecast_result.update({int(index.timestamp()): timestamp_dict})
+
+    forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
+    forecast_results['data'].extend(forecast_result.values())
     return make_response(jsonify(forecast_results))
