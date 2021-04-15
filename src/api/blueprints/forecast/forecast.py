@@ -99,4 +99,4 @@ def return_forecast_results(latitude, longitude, city, sensor):
 
     forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
     forecast_results['data'].extend(forecast_result.values())
-    return make_response(jsonify(forecast_results))
+    return make_response(forecast_results)

@@ -1,4 +1,5 @@
 from datetime import datetime
+from json import loads as json_loads
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
@@ -8,8 +9,6 @@ from api.blueprints import fetch_dataframe
 from api.config.cache import cache
 from preparation import calculate_nearest_sensor, check_city, check_sensor
 from processing import current_hour
-
-week_in_seconds = 604800
 
 history_blueprint = Blueprint('history', __name__)
 
@@ -33,7 +32,7 @@ def fetch_city_sensor_history(city_name, sensor_id, data):
         message = 'Cannot return historical data because the sensor is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    return return_historical_data(city_name, sensor_id, data, start_time, end_time)
+    return return_historical_data(city_name, sensor, data, start_time, end_time)
 
 
 @history_blueprint.route('/coordinates/<float:latitude>,<float:longitude>/history/<string:data>/',
@@ -51,7 +50,7 @@ def fetch_coordinates_history(latitude, longitude, data):
         message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    return return_historical_data(sensor['cityName'], sensor['sensorId'], data, start_time, end_time)
+    return return_historical_data(sensor['cityName'], sensor, data, start_time, end_time)
 
 
 def retrieve_history_timestamps():
@@ -62,6 +61,7 @@ def retrieve_history_timestamps():
     if start_time > end_time:
         message = 'Specify end timestamp larger than the current hour\'s timestamp.'
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
+    week_in_seconds = 604800
     if end_time > start_time + week_in_seconds:
         message = 'Specify start and end time in one week range.'
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
@@ -70,10 +70,14 @@ def retrieve_history_timestamps():
 
 
 @cache.memoize(timeout=3600)
-def return_historical_data(city_name, sensor_id, data, start_time, end_time):
-    dataframe = fetch_dataframe(city_name, sensor_id, data)
+def return_historical_data(city_name, sensor, data, start_time, end_time):
+    dataframe = fetch_dataframe(city_name, sensor['sensorId'], data)
     if isinstance(dataframe, Response):
         return dataframe
 
     dataframe = dataframe.loc[(dataframe['time'] >= start_time) & (dataframe['time'] <= end_time)]
-    return make_response(dataframe.to_json(orient='values'))
+    sensor_position = sensor['position'].split(',')
+    latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
+    history_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
+    history_results['data'].extend(json_loads(dataframe.to_json(orient='records')))
+    return make_response(history_results)

@@ -1,14 +1,11 @@
-from json import dump as json_dump
 from math import modf
-from os import environ, makedirs, path
 
 from haversine import haversine_vector
 from numpy import where
 from requests import get as requests_get
 
 from api.config.cache import cache
-from api.config.database import mongo
-from definitions import DATA_EXTERNAL_PATH, mongodb_connection, countries
+from definitions import countries
 
 
 @cache.memoize(timeout=3600)
@@ -38,31 +35,6 @@ def fetch_cities():
         return [city for city in cities_json if city['countryCode'] in countries]
     except ValueError:
         return []
-
-
-def fetch_locations():
-    if environ.get(mongodb_connection) is not None:
-        cities = list(mongo.db['cities'].find(projection={'_id': False}))
-    else:
-        cities = fetch_cities()
-
-    with open(path.join(DATA_EXTERNAL_PATH, 'cities.json'), 'w') as out_file:
-        json_dump(cities, out_file)
-
-    cache.set('cities', cities)
-    sensors = {}
-    for city in cities:
-        if environ.get(mongodb_connection) is not None:
-            sensors[city['cityName']] = list(mongo.db['sensors'].find({'cityName': city['cityName']},
-                                                                      projection={'_id': False}))
-        else:
-            sensors[city['cityName']] = fetch_sensors(city['cityName'])
-
-        makedirs(path.join(DATA_EXTERNAL_PATH, city['cityName']), exist_ok=True)
-        with open(path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
-            json_dump(sensors[city['cityName']], out_file)
-
-    cache.set('sensors', sensors)
 
 
 def fetch_sensors(city_name):
@@ -106,6 +78,7 @@ def recalculate_coordinate(val, _as=None):
 
 def calculate_nearest_sensor(coordinates, radius_of_effect=2):
     sensors = [sensor for sensor_list in list(cache.get('sensors').values()) for sensor in sensor_list]
-    distances = haversine_vector(coordinates, [tuple(map(float, sensor['position'].split(','))) for sensor in sensors])
+    distances = haversine_vector(coordinates, [tuple(map(float, sensor['position'].split(','))) for sensor in sensors],
+                                 comb=True)
     min_distance = min(distances)
     return sensors[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None

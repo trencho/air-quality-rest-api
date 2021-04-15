@@ -1,7 +1,7 @@
 from base64 import b64encode
 from datetime import datetime
 from json import dump as json_dump
-from os import environ, path, walk
+from os import environ, makedirs, path, walk
 from threading import Thread
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -82,24 +82,25 @@ def model_training():
 
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
-def update_location_data():
-    updated_cities = fetch_cities()
+def fetch_locations():
+    cities = fetch_cities()
     with open(path.join(DATA_EXTERNAL_PATH, 'cities.json'), 'w') as out_file:
-        json_dump(updated_cities, out_file)
-    cache.set('cities', updated_cities)
-    updated_sensors = {}
-    for city in updated_cities:
+        json_dump(cities, out_file)
+    cache.set('cities', cities)
+    sensors = {}
+    for city in cities:
         if environ.get(mongodb_connection) is not None:
             mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
-        updated_sensors[city['cityName']] = fetch_sensors(city['cityName'])
-        with open(path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
-            json_dump(updated_sensors[city['cityName']], out_file)
-        for sensor in updated_sensors[city['cityName']]:
+        sensors[city['cityName']] = fetch_sensors(city['cityName'])
+        for sensor in sensors[city['cityName']]:
             sensor['cityName'] = city['cityName']
             if environ.get(mongodb_connection) is not None:
                 mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
+        makedirs(path.join(DATA_EXTERNAL_PATH, city['cityName']), exist_ok=True)
+        with open(path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
+            json_dump(sensors[city['cityName']], out_file)
 
-    cache.set('sensors', updated_sensors)
+    cache.set('sensors', sensors)
 
 
 def schedule_jobs():
