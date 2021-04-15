@@ -106,5 +106,6 @@ def generate_time_series_features(dataframe, target):
 def generate_features(target):
     lag_features = generate_lag_features(target)
     time_features = generate_time_features(target)
+    features = lag_features.join(time_features, how='inner')
 
-    return lag_features.join(time_features, how='inner').dropna()
+    return features.dropna(axis='columns', how='all').dropna(axis='index', how='all')

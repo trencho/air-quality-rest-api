@@ -37,8 +37,7 @@ def save_selected_features(city_name, sensor_id, pollutant, selected_features):
 
 def read_model(city_name, sensor_id, pollutant, algorithm, error_type):
     dataframe_errors = read_csv(
-        path.join(RESULTS_ERRORS_PATH, 'data', city_name, sensor_id, pollutant, algorithm,
-                  'error.csv'))
+        path.join(RESULTS_ERRORS_PATH, 'data', city_name, sensor_id, pollutant, algorithm, 'error.csv'))
     model = make_model(algorithm)
     model.load(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
     return model, dataframe_errors.iloc[0][error_type]
