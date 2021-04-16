@@ -25,24 +25,7 @@ def merge_air_quality_data(data_path, city_name, sensor_id):
 
     dataframe = pandas_merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
 
-    # nunique = dataframe.apply(pd.Series.nunique)
-    # cols_to_drop = nunique[nunique == 1].index
-    # dataframe.drop(columns=cols_to_drop, inplace=True)
-
-    # dataframe = dataframe.loc[:, dataframe.std() > 0]
-
     df_columns = dataframe.columns.copy()
-
-    # df_nan = dataframe[dataframe.isna().any(axis=1)]
-    # for index, row in df_nan.iterrows():
-    #     equal_sin_time_rows = dataframe[np.sin(dataframe['time']) == np.sin(row['time'])]
-    #     for column in df_columns:
-    #         if pd.isna(dataframe.iloc[index][column]):
-    #             for index_rows, equal_sin_time_row in equal_sin_time_rows.iterrows():
-    #                 if not pd.isna(equal_sin_time_row[column]):
-    #                     dataframe.at[index, column] = equal_sin_time_row[column]
-    #                     break
-
     df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'sensorId', 'summary'], errors='ignore')
 
     imp = KNNImputer()
