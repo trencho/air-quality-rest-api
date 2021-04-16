@@ -81,7 +81,7 @@ def forecast_city_sensor(city, sensor, pollutant):
                          index_col='time')
     dataframe.index = to_datetime(dataframe.index, unit='s')
 
-    return recursive_forecast(dataframe[pollutant], city['cityName'], sensor, model, model_features)
+    return recursive_forecast(dataframe[pollutant], city['cityName'], sensor['sensorId'], model, model_features)
 
 
 @cache.memoize(timeout=3600)
