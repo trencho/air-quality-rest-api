@@ -1,8 +1,8 @@
 tags:
   - history
 #    description: Historical data for specified coordinates
-summary: Returns historical data for a specific pollutant
-description: 'Returns historical data for specific coordinates which have weather and pollution data.'
+summary: Returns historical data for weather or pollution
+description: Returns historical data for specific coordinates which have weather and pollution data.
 parameters:
   - in: path
     name: latitude
@@ -17,8 +17,8 @@ parameters:
     schema:
       type: number
   - in: path
-    name: data
-    description: Type of data to fetch history
+    name: data_type
+    description: Type of data to fetch history (e.g., weather or pollution)
     required: true
     schema:
       type: string

@@ -1,8 +1,8 @@
 tags:
   - history
-#    description: Historical data for a specified pollutant
-summary: Returns historical data for a specific pollutant
-description: 'Returns historical data for a specific city and sensor which have weather and pollution data.'
+#    description: Historical data for weather or pollution
+summary: Returns historical data for weather or pollution
+description: Returns historical data for a specific city and sensor which have weather and pollution data.
 parameters:
   - in: path
     name: city_name
@@ -17,8 +17,8 @@ parameters:
     schema:
       type: string
   - in: path
-    name: data
-    description: Type of data to fetch history
+    name: data_type
+    description: Type of data to fetch history (e.g., weather or pollution)
     required: true
     schema:
       type: string
@@ -36,6 +36,6 @@ parameters:
       type: integer
 responses:
   200:
-    description: Returned historical data for all available pollutants.
+    description: Returned historical data for weather or pollution.
   404:
     description: Cannot return historical data because the city or sensor are not found or are invalid.
