@@ -1,9 +1,8 @@
 tags:
-  - pollutant
+  - pollutants
 #    description: Available pollutants
 summary: Returns json data of all available pollutants for a specific sensor
-description: 'Searches for available pollutants in a city for a specific sensor and returns the list of pollutant names
-as a json object.'
+description: Searches for available pollutants in a city for a specific sensor and returns the list of pollutant names.
 parameters:
   - in: path
     name: city_name
@@ -19,6 +18,6 @@ parameters:
       type: string
 responses:
   200:
-    description: Returned json data of the predicted pollutant for a specific timestamp.
+    description: Returned json data of the available pollutants for a specific location.
   404:
     description: Cannot return available pollutants because the city or sensor are not found or is invalid.

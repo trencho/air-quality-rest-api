@@ -12,11 +12,17 @@ from processing import current_hour
 
 history_blueprint = Blueprint('history', __name__)
 
+data_types = ['pollution', 'weather']
 
-@history_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/history/<string:data>/',
+
+@history_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/history/<data_type>/',
                          endpoint='city_sensor', methods=['GET'])
 @swag_from('history_city_sensor.yml', endpoint='history.city_sensor', methods=['GET'])
-def fetch_city_sensor_history(city_name, sensor_id, data):
+def fetch_city_sensor_history(city_name, sensor_id, data_type):
+    if data_type not in data_types:
+        message = 'Cannot return historical data because the data type is not found or is invalid.'
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
+
     timestamps = retrieve_history_timestamps()
     if isinstance(timestamps, Response):
         return timestamps
@@ -32,13 +38,17 @@ def fetch_city_sensor_history(city_name, sensor_id, data):
         message = 'Cannot return historical data because the sensor is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    return return_historical_data(city_name, sensor, data, start_time, end_time)
+    return return_historical_data(city_name, sensor, data_type, start_time, end_time)
 
 
-@history_blueprint.route('/coordinates/<float:latitude>,<float:longitude>/history/<string:data>/',
+@history_blueprint.route('/coordinates/<float:latitude>,<float:longitude>/history/<data_type>/',
                          endpoint='coordinates', methods=['GET'])
 @swag_from('history_coordinates.yml', endpoint='history.coordinates', methods=['GET'])
-def fetch_coordinates_history(latitude, longitude, data):
+def fetch_coordinates_history(latitude, longitude, data_type):
+    if data_type not in data_types:
+        message = 'Cannot return historical data because the data type is not found or is invalid.'
+        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
+
     timestamps = retrieve_history_timestamps()
     if isinstance(timestamps, Response):
         return timestamps
@@ -47,10 +57,10 @@ def fetch_coordinates_history(latitude, longitude, data):
     coordinates = (latitude, longitude)
     sensor = calculate_nearest_sensor(coordinates)
     if sensor is None:
-        message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
+        message = 'Cannot return historical data because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    return return_historical_data(sensor['cityName'], sensor, data, start_time, end_time)
+    return return_historical_data(sensor['cityName'], sensor, data_type, start_time, end_time)
 
 
 def retrieve_history_timestamps():
@@ -70,8 +80,8 @@ def retrieve_history_timestamps():
 
 
 @cache.memoize(timeout=3600)
-def return_historical_data(city_name, sensor, data, start_time, end_time):
-    dataframe = fetch_dataframe(city_name, sensor['sensorId'], data)
+def return_historical_data(city_name, sensor, data_type, start_time, end_time):
+    dataframe = fetch_dataframe(city_name, sensor['sensorId'], data_type)
     if isinstance(dataframe, Response):
         return dataframe
 

@@ -11,9 +11,9 @@ from processing import merge_air_quality_data
 
 
 @cache.memoize(timeout=3600)
-def fetch_dataframe(city_name, sensor_id, data):
+def fetch_dataframe(city_name, sensor_id, data_type):
     try:
-        return read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, f'{data}.csv'))
+        return read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, f'{data_type}.csv'))
     except FileNotFoundError:
         message = 'Cannot return historical data because the data is missing for that city and sensor.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)

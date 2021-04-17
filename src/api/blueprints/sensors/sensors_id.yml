@@ -1,8 +1,8 @@
 tags:
   - sensors
-#    description: Data for all sensors or a specific sensors
+#    description: Data for a specific sensors
 summary: Returns json data of a specified sensor for a specific city
-description: Searches for a sensor in a city and returns a detailed list of the specified sensor as a json object.
+description: Searches for a sensor in a city and returns a detailed list of the specified sensor.
 parameters:
   - in: path
     name: city_name
