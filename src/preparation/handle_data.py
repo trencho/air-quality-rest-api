@@ -17,7 +17,7 @@ def save_dataframe(dataframe, collection, collection_path, sensor_id):
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 
         if not db_records.empty:
-            dataframe = dataframe.merge(db_records, how='left', on='time',
+            dataframe = dataframe.merge(db_records, how='outer', on='time', suffixes=('', '_y'),
                                         indicator=True).query('_merge == "left_only"').drop(columns='_merge')
 
     trim_dataframe(dataframe, 'time')
