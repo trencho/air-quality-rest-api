@@ -18,9 +18,8 @@ RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, 'predictions')
 app_env = 'APP_ENV'
 app_name = 'APP_NAME'
 
-open_weather_token = 'OPEN_WEATHER_TOKEN'
-
 github_token = 'GITHUB_TOKEN'
+open_weather_token = 'OPEN_WEATHER_TOKEN'
 
 mongodb_connection = 'MONGODB_CONNECTION'
 mongodb_username = 'MONGODB_USERNAME'
@@ -31,8 +30,8 @@ mongodb_db_name = 'MONGODB_DATABASE'
 environment_variables = [
     app_env,
     app_name,
-    open_weather_token,
     github_token,
+    open_weather_token,
     mongodb_connection,
     mongodb_username,
     mongodb_password,
