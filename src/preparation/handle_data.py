@@ -17,8 +17,7 @@ def save_dataframe(dataframe, collection, collection_path, sensor_id):
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 
         if not db_records.empty:
-            dataframe = dataframe.merge(db_records, how='outer', on='time', suffixes=('', '_y'),
-                                        indicator=True).query('_merge == "left_only"').drop(columns='_merge')
+            dataframe = dataframe.loc[~dataframe['time'].isin(db_records['time'])]
 
     trim_dataframe(dataframe, 'time')
     if not dataframe.empty:
@@ -27,6 +26,6 @@ def save_dataframe(dataframe, collection, collection_path, sensor_id):
 
         if path.exists(collection_path):
             dataframe = dataframe.append(read_csv(collection_path), ignore_index=True)
+            trim_dataframe(dataframe, 'time')
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
-        trim_dataframe(dataframe, 'time')
         dataframe.to_csv(collection_path, index=False)
