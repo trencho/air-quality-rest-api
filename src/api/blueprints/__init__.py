@@ -20,12 +20,15 @@ def fetch_dataframe(city_name, sensor_id, data_type):
 
 
 def create_data_path(city_name, sensor_id):
-    makedirs(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id), exist_ok=True)
+    data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id)
+    makedirs(data_path, exist_ok=True)
+    return data_path
 
 
 def fetch_city_data(city_name, sensor):
-    create_data_path(city_name, sensor['sensorId'])
+    data_path = create_data_path(city_name, sensor['sensorId'])
 
     fetch_weather_data(city_name, sensor)
     fetch_pollution_data(city_name, sensor)
-    merge_air_quality_data(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'])
+    if path.exists(path.join(data_path, 'weather.csv')) and path.exists(path.join(data_path, 'pollution.csv')):
+        merge_air_quality_data(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'])

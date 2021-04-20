@@ -17,11 +17,11 @@ def save_dataframe(dataframe, collection, collection_path, sensor_id):
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 
         if not db_records.empty:
-            dataframe = dataframe.loc[~dataframe['time'].isin(db_records['time'])]
+            dataframe = dataframe.loc[~dataframe['time'].isin(db_records['time'])].copy()
 
     trim_dataframe(dataframe, 'time')
     if not dataframe.empty:
-        dataframe['sensorId'] = sensor_id
+        dataframe.loc[:, 'sensorId'] = sensor_id
         mongo.db[collection].insert_many(dataframe.to_dict('records'))
 
         if path.exists(collection_path):
