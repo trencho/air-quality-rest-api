@@ -6,13 +6,14 @@ metadata:
     kompose.version: 1.21.0 (992df58d8)
   creationTimestamp: null
   labels:
-    io.kompose.service: mongodb
-  name: mongodb
+    io.kompose.service: mongo
+  name: mongo
+  namespace: kube-system
 spec:
   replicas: 4
   selector:
     matchLabels:
-      io.kompose.service: mongodb
+      io.kompose.service: mongo
   strategy:
     type: Recreate
   template:
@@ -23,25 +24,25 @@ spec:
       creationTimestamp: null
       labels:
         io.kompose.network/network: 'true'
-        io.kompose.service: mongodb
+        io.kompose.service: mongo
     spec:
       containers:
-        - name: mongodb
-          image: air_quality_mongodb
+        - name: mongo
+          image: air_quality_mongo
           imagePullPolicy: Never
           ports:
             - containerPort: 27017
           envFrom:
             - secretRef:
-                name: mongodb-secret
+                name: mongo-secret
           resources: { }
           volumeMounts:
             - mountPath: /data/db
-              name: mongodbdata
+              name: mongodata
       restartPolicy: Always
       serviceAccountName: ''
       volumes:
-        - name: mongodbdata
+        - name: mongodata
           persistentVolumeClaim:
-            claimName: mongodbdata
+            claimName: mongodata
 status: { }

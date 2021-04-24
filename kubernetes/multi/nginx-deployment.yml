@@ -8,6 +8,7 @@ metadata:
   labels:
     io.kompose.service: nginx
   name: nginx
+  namespace: kube-system
 spec:
   replicas: 4
   selector:

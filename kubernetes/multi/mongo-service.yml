@@ -6,15 +6,16 @@ metadata:
     kompose.version: 1.21.0 (992df58d8)
   creationTimestamp: null
   labels:
-    io.kompose.service: mongodb
-  name: mongodb
+    io.kompose.service: mongo
+  name: mongo
+  namespace: kube-system
 spec:
   ports:
     - name: 27017
       port: 27017
       targetPort: 27017
   selector:
-    io.kompose.service: mongodb
+    io.kompose.service: mongo
   type: LoadBalancer
 status:
   loadBalancer: { }
