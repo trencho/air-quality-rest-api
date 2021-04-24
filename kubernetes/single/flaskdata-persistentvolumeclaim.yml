@@ -5,6 +5,7 @@ metadata:
   labels:
     io.kompose.service: flaskdata
   name: flaskdata
+  namespace: kube-system
 spec:
   accessModes:
     - ReadWriteOnce

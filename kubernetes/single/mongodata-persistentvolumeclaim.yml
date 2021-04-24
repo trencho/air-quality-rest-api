@@ -3,8 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   creationTimestamp: null
   labels:
-    io.kompose.service: mongodbdata
-  name: mongodbdata
+    io.kompose.service: mongodata
+  name: mongodata
+  namespace: kube-system
 spec:
   accessModes:
     - ReadWriteOnce
