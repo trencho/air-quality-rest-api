@@ -8,7 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data
-from definitions import ROOT_DIR, DATA_EXTERNAL_PATH, DATA_IMPORT_PATH, app_name, mongodb_connection, pollutants
+from definitions import app_name, DATA_RAW_PATH, DATA_EXTERNAL_PATH, mongodb_connection, pollutants, ROOT_DIR
 from modeling import train_city_sensors
 from preparation import fetch_cities, fetch_sensors, save_dataframe
 from processing import merge_air_quality_data
@@ -54,7 +54,7 @@ def fetch_hourly_data():
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def import_data():
-    for root, directories, files in walk(DATA_IMPORT_PATH):
+    for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
             file_path = path.join(root, file)
             if file.endswith('weather.csv') or file.endswith('pollution.csv'):
@@ -65,10 +65,11 @@ def import_data():
     for city in cities:
         sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
-            if path.exists(path.join(DATA_IMPORT_PATH, city['cityName'], sensor['sensorId'], 'weather.csv')) \
-                    and path.exists(path.join(DATA_IMPORT_PATH, city['cityName'], sensor['sensorId'], 'pollution.csv')):
+            if path.exists(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'weather.csv')) \
+                    and path.exists(
+                path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'pollution.csv')):
                 Thread(target=merge_air_quality_data,
-                       args=(DATA_IMPORT_PATH, city['cityName'], sensor['sensorId'])).start()
+                       args=(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])).start()
 
 
 @scheduler.scheduled_job(trigger='cron', day=1)
@@ -84,7 +85,7 @@ def model_training():
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def fetch_locations():
     cities = fetch_cities()
-    with open(path.join(DATA_EXTERNAL_PATH, 'cities.json'), 'w') as out_file:
+    with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
         json_dump(cities, out_file)
     cache.set('cities', cities)
     sensors = {}
@@ -96,8 +97,8 @@ def fetch_locations():
             sensor['cityName'] = city['cityName']
             if environ.get(mongodb_connection) is not None:
                 mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
-        makedirs(path.join(DATA_EXTERNAL_PATH, city['cityName']), exist_ok=True)
-        with open(path.join(DATA_EXTERNAL_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
+        makedirs(path.join(DATA_RAW_PATH, city['cityName']), exist_ok=True)
+        with open(path.join(DATA_RAW_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
             json_dump(sensors[city['cityName']], out_file)
 
     cache.set('sensors', sensors)

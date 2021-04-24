@@ -5,7 +5,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from pandas import DataFrame, read_csv
 
-from definitions import RESULTS_ERRORS_PATH, pollutants, regression_models
+from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH
 from .handle_plot import save_plot
 
 filterwarnings(action='once')

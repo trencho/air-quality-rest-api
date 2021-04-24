@@ -6,11 +6,11 @@ from threading import Thread
 from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
-from definitions import DATA_EXTERNAL_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, app_env, \
-    app_dev, pollutants, regression_models
+from definitions import app_env, app_dev, DATA_RAW_PATH, MODELS_PATH, pollutants, regression_models, \
+    RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
-from processing import backward_elimination, generate_features, previous_value_overwrite, value_scaling, \
-    encode_categorical_data
+from processing import backward_elimination, encode_categorical_data, generate_features, previous_value_overwrite, \
+    value_scaling
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
@@ -145,7 +145,7 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
 
 def train_regression_model(city, sensor, pollutant):
     try:
-        dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
+        dataframe = read_csv(path.join(DATA_RAW_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
                              index_col='time')
         dataframe.index = to_datetime(dataframe.index, unit='s')
         if pollutant in dataframe.columns:
