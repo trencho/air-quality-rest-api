@@ -5,9 +5,8 @@ from os import path
 from pandas import concat as pandas_concat, DataFrame, date_range, read_csv, Series, Timedelta
 
 from api.config.cache import cache
-from definitions import DATA_EXTERNAL_PATH
-from .feature_generation import encode_categorical_data, generate_lag_features, \
-    generate_time_features
+from definitions import DATA_RAW_PATH
+from .feature_generation import encode_categorical_data, generate_lag_features, generate_time_features
 from .feature_scaling import value_scaling
 from .normalize_data import next_hour
 
@@ -29,7 +28,7 @@ def fetch_weather_features(city_name, sensor_id, model_features, timestamp):
 
 @cache.memoize(timeout=3600)
 def forecast_sensor(city_name, sensor_id, timestamp):
-    dataframe = read_csv(path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'weather.csv'))
+    dataframe = read_csv(path.join(DATA_RAW_PATH, city_name, sensor_id, 'weather.csv'))
     dataframe = dataframe.loc[dataframe['time'] == timestamp]
     if not dataframe.empty:
         return dataframe.to_dict('records')[0]

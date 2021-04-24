@@ -4,7 +4,7 @@ from warnings import filterwarnings
 from matplotlib import pyplot as plt
 from pandas import DataFrame, read_csv, to_datetime
 
-from definitions import RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, pollutants, regression_models
+from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from .handle_plot import save_plot
 
 filterwarnings(action='once')
