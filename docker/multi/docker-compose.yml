@@ -27,7 +27,7 @@ services:
       dockerfile: docker/multi/flask/Dockerfile
     container_name: flask
     depends_on:
-      - mongodb
+      - mongo
     deploy:
       replicas: 1
       restart_policy:
@@ -55,11 +55,11 @@ services:
     volumes:
       - flaskdata:/var/api
 
-  mongodb:
+  mongo:
     build:
       context: ../..
       dockerfile: docker/mongo/Dockerfile
-    container_name: mongodb
+    container_name: mongo
     deploy:
       replicas: 1
       restart_policy:
@@ -74,11 +74,11 @@ services:
       MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
     expose:
       - 27017
-    image: air_quality_mongodb:latest
+    image: air_quality_mongo:latest
     networks:
       - network
     volumes:
-      - mongodbdata:/data/db
+      - mongodata:/data/db
 
 networks:
   network:
@@ -89,5 +89,5 @@ volumes:
     driver: local
   flaskdata:
     driver: local
-  mongodbdata:
+  mongodata:
     driver: local
