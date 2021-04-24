@@ -5,7 +5,7 @@ from traceback import format_exc
 from pandas import DataFrame, json_normalize
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, open_weather_token
+from definitions import DATA_RAW_PATH, open_weather_token
 from processing import flatten_json
 from .handle_data import save_dataframe
 
@@ -36,5 +36,5 @@ def fetch_weather_data(city_name, sensor):
     dataframe.drop(columns='weather', inplace=True, errors='ignore')
 
     if not dataframe.empty:
-        weather_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'weather.csv')
+        weather_data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'weather.csv')
         save_dataframe(dataframe, 'weather', weather_data_path, sensor['sensorId'])

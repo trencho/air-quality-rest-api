@@ -6,7 +6,7 @@ from traceback import format_exc
 from github import Github, InputGitTreeElement
 from pandas import read_csv
 
-from definitions import ROOT_DIR, github_token
+from definitions import github_token, ROOT_DIR
 
 g = Github(environ.get(github_token))
 

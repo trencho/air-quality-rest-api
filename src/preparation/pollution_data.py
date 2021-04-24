@@ -6,7 +6,7 @@ from traceback import format_exc
 from pandas import DataFrame
 from requests import get as requests_get
 
-from definitions import DATA_EXTERNAL_PATH, open_weather_token
+from definitions import DATA_RAW_PATH, open_weather_token
 from processing import current_hour
 from .handle_data import save_dataframe
 
@@ -41,5 +41,5 @@ def fetch_pollution_data(city_name, sensor):
     dataframe.drop(index=dataframe.loc[dataframe['time'] > current_timestamp].index, inplace=True, errors='ignore')
 
     if not dataframe.empty:
-        pollution_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor['sensorId'], 'pollution.csv')
+        pollution_data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'pollution.csv')
         save_dataframe(dataframe, 'pollution', pollution_data_path, sensor['sensorId'])

@@ -5,7 +5,7 @@ from pandas import merge as pandas_merge, read_csv, to_numeric
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
-from definitions import DATA_EXTERNAL_PATH, pollutants
+from definitions import DATA_RAW_PATH, pollutants
 from preparation import save_dataframe
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
     calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
@@ -63,5 +63,5 @@ def merge_air_quality_data(data_path, city_name, sensor_id):
 
     dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
     if not dataframe.empty:
-        summary_data_path = path.join(DATA_EXTERNAL_PATH, city_name, sensor_id, 'summary.csv')
+        summary_data_path = path.join(DATA_RAW_PATH, city_name, sensor_id, 'summary.csv')
         save_dataframe(dataframe, 'summary', summary_data_path, sensor_id)
