@@ -9,10 +9,16 @@ from sklearn.model_selection import RandomizedSearchCV
 from definitions import app_env, app_dev, DATA_RAW_PATH, MODELS_PATH, pollutants, regression_models, \
     RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
-from processing import backward_elimination, encode_categorical_data, generate_features, previous_value_overwrite, \
-    value_scaling
+from processing import backward_elimination, encode_categorical_data, generate_features, value_scaling
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
+
+
+def previous_value_overwrite(dataframe):
+    dataframe = dataframe.shift(periods=-1, axis=0)
+    dataframe.drop(dataframe.tail(1).index, inplace=True)
+
+    return dataframe
 
 
 def split_dataframe(dataframe, target, selected_features=None):
