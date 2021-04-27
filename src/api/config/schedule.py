@@ -1,14 +1,13 @@
 from base64 import b64encode
 from datetime import datetime
 from json import dump as json_dump
-from os import environ, makedirs, path, walk
-from threading import Thread
+from os import environ, makedirs, path, rmdir, walk
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data
-from definitions import app_name, DATA_RAW_PATH, DATA_EXTERNAL_PATH, mongodb_connection, pollutants, ROOT_DIR
+from definitions import app_name, DATA_EXTERNAL_PATH, DATA_RAW_PATH, mongodb_connection, pollutants, ROOT_DIR
 from modeling import train_city_sensors
 from preparation import fetch_cities, fetch_sensors, save_dataframe
 from processing import merge_air_quality_data
@@ -65,11 +64,8 @@ def import_data():
     for city in cities:
         sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
-            if path.exists(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'weather.csv')) \
-                    and path.exists(
-                path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'], 'pollution.csv')):
-                Thread(target=merge_air_quality_data,
-                       args=(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])).start()
+            merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
+            rmdir(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']))
 
 
 @scheduler.scheduled_job(trigger='cron', day=1)

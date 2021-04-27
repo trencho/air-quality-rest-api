@@ -40,6 +40,8 @@ environment_variables = [
 app_dev = 'development'
 app_prod = 'production'
 
+collections = ['weather', 'pollution', 'summary']
+
 countries = {
     'MK': 'Macedonia'
 }
