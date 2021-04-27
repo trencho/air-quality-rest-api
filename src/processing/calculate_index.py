@@ -1,5 +1,6 @@
-def to_aqi(i_high, i_low, c_high, c_low, c):
-    return (i_high - i_low) * (c - c_low) // (c_high - c_low) + i_low
+def calculate_aqi(co_index, no2_index, o3_index, pm2_5_index, pm10_index, so2_index):
+    parameters = [co_index, no2_index, o3_index, pm2_5_index, pm10_index, so2_index]
+    return max(parameters)
 
 
 def calculate_co_index(co):
@@ -106,6 +107,5 @@ def calculate_so2_index(so2):
     return 0
 
 
-def calculate_aqi(co_index, no2_index, o3_index, pm2_5_index, pm10_index, so2_index):
-    parameters = [co_index, no2_index, o3_index, pm2_5_index, pm10_index, so2_index]
-    return max(parameters)
+def to_aqi(i_high, i_low, c_high, c_low, c):
+    return (i_high - i_low) * (c - c_low) // (c_high - c_low) + i_low
