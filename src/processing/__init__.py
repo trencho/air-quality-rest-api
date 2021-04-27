@@ -5,4 +5,4 @@ from .feature_scaling import value_scaling
 from .feature_selection import backward_elimination
 from .forecast_data import direct_forecast, recursive_forecast
 from .merge_data import merge_air_quality_data
-from .normalize_data import closest_hour, current_hour, flatten_json, next_hour
+from .normalize_data import closest_hour, current_hour, flatten_json, next_hour, process_data

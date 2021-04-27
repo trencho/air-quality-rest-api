@@ -8,7 +8,7 @@ from pandas import read_csv, to_datetime
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
-from definitions import DATA_RAW_PATH, MODELS_PATH, pollutants
+from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
 from modeling import train_city_sensors
 from preparation import calculate_nearest_sensor, check_city, check_sensor
 from processing.forecast_data import recursive_forecast
@@ -77,7 +77,7 @@ def forecast_city_sensor(city, sensor, pollutant):
 
     model, model_features = load_model
 
-    dataframe = read_csv(path.join(DATA_RAW_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
+    dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
                          index_col='time')
     dataframe.index = to_datetime(dataframe.index, unit='s')
 
