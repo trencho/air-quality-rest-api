@@ -10,12 +10,10 @@ metadata:
   name: mongo
   namespace: kube-system
 spec:
-  type: LoadBalancer
   ports:
     - name: '27017'
       port: 27017
       targetPort: 27017
   selector:
     io.kompose.service: mongo
-status:
-  loadBalancer: { }
+  type: ClusterIP

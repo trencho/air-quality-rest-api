@@ -16,6 +16,4 @@ spec:
       targetPort: 27017
   selector:
     io.kompose.service: mongo
-  type: LoadBalancer
-status:
-  loadBalancer: { }
+  type: ClusterIP
