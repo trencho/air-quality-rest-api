@@ -6,12 +6,8 @@ metadata:
   name: flask-ingress
   namespace: kube-system
 spec:
-  tls:
-    - hosts:
-        - aqra.com
-      secretName: flask-tls
   rules:
-    - host: aqra.com
+    - host: aqra.feit.ukim.edu.mk
       http:
         paths:
           - backend:
@@ -21,3 +17,7 @@ spec:
                   number: 80
             path: /
             pathType: Prefix
+  tls:
+    - hosts:
+        - aqra.feit.ukim.edu.mk
+      secretName: flask-tls
