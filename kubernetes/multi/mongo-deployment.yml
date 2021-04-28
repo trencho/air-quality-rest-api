@@ -10,7 +10,7 @@ metadata:
   name: mongo
   namespace: kube-system
 spec:
-  replicas: 4
+  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: mongo
