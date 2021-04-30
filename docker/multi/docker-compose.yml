@@ -11,7 +11,7 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
-    image: air_quality_nginx:latest
+    image: aqra_nginx:latest
     networks:
       network:
         aliases:
@@ -47,7 +47,7 @@ services:
       MONGODB_DATABASE: ${MONGODB_DATABASE}
     expose:
       - 5000
-    image: air_quality_flask:latest
+    image: aqra_flask:latest
     networks:
       network:
         aliases:
@@ -74,7 +74,7 @@ services:
       MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
     expose:
       - 27017
-    image: air_quality_mongo:latest
+    image: aqra_mongo:latest
     networks:
       - network
     volumes:
