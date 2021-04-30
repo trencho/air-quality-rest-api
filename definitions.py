@@ -22,7 +22,7 @@ open_weather_token = 'OPEN_WEATHER_TOKEN'
 mongodb_connection = 'MONGODB_CONNECTION'
 mongodb_username = 'MONGODB_USERNAME'
 mongodb_password = 'MONGODB_PASSWORD'
-mongodb_host = 'MONGODB_HOSTNAME'
+mongodb_hostname = 'MONGODB_HOSTNAME'
 mongodb_db_name = 'MONGODB_DATABASE'
 
 environment_variables = [
@@ -33,7 +33,7 @@ environment_variables = [
     mongodb_connection,
     mongodb_username,
     mongodb_password,
-    mongodb_host,
+    mongodb_hostname,
     mongodb_db_name
 ]
 
