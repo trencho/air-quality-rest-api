@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: air_quality_nginx
+          image: aqra_nginx
           imagePullPolicy: Never
           ports:
             - containerPort: 80

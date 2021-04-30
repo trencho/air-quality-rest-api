@@ -24,7 +24,7 @@ services:
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
       MONGODB_HOSTNAME: ${MONGODB_HOSTNAME}
       MONGODB_DATABASE: ${MONGODB_DATABASE}
-    image: air_quality_flask:latest
+    image: aqra_flask:latest
     networks:
       network:
         aliases:
@@ -53,7 +53,7 @@ services:
       MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
     expose:
       - 27017
-    image: air_quality_mongo:latest
+    image: aqra_mongo:latest
     networks:
       - network
     volumes:
