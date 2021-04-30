@@ -28,13 +28,13 @@ spec:
     spec:
       containers:
         - name: flask
-          image: air_quality_flask
+          image: aqra_flask
           imagePullPolicy: Never
           ports:
             - containerPort: 80
           envFrom:
             - secretRef:
-                name: flask-secret
+                name: aqra-flask-secret
           resources: { }
           volumeMounts:
             - mountPath: /var/api
