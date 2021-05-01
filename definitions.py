@@ -19,22 +19,22 @@ app_name = 'APP_NAME'
 github_token = 'GITHUB_TOKEN'
 open_weather_token = 'OPEN_WEATHER_TOKEN'
 
+mongo_database = 'MONGO_DATABASE'
+mongo_password = 'MONGO_PASSWORD'
+mongo_username = 'MONGO_USERNAME'
 mongodb_connection = 'MONGODB_CONNECTION'
-mongodb_username = 'MONGODB_USERNAME'
-mongodb_password = 'MONGODB_PASSWORD'
 mongodb_hostname = 'MONGODB_HOSTNAME'
-mongodb_db_name = 'MONGODB_DATABASE'
 
 environment_variables = [
     app_env,
     app_name,
     github_token,
     open_weather_token,
+    mongo_database,
+    mongo_password,
+    mongo_username,
     mongodb_connection,
-    mongodb_username,
-    mongodb_password,
-    mongodb_hostname,
-    mongodb_db_name
+    mongodb_hostname
 ]
 
 app_dev = 'development'
