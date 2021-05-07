@@ -44,5 +44,5 @@ spec:
       volumes:
         - name: mongodata
           persistentVolumeClaim:
-            claimName: mongodata
+            claimName: mongodata-pv-claim
 status: { }
