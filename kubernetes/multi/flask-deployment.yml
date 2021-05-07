@@ -44,5 +44,5 @@ spec:
       volumes:
         - name: flaskdata
           persistentVolumeClaim:
-            claimName: flaskdata
+            claimName: flaskdata-pv-claim
 status: { }

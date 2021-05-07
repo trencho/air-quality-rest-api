@@ -3,8 +3,8 @@ kind: PersistentVolumeClaim
 metadata:
   creationTimestamp: null
   labels:
-    io.kompose.service: flaskdata
-  name: flaskdata
+    io.kompose.service: flaskdata-pv-claim
+  name: flaskdata-pv-claim
   namespace: kube-system
 spec:
   accessModes:
@@ -12,4 +12,5 @@ spec:
   resources:
     requests:
       storage: 100Mi
+  storageClassName: manual
 status: { }
