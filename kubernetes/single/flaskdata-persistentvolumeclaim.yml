@@ -3,8 +3,8 @@ kind: PersistentVolumeClaim
 metadata:
   creationTimestamp: null
   labels:
-    io.kompose.service: flaskdata-pv-claim
-  name: flaskdata-pv-claim
+    io.kompose.service: flaskdata-pv
+  name: flaskdata-pvc
   namespace: aqra
 spec:
   accessModes:
