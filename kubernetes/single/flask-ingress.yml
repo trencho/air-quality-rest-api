@@ -4,7 +4,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-staging
   name: flask-ingress
-  namespace: kube-system
+  namespace: aqra
 spec:
   rules:
     - host: aqra.feit.ukim.edu.mk

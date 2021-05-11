@@ -8,7 +8,7 @@ metadata:
   labels:
     io.kompose.service: mongo
   name: mongo
-  namespace: kube-system
+  namespace: aqra
 spec:
   replicas: 1
   selector:
@@ -34,7 +34,7 @@ spec:
             - containerPort: 27017
           envFrom:
             - secretRef:
-                name: aqra-mongo-secret
+                name: mongo-secret
           resources: { }
           volumeMounts:
             - mountPath: /data/db
