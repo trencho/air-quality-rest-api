@@ -5,7 +5,7 @@ metadata:
   labels:
     io.kompose.service: mongodata
   name: mongodata
-  namespace: kube-system
+  namespace: aqra
 spec:
   accessModes:
     - ReadWriteOnce

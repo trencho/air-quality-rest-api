@@ -8,7 +8,7 @@ metadata:
   labels:
     io.kompose.service: flask
   name: flask
-  namespace: kube-system
+  namespace: aqra
 spec:
   ports:
     - name: '80'

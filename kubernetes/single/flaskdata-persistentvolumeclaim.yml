@@ -5,7 +5,7 @@ metadata:
   labels:
     io.kompose.service: flaskdata-pv-claim
   name: flaskdata-pv-claim
-  namespace: kube-system
+  namespace: aqra
 spec:
   accessModes:
     - ReadWriteOnce

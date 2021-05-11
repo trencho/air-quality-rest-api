@@ -8,7 +8,7 @@ metadata:
   labels:
     io.kompose.service: flask
   name: flask
-  namespace: kube-system
+  namespace: aqra
 spec:
   replicas: 1
   selector:
@@ -34,7 +34,7 @@ spec:
             - containerPort: 5000
           envFrom:
             - secretRef:
-                name: aqra-flask-secret
+                name: flask-secret
           resources: { }
           volumeMounts:
             - mountPath: /var/api

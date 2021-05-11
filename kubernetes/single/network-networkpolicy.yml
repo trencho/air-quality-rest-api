@@ -3,7 +3,7 @@ kind: NetworkPolicy
 metadata:
   creationTimestamp: null
   name: network
-  namespace: kube-system
+  namespace: aqra
 spec:
   ingress:
     - from:
