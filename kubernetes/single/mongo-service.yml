@@ -16,4 +16,3 @@ spec:
       targetPort: 27017
   selector:
     io.kompose.service: mongo
-  type: ClusterIP
