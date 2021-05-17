@@ -11,7 +11,7 @@ metadata:
   namespace: aqra
 spec:
   ports:
-    - name: '5000'
+    - name: flask
       port: 5000
       targetPort: 5000
   selector:
