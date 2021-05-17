@@ -10,6 +10,6 @@ mongo = PyMongo()
 def configure_database(app):
     app.config['MONGO_URI'] = (
         f'{environ[mongodb_connection]}://{environ[mongo_username]}:{environ[mongo_password]}@'
-        f'{environ[mongodb_hostname]}/{environ[mongo_database]}?retryWrites=true&w=majority'
+        f'{environ[mongodb_hostname]}/{environ[mongo_database]}?authSource=admin&retryWrites=true&w=majority'
     )
     mongo.init_app(app)
