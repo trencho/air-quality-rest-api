@@ -11,7 +11,7 @@ metadata:
   namespace: aqra
 spec:
   ports:
-    - name: 27017
+    - name: mongo
       port: 27017
       targetPort: 27017
   selector:
