@@ -5,14 +5,10 @@ metadata:
   namespace: cert-manager
 spec:
   acme:
-    # Email address used for ACME registration
     email: atrenchevski@gmail.com
-    # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
       name: letsencrypt-prod
-    # The ACME server URL
     server: https://acme-v02.api.letsencrypt.org/directory
-    # Enable the HTTP-01 challenge provider
     solvers:
       - http01:
           ingress:
