@@ -19,12 +19,13 @@ def fetch_dataframe(city_name, sensor_id, collection):
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
 
-def create_data_path(city_name, sensor_id):
+def create_data_paths(city_name, sensor_id):
     makedirs(path.join(DATA_RAW_PATH, city_name, sensor_id), exist_ok=True)
+    makedirs(path.join(DATA_PROCESSED_PATH, city_name, sensor_id), exist_ok=True)
 
 
 def fetch_city_data(city_name, sensor):
-    create_data_path(city_name, sensor['sensorId'])
+    create_data_paths(city_name, sensor['sensorId'])
 
     fetch_weather_data(city_name, sensor)
     fetch_pollution_data(city_name, sensor)

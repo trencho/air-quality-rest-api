@@ -6,14 +6,14 @@ from traceback import format_exc
 from github import Github, InputGitTreeElement
 from pandas import read_csv
 
-from definitions import github_token, ROOT_DIR
+from definitions import github_token, ROOT_PATH
 
 g = Github(environ.get(github_token))
 
 
 def append_commit_files(file_list, file_names, root, data, file):
     file_list.append(data)
-    rel_dir = path.relpath(root, ROOT_DIR)
+    rel_dir = path.relpath(root, ROOT_PATH)
     rel_file = path.join(rel_dir, file).replace('\\', '/')
     file_names.append(rel_file)
 
