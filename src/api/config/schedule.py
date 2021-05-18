@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data
-from definitions import app_name, DATA_EXTERNAL_PATH, DATA_RAW_PATH, mongodb_connection, pollutants, ROOT_DIR
+from definitions import app_name, DATA_EXTERNAL_PATH, DATA_RAW_PATH, mongodb_connection, pollutants, ROOT_PATH
 from modeling import train_city_sensors
 from preparation import fetch_cities, fetch_sensors, save_dataframe
 from processing import merge_air_quality_data
@@ -24,7 +24,7 @@ def data_dump():
 
     file_list = []
     file_names = []
-    for root, directories, files in walk(ROOT_DIR):
+    for root, directories, files in walk(ROOT_PATH):
         for file in files:
             file_path = path.join(root, file)
             if file.endswith('.csv'):
