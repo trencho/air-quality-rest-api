@@ -1,0 +1,48 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cronjob-cert-delete
+rules:
+  - apiGroups: [ '', 'cert-manager.io' ]
+    resources: [ 'certificates', 'secrets' ]
+    verbs: [ 'delete' ]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cronjob-sa
+  namespace: cronjob
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cronjob-crb
+subjects:
+  - kind: ServiceAccount
+    name: cronjob-sa
+    namespace: cronjob
+roleRef:
+  apiGroup: ''
+  kind: ClusterRole
+  name: cronjob-cert-delete
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjob
+  namespace: cronjob
+spec:
+  schedule: '*/10 * * * *'
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - command:
+                - /bin/sh
+                - -c
+                - kubectl delete certificate flask-tls -n aqra && kubectl delete secret flask-tls -n aqra
+              image: bitnami/kubectl:latest
+              name: cronjob
+          restartPolicy: OnFailure
+          serviceAccountName: cronjob-sa
