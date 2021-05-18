@@ -45,6 +45,7 @@ services:
       MONGO_USERNAME: ${MONGO_USERNAME}
       MONGODB_CONNECTION: ${MONGODB_CONNECTION}
       MONGODB_HOSTNAME: ${MONGODB_HOSTNAME}
+      VOLUME_PATH: ${VOLUME_PATH}
     expose:
       - 5000
     image: aqra_flask:latest
