@@ -24,6 +24,7 @@ services:
       MONGO_USERNAME: ${MONGO_USERNAME}
       MONGODB_CONNECTION: ${MONGODB_CONNECTION}
       MONGODB_HOSTNAME: ${MONGODB_HOSTNAME}
+      VOLUME_PATH: ${VOLUME_PATH}
     image: aqra_flask:latest
     networks:
       network:
