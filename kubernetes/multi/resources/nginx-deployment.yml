@@ -38,8 +38,4 @@ spec:
               name: nginxdata
       restartPolicy: Always
       serviceAccountName: ''
-      volumes:
-        - name: nginxdata
-          persistentVolumeClaim:
-            claimName: nginxdata-pvc
 status: { }

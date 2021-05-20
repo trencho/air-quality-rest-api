@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - cronjob.yml
+  - flask-deployment.yml
+  - flask-service.yml
+  - flaskdata-persistentvolume.yml
+  - flaskdata-persistentvolumeclaim.yml
+  - mongo-deployment.yml
+  - mongo-service.yml
+  - mongodata-persistentvolume.yml
+  - mongodata-persistentvolumeclaim.yml
+  - network-networkpolicy.yml
+  - nginx-deployment.yml
+  - nginx-ingress.yml
+  - nginx-service.yml
