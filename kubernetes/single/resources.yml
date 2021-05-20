@@ -1,0 +1,297 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cronjob-sa
+  namespace: cronjob
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cronjob-cert-delete
+rules:
+  - apiGroups:
+      - ''
+      - cert-manager.io
+    resources:
+      - certificates
+      - secrets
+    verbs:
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cronjob-crb
+roleRef:
+  apiGroup: ''
+  kind: ClusterRole
+  name: cronjob-cert-delete
+subjects:
+  - kind: ServiceAccount
+    name: cronjob-sa
+    namespace: cronjob
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: flask
+  name: flask
+  namespace: aqra
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  selector:
+    io.kompose.service: flask
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongo
+  name: mongo
+  namespace: aqra
+spec:
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+  selector:
+    io.kompose.service: mongo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: flask
+  name: flask
+  namespace: aqra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: flask
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/network: 'true'
+        io.kompose.service: flask
+    spec:
+      containers:
+        - envFrom:
+            - secretRef:
+                name: flask-secret
+          image: aqra_flask
+          imagePullPolicy: Never
+          name: flask
+          ports:
+            - containerPort: 80
+          resources: { }
+          volumeMounts:
+            - mountPath: /var/api
+              name: flaskdata
+      restartPolicy: Always
+      serviceAccountName: ''
+      volumes:
+        - name: flaskdata
+          persistentVolumeClaim:
+            claimName: flaskdata-pvc
+status: { }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongo
+  name: mongo
+  namespace: aqra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mongo
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/network: 'true'
+        io.kompose.service: mongo
+    spec:
+      containers:
+        - envFrom:
+            - secretRef:
+                name: mongo-secret
+          image: aqra_mongo
+          imagePullPolicy: Never
+          name: mongo
+          ports:
+            - containerPort: 27017
+          resources: { }
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodata
+      restartPolicy: Always
+      serviceAccountName: ''
+      volumes:
+        - name: mongodata
+          persistentVolumeClaim:
+            claimName: mongodata-pvc
+status: { }
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjob
+  namespace: cronjob
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - command:
+                - /bin/sh
+                - -c
+                - kubectl delete certificate flask-tls -n aqra && kubectl delete secret
+                  flask-tls -n aqra
+              image: bitnami/kubectl:latest
+              name: cronjob
+          restartPolicy: OnFailure
+          serviceAccountName: cronjob-sa
+  schedule: '*/10 * * * *'
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+  name: flask-ingress
+  namespace: aqra
+spec:
+  rules:
+    - host: aqra.feit.ukim.edu.mk
+      http:
+        paths:
+          - backend:
+              service:
+                name: flask
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - aqra.feit.ukim.edu.mk
+      secretName: flask-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  creationTimestamp: null
+  name: network
+  namespace: aqra
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              io.kompose.network/network: 'true'
+  podSelector:
+    matchLabels:
+      io.kompose.network/network: 'true'
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    type: local
+  name: flaskdata-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  hostPath:
+    path: /mnt/data
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    type: local
+  name: mongodata-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  hostPath:
+    path: /mnt/data
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: flaskdata-pvc
+  name: flaskdata-pvc
+  namespace: aqra
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: manual
+status: { }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongodata-pvc
+  name: mongodata-pvc
+  namespace: aqra
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: manual
+status: { }

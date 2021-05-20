@@ -3,10 +3,12 @@ kind: PersistentVolume
 metadata:
   labels:
     type: local
-  name: nginxdata-pv
+  name: mongodata-pv
 spec:
   accessModes:
     - ReadWriteOnce
+  capacity:
+    storage: 10Gi
   hostPath:
     path: '/mnt/data'
   persistentVolumeReclaimPolicy: Retain
