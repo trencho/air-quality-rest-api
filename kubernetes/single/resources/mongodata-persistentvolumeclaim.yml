@@ -3,13 +3,14 @@ kind: PersistentVolumeClaim
 metadata:
   creationTimestamp: null
   labels:
-    io.kompose.service: flaskdata
-  name: flaskdata
+    io.kompose.service: mongodata-pvc
+  name: mongodata-pvc
   namespace: aqra
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
+      storage: 10Gi
+  storageClassName: manual
 status: { }
