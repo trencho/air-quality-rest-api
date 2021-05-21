@@ -17,8 +17,6 @@ RUN apt-get update && \
 COPY ./requirements.txt /requirements.txt
 COPY ./docker/single/nginx.conf /etc/nginx/nginx.conf
 
-WORKDIR /
-
 # Install the dependencies
 RUN pip3 install --upgrade pip
 RUN pip3 install --no-cache-dir -r requirements.txt
