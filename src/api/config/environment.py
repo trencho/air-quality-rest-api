@@ -2,10 +2,20 @@ from os import environ, makedirs, path
 
 from pandas import DataFrame
 
-from definitions import collections, DATA_RAW_PATH, environment_variables, mongodb_connection
+from definitions import collections, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, environment_variables, \
+    MODELS_PATH, mongodb_connection, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from .cache import cache
 from .database import mongo
 from .schedule import fetch_locations
+
+__all__ = [
+    DATA_EXTERNAL_PATH,
+    DATA_PROCESSED_PATH,
+    DATA_RAW_PATH,
+    MODELS_PATH,
+    RESULTS_ERRORS_PATH,
+    RESULTS_PREDICTIONS_PATH
+]
 
 
 def check_environment_variables():
@@ -33,6 +43,12 @@ def fetch_db_data():
 
 
 def fetch_data():
+    init_system_paths()
     fetch_locations()
     if environ.get(mongodb_connection) is not None:
         fetch_db_data()
+
+
+def init_system_paths():
+    for system_path in __all__:
+        makedirs(system_path, exist_ok=True)
