@@ -310,8 +310,7 @@ spec:
             - command:
                 - /bin/sh
                 - -c
-                - kubectl delete certificate nginx-tls -n aqra && kubectl delete secret
-                  nginx-tls -n aqra
+                - kubectl delete certificate nginx-tls -n aqra && kubectl delete secret nginx-tls -n aqra
               image: bitnami/kubectl:latest
               name: cronjob
           restartPolicy: OnFailure
