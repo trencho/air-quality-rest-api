@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: flask-tls
+  namespace: aqra
+spec:
+  dnsNames:
+    - aqra.feit.ukim.edu.mk
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-staging
+  secretName: flask-tls

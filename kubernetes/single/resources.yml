@@ -249,8 +249,7 @@ spec:
             - command:
                 - /bin/sh
                 - -c
-                - kubectl delete certificate flask-tls -n aqra && kubectl delete secret
-                  flask-tls -n aqra
+                - kubectl delete certificate flask-tls -n aqra && kubectl delete secret flask-tls -n aqra
               image: bitnami/kubectl:latest
               name: cronjob
           restartPolicy: OnFailure
