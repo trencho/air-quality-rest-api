@@ -45,12 +45,10 @@ metadata:
 spec:
   ports:
     - name: http
-      nodePort: 30000
       port: 80
       targetPort: 80
   selector:
     io.kompose.service: flask
-  type: NodePort
 ---
 apiVersion: v1
 kind: Service
