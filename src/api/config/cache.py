@@ -1,5 +1,7 @@
 from flask_caching import Cache
 
+from definitions import VOLUME_PATH
+
 cache = Cache()
 
 
@@ -8,7 +10,7 @@ def configure_cache(app):
         'CACHE_TYPE': 'FileSystemCache',
         'CACHE_DEFAULT_TIMEOUT': 0,
         'CACHE_THRESHOLD': 0,
-        'CACHE_DIR': '/tmp/cache'
+        'CACHE_DIR': f'{VOLUME_PATH}/tmp/cache'
     }
     cache.init_app(app, config)
     cache.clear()
