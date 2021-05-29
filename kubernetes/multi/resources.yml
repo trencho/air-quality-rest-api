@@ -87,6 +87,7 @@ spec:
       targetPort: 80
   selector:
     io.kompose.service: nginx
+  type: LoadBalancer
 ---
 apiVersion: v1
 kind: PersistentVolume
