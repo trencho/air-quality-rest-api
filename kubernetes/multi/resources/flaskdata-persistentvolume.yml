@@ -4,7 +4,6 @@ metadata:
   labels:
     type: local
   name: flaskdata-pv
-  namespace: aqra
 spec:
   accessModes:
     - ReadWriteOnce
