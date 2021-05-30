@@ -94,6 +94,7 @@ metadata:
   labels:
     type: local
   name: flaskdata-pv
+  namespace: aqra
 spec:
   accessModes:
     - ReadWriteOnce
@@ -176,6 +177,7 @@ metadata:
   labels:
     type: local
   name: mongodata-pv
+  namespace: aqra
 spec:
   accessModes:
     - ReadWriteOnce
