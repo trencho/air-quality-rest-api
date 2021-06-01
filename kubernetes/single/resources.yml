@@ -259,6 +259,8 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-staging
+    ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
   name: flask-ingress
   namespace: aqra
 spec:
