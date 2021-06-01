@@ -12,7 +12,7 @@ services:
       restart_policy:
         condition: on-failure
     env_file:
-      - ../../.env
+      - .env
     environment:
       APP_ENV: ${APP_ENV}
       APP_NAME: ${APP_NAME}
