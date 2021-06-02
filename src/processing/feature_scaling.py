@@ -7,10 +7,8 @@ def value_scaling(dataframe, scale='robust'):
         scaler = MinMaxScaler()
     elif scale == 'standard':
         scaler = StandardScaler()
-    elif scale == 'robust':
-        scaler = RobustScaler()
     else:
-        raise ValueError(f'{scale} is not a valid scaler')
+        scaler = RobustScaler()
 
     dataframe_index = dataframe.index
     dataframe_columns = dataframe.columns

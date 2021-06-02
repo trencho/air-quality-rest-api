@@ -3,7 +3,7 @@ from io import BytesIO, StringIO
 from os import environ, path
 from traceback import format_exc
 
-from github import Github, InputGitTreeElement
+from github import Github, GithubException, InputGitTreeElement
 from pandas import read_csv
 
 from definitions import github_token, ROOT_PATH
@@ -25,8 +25,8 @@ def merge_csv_files(repo_name, file_name, data):
         repo_file = repo.get_contents(file_name)
         repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
         local_file_content = local_file_content.append(repo_file_content, ignore_index=True, sort=True)
-    except:
-        pass
+    except GithubException:
+        print(format_exc())
     local_file_content.drop_duplicates(inplace=True)
     return local_file_content.to_csv(index=False)
 
@@ -37,14 +37,13 @@ def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, 
         parent = repo.get_git_commit(master_sha)
         commit = repo.create_git_commit(commit_message, tree, [parent])
         master_ref.edit(commit.sha)
-    except:
+    except GithubException:
         if len(element_list) // 2 > 0:
             commit_git_files(repo, element_list[:len(element_list) // 2], base_tree, master_sha, commit_message,
                              master_ref)
             commit_git_files(repo, element_list[len(element_list) // 2:], base_tree, master_sha, commit_message,
                              master_ref)
-        else:
-            return format_exc()
+        print(format_exc())
     finally:
         return 'Update complete'
 
