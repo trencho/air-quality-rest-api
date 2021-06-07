@@ -32,7 +32,10 @@ def encode_categorical_data(dataframe):
 
 
 def generate_lag_features(target, lags=48):
-    partial = Series(data=pacf(target, nlags=lags))
+    try:
+        partial = Series(data=pacf(target, nlags=lags))
+    except ValueError:
+        return DataFrame()
     lags = list(partial[abs(partial) >= 0.2].index)
 
     if 0 in lags:
