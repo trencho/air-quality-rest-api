@@ -4,6 +4,7 @@ from json import dump as json_dump
 from os import environ, makedirs, path, rmdir, walk
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from flask_pymongo import ASCENDING
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data
@@ -80,6 +81,10 @@ def model_training():
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def fetch_locations():
+    if environ.get(mongodb_connection) is not None:
+        mongo.db['cities'].create_index([('cityName', ASCENDING)])
+        mongo.db['sensors'].create_index([('sensorId', ASCENDING)])
+
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
         json_dump(cities, out_file)
