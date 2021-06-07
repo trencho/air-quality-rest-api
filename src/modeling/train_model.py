@@ -159,7 +159,7 @@ def train_regression_model(city, sensor, pollutant):
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
     except FileNotFoundError:
-        pass
+        return
 
 
 def train_city_sensors(city, sensor, pollutant):
