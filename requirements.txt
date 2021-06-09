@@ -18,7 +18,6 @@ scipy
 seaborn
 starlette
 statsmodels
-timezonefinder
 tpot
 tsfresh
 uwsgi
