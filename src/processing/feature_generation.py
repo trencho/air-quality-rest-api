@@ -1,4 +1,5 @@
 from datetime import date
+from traceback import format_exc
 from warnings import catch_warnings, simplefilter
 
 from numpy import abs
@@ -35,6 +36,7 @@ def generate_lag_features(target, lags=48):
     try:
         partial = Series(data=pacf(target, nlags=lags))
     except ValueError:
+        print(format_exc())
         return DataFrame()
     lags = list(partial[abs(partial) >= 0.2].index)
 
