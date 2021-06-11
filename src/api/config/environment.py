@@ -9,7 +9,7 @@ from .cache import cache
 from .database import mongo
 from .schedule import fetch_locations
 
-__all__ = [
+system_paths = [
     DATA_EXTERNAL_PATH,
     DATA_PROCESSED_PATH,
     DATA_RAW_PATH,
@@ -29,7 +29,8 @@ def check_environment_variables():
 def fetch_collection(collection, city_name, sensor_id):
     collection_dir = path.join(DATA_RAW_PATH, city_name, sensor_id)
     mongo.db[collection].create_index([('sensorId', ASCENDING)])
-    db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
+    db_records = DataFrame(
+        list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False, 'sensorId': False})))
     if not db_records.empty:
         makedirs(collection_dir, exist_ok=True)
         db_records.to_csv(path.join(collection_dir, f'{collection}.csv'), index=False)
@@ -52,5 +53,5 @@ def fetch_data():
 
 
 def init_system_paths():
-    for system_path in __all__:
+    for system_path in system_paths:
         makedirs(system_path, exist_ok=True)

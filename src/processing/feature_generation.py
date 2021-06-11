@@ -1,5 +1,4 @@
 from datetime import date
-from traceback import format_exc
 from warnings import catch_warnings, simplefilter
 
 from numpy import abs
@@ -27,17 +26,13 @@ def get_season(time):
 
 def encode_categorical_data(dataframe):
     obj_columns = dataframe.select_dtypes('object').columns
-    dataframe[obj_columns] = dataframe.select_dtypes('object').apply(lambda x: x.astype('category'))
+    dataframe[obj_columns] = dataframe[obj_columns].astype('category')
     cat_columns = dataframe.select_dtypes('category').columns
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
 def generate_lag_features(target, lags=48):
-    try:
-        partial = Series(data=pacf(target, nlags=lags))
-    except ValueError:
-        print(format_exc())
-        return DataFrame()
+    partial = Series(data=pacf(target, nlags=lags))
     lags = list(partial[abs(partial) >= 0.2].index)
 
     if 0 in lags:
