@@ -1,10 +1,8 @@
 from os import environ, path
 
 app_env = 'APP_ENV'
-app_name = 'APP_NAME'
 
 github_token = 'GITHUB_TOKEN'
-open_weather_token = 'OPEN_WEATHER_TOKEN'
 
 mongo_database = 'MONGO_DATABASE'
 mongo_password = 'MONGO_PASSWORD'
@@ -12,18 +10,22 @@ mongo_username = 'MONGO_USERNAME'
 mongodb_connection = 'MONGODB_CONNECTION'
 mongodb_hostname = 'MONGODB_HOSTNAME'
 
+open_weather_token = 'OPEN_WEATHER_TOKEN'
+
+repo_name = 'REPO_NAME'
+
 volume_path = 'VOLUME_PATH'
 
 environment_variables = [
     app_env,
-    app_name,
     github_token,
-    open_weather_token,
     mongo_database,
     mongo_password,
     mongo_username,
     mongodb_connection,
-    mongodb_hostname
+    mongodb_hostname,
+    open_weather_token,
+    repo_name
 ]
 
 VOLUME_PATH = environ.get(volume_path, '')
