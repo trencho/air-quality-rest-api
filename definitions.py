@@ -27,7 +27,7 @@ environment_variables = [
 ]
 
 VOLUME_PATH = environ.get(volume_path, '')
-ROOT_PATH = path.join(VOLUME_PATH, path.dirname(path.abspath(__file__)))
+ROOT_PATH = VOLUME_PATH or path.dirname(path.abspath(__file__))
 
 DATA_PATH = path.join(ROOT_PATH, 'data')
 DATA_EXTERNAL_PATH = path.join(DATA_PATH, 'external')

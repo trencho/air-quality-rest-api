@@ -2,6 +2,7 @@ from math import inf
 from os import cpu_count, environ, makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
 from threading import Thread
+from traceback import format_exc
 
 from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
@@ -86,7 +87,10 @@ def hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollut
 
 
 def remove_pollutant_lock(city_name, sensor_id, pollutant):
-    os_remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, '.lock'))
+    try:
+        os_remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, '.lock'))
+    except OSError:
+        pass
 
 
 def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
@@ -105,7 +109,7 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
 
     train_dataframe = dataframe.iloc[:validation_split]
     x_train, y_train = split_dataframe(train_dataframe, pollutant)
-    selected_features = list(x_train.columns)
+    selected_features = x_train.columns.values.tolist()
 
     test_dataframe = dataframe.iloc[validation_split:]
     x_test, y_test = split_dataframe(test_dataframe, pollutant, selected_features)
@@ -158,8 +162,9 @@ def train_regression_model(city, sensor, pollutant):
             generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
-    except FileNotFoundError:
-        return
+    except (FileNotFoundError, ValueError):
+        remove_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
+        print(format_exc())
 
 
 def train_city_sensors(city, sensor, pollutant):
