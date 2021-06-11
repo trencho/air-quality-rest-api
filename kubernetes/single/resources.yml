@@ -273,7 +273,7 @@ spec:
                 name: flask
                 port:
                   number: 80
-            path: /
+            path: /api/v1
             pathType: Prefix
   tls:
     - hosts:
