@@ -3,7 +3,7 @@ from statsmodels.api import add_constant, OLS
 
 
 def backward_elimination(x, y, significance_level=0.05):
-    features = list(x.columns)
+    features = x.columns.values.tolist()
     while len(features) > 0:
         features_with_constant = add_constant(x[features], has_constant='add')
         model = OLS(y, features_with_constant).fit()
