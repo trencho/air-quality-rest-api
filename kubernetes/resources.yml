@@ -1,0 +1,189 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aqra
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongo
+  name: mongo
+  namespace: aqra
+spec:
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+  selector:
+    io.kompose.service: mongo
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    type: local
+  name: flaskdata-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  hostPath:
+    path: /mnt/data
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    type: local
+  name: mongodata-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  hostPath:
+    path: /mnt/data
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: flaskdata-pvc
+  name: flaskdata-pvc
+  namespace: aqra
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: manual
+status: { }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongodata-pvc
+  name: mongodata-pvc
+  namespace: aqra
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: manual
+status: { }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mongo
+  name: mongo
+  namespace: aqra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mongo
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.network/network: 'true'
+        io.kompose.service: mongo
+    spec:
+      containers:
+        - envFrom:
+            - secretRef:
+                name: mongo-secret
+          image: aqra_mongo
+          imagePullPolicy: Never
+          name: mongo
+          ports:
+            - containerPort: 27017
+          resources: { }
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodata
+      restartPolicy: Always
+      serviceAccountName: ''
+      volumes:
+        - name: mongodata
+          persistentVolumeClaim:
+            claimName: mongodata-pvc
+status: { }
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: flask-secret
+  namespace: aqra
+spec:
+  encryptedData:
+    APP_ENV: AgAkAV55saAD+BPaCs/8dcvametsWw8zbBgfABalfdiksY7TvZiMVrickcCMFKSZuo7NhfiZ1qmJKGjAEXRoOL3hydVZW2lT3y1PdYu6D1PKOOqbuOC1Zp70auPvtS587NN2KVeJMtFeiR6EstQpaZWZ33hY3CRG4YtHfQETuzLvvDNtNI/EFmlyBVuDQTScMTO5JuKMjO9DbvAhYgNQ6zG8Ueqcv7dVgmGXm1+jrHgJOBw0ImUoXh2ZuoivLozTTszZiB0z7gvf2QAHuW9MdIg4TE9irQtb7M4vzXFJoECMY6a9H3LVVMRCr+y6aIFQxvAVxcTzNesbaThcMDpwUkWbHTEgUBmZKDoew7xNpVpzqvBOFyAsewWNQIC8OE22RyWHWYzb0wuiBeh75pdiv5kZlf1IlnF5ZuYlwqrruTVAR8dnCl8XxQRxhQtKvfFmC7uWeW4LOmj5RfHs4CakhNYGCo124SlteRFTvJJK4xlkK6G8D8pGA6faYNLPyg6OFSQCXt3I04ItzVa9ZTTiuik2CeRgWSVL0rUvkiQNUZ4Y011L2ad6d6GJIHjE84WD6WqnxqBFRv5ZvV48G4i3K+aJUux700AvR7VHLlNdIdZwQ/XFtDEApKuH/iUkHtAivFN/i+I8ph6TlhqcGaza95oBD+KMwmWgsxjmbHSVDtzcgyekxZDpTNUtY6HykeP9kWOk6s3PV2vXUbyD
+    GITHUB_TOKEN: AgByxhlajcSdPutIoKZeRKACo5+C7xgfboNUwukt5dh5myFuuML/R6CiVmPJdGwFIF5A0KVlEgf9ZEdn40cUS1LEWlZdBJXVK1JSEn+ouuGBq8Ri5ojLsI6mm0CL4r1tE4UQHOZrjU+hazNBO70mPNyg267wBG3Umz74+E8vVe+DXN72cSEgHWAyjLO1jK2BoESHi2Ln2g45Yn2K3Wt9/wKi8VOlGrhkYU+jRY3CLIA/JPUj7aU22HeZw013Vle+Uz8Xp4tT18DhRxMbDdOt8yLU5gM5ejc1rjmzLlYp+n8Y1Lk2+RSUEIWZeoDQ/HdSzjHvty+gOgYTcqVF1Igg8UrOmtY60sMWHmP/iVrzpVHVkssSsY+vEQEfn5n144mcohpFvEtCIixwn1PNaRwQ2e/6ntQDbyQ1asdu3DkSVMvWRfa6ah8ntASqMMaTEmK6bYzCZOVSmoqY4ANYdrRj8JCbvBD/op4WnCux9HvjyRzjOo8cBTaKOl+7sMWN3O4hVkQRdiqPN+OsiKgNwqqPm1VajHn5bZXnoHXcYdOx4V7iw4v8fAo5NiiXZQZes09/UWV01Vnfg3Bs7aHMHeIi8PrDH8Hdus0ikvAgYGZD+2tdwRfDlHKGLBmzwvtpLmju7OZDec9N1pWdvmWSxv5UT1ErV5TW/Xzcdhh56DxYaqdpwRnRhXyMlRgAlPKOB02LfSK8FhSWbzo9hvBcTmOK4sgKkkDXYLy/92dQnR8b8Rm1793vF1Lo6Mtg
+    MONGO_DATABASE: AgBkWXkhwwWkfaqyggwFfH+MyMjky7pt8CFmPN3rDYF1qGlb+7aC4dUf1v05+lmCE4LMPlbUZ6RcM3qsNK1seTbhKCB3vVskSIytwUe6nCvBoWJ8zOkzDRlJQBndAQ2kMoOje2Hs18K/OkibGBwC03CvUHvTmoC9N1Py0kzPiy+MVrwfyb/eFZczEeYARDIaJ2PwoY1/8cTo6teCPYl5NRc8FYAcGbVCElNljSlXnbH1eO0ahT3mwKhzdGLNyu7yp8nEuxev+j4fuDAcZdZzAh4OJ/t1N2kr1sBnyGszcfLIITMPVK9YWfTOVOqZi1pS3goWu1HngoWfq6rzPg97SqkXYKvTsUir0C6M8RnMGdoifYSfhtnGtbYqBQatM2gNNChm167LE+GN4aS2adgBbxaJr9H7iRC3uY7pX3GmuoNWCQDmoET8dYxzN34JmZ1Rix635sIZ1yKCr3y5b4/8AwymES+MBH5ZeclU1Djiq95BNkY4wFS+ItEm7QRQFprnAPqieokgN5IX52Sd7Jezt1wC2xznfjFciZaRtqIWcaVHsL4yaEi7ogomHXJiX9pAPGchbjeI4y+SWFqy7dDdG16bb6q6CFdD/FTOa00XyX6Du6NkTSkD5dUPQx+E0nvpbfLjbsFLRB3XE05GKOMuDzdghp3+qtRgYHZPMtCSAPuOyv0P49gFYIcncA7CoRWC2UarYrBbzmoyYPPNJQ==
+    MONGO_PASSWORD: AgBCXV7MXiAW5ukjzI21IvduRUp/nICKqRcpzr+MiZp0dvsk1/50Ccl2tzmTirtIaoa/bFcXgV0HwK67vd1OpuJHMc4lTB/+ADOPR+7JILr6NSE+lBf0Kec624hB9fo2OY9CaX+P7m0Nx5tcuVNd+UccQ3KaxfuS/p1z8wnn/TYDbK8ILEpvfWUsYsfRXhdpNQ+j8C5wGtNxiyT8m6cuzvvdC1H9z++InUo7iNUESUaAV2jSr83MjN/Xd6o8Ji6iK6K95YMZPf3mXGgSiQTeGHYU3zaH07YFcr6lulYuSFs5oi18drI34X8Dwrt0MWJmo/RDA40JnQufsnQTQvwx6Wt4DHAV1lmSzuAi2GNvJQIhaACSiVBTM4m4Eqk4l9e0TDjw77eXCLsMVtkKf46dF8yMuFAcVf3Dqmw1ADEL6V8oHpGF/a/AXrnOZ0IR9A8JFf/kCW8okxuRmFWd+yzEKOwwO1VxJsTqVCL8K+VMaUkR+YnMJoOoBrJIfYWFYHYpZy1Zo/g8lQndKhUVXQloZ4PHA4J5g3r+nbU8k0GZRNwZbCwhQCR0vhALxd8fRXZtsi5r9zeKhj3RApRidM7wVttELMEOYn+bwqwnBBQmZcj8WVymGcNQbh1b5Ff+L6cLnrInZAZ3mm8PkPlv0ZrkqyAQHkm0yhUYHlq4GnFoafTYna9datoO9Ua/BnsItjkLDWvvHe0e3SENE042jqrAXh7VEK0aMVVhTCGDlw==
+    MONGO_USERNAME: AgACxa0WqHwyCQd27l57l/wb8najWk5CxlfV9oD9s1f+JkBOQZMTlTGCvhIDWf2P3jfaoJnBEKdZK+3Ex05dOM0RBaDEWgMvhVKbRKlruTu+9Hu/LqfKubPvw8hfPCOiTdrXIz6jwq7dM2d3u///xiAAjc6af9WvnaM9wO5Ic7yoSpNgKir+ytio/Aim8eXNIMJ5LEnxWmb32jxbMnCKSRn1j00srQzySpvD5WFH9TcXk7MZMq7yVv6RkDOHrDM3tz4ailNBYxryIZ1ma8SKVoTX+358fTICHTvFZd3WK+K3NgDV17z1Gxnk9UaCtDqghHO+ZdmIYDJ4UofzdxZBq8KkTltUMkoisRuLhDhSIgjjWJwSFqy2LBPmqUa7JEBslX0LCxn2fYrA0fbKkCqw/OYM2nFePJW33sDD91cEsyox7++SuH5LWhSo2E63ZAAYbysh1Z5ZJecsfmNwnZfJNHv3l8RPwqT3yNV5K/CjNbPw44vp3NVSLaJELqXMtN8CqHh6dt7I84TEJh36k5VsFSFBYYSYd3/YgcgkJqCRSwagEimde+yMuxaT7ctjqY3VHhQQ65JMzhdqsbgawrLWDMumHneS1W6QfPsOh093gQBtJgVDVz8fFPHxeyAQa7t3fawiHpmjGLUVBioGmTte6TCJDVxJhsPEZ5oMCulg0tiyv1G6+KmSiHx0FkvT+neyH/IOYds226k77mTySg==
+    MONGODB_CONNECTION: AgCO98blPDevofdvecolIZDSJrR2zuPfkBwoTZJnomSZWpjCrwqCwOewZkrlBUBEw30toT8tizAcdv3Chlzzeu6CCkWSr6jULug5+tK7PSJkTDkL8k446+BVWVyRf3bxC+zxIm66oHEp9nCFBYENj8DwXRq5arPLzzfRFfgjwAdxg+Q7hoivhbOVPiehlHfqT0xv+kAwDfhrg7S82RSe3L9WGw1JWThn142taVIEpQXg3UEiH1Wb0pYbD9kflUYZuoUSdct7ct3ggtjuxiZDSGHLuXh53ClmxEPj9LOGij+qFoqEVIDcxrP+J3/zS/7OfLraf1IVvBs+8My+fXLY4EAW4+gefWrRojUEEuNQ3tJNQG4m7dHrK5gVr+hUZR2iMYR2D5uuVp6HDEPHZz/hzwH0Rq5rozb4K+XtaxrBLPUrN51eTFnP3NKiLW0OhX6O5bIoMhe0sj+lVwmcMmEBxP3pUEnZoMFw40N285QUMpw5K07ajymR5WqT9Z70YPhwHvHeJYC+oZEaHnMkJ2sX2rDKAMGhRW1/x0j7UPPKHied4oWIlIJf8bXdvw3m1Q0Ju4PpKx+rbxtq5PeSIWL4XX9ygHKX3qIlbaG3Jpq4mHw1cOI8YLctaTDGvin+472pprYyhWRiBC7cyyOd0dtfnwrLRz9c7oUBTEaPH3NfO+WOayhxnKGsTOjSVubsX4v8QBjnggSyrKfK
+    MONGODB_HOSTNAME: AgAwUj6rf5YA6B6U1Nja1ccfoq+kwzluW1nxsx/yv0rymTyF1ARV7bY71je2ZUhDAcCgVYh/ZolBCZHi3K4l7I1RdVheWJba6w9d9s6dpH5eYjUz+D7sPy1cICmTmUVXvGXMvjaoDUGm9GpiyTON975lQwzEWY+hImu7isU+IqgXR5CFEI/4oNrtzsBL5jsGw0Ki+oFB9teCm8UGZ0AJE1fKeR1DoZkcP1uxj9jXezea2vO4p9qZxayYGyt68dywJ3LXOPvV3n8/jzxv4IIBJBm8WfY3Jjq+yqedCTxtkqgc52jbjxXCeW9nyps5A4DGUCQKkvawb1UCgv+d+90eO6odnv4C58YStFSZx0O6EXYeh2I/Ua7pIrLdtZhtGCyg6ZYjS0uUiaolEQyBy+mjVnMcBs6yHKquLf/uBU2vrcRwGy7vmSB0te6rrHFtEmlm1pC9YhZ8TSrcB47utNdGfZzs0xj3WZIWWVg2GWMsqMaTsmuDBLlK4pPjQewklCFi8uPHe9MK3GaYwiO1/3y1Zr9zkXpjfENpYQacPep5csZ3lXKLkUYBxwaDz7OG9augs3/W5vdRARVJzYgfwvfwItR7oza+NEJnNN+Br/ZmaXPRGgYO3djDgNsHxP+nm+GhtA81CBgXAe2LoKKlzxp/xhQHLXIWewzGScxDsZG60Yqy4Agpca98AQTE3rYZ1zyNAd9i4EWQB415ooeneg==
+    OPEN_WEATHER_TOKEN: AgBVLoOutmCnczJiJvcV8xyOO/XFtJy5cHOHcyo8FKWpvptYcZ6ZsKo13eJXi+3ruVz2NF6bVaaWGpXQuFFgyKkZjyl/x+ZR1L+MHiDyDut+yPUtV2GzuBoe5l9cozgMzlDxfEZLl5rvoRY/hseAbWG0kIH87SqXyHuy9+HQDiGuIEe+gQUC0caLjequkb6XNS9obLZoka9q5rs+3/RgKn1VUBLfMjZe/zK0+DfYqmbqcQx7VqHfftO03Jk7LErgrY8vneFEBY/YjWnwXQ9zf6yThDWFoEGzyobo4tQOQF6E7XNT3RWW0hUxSwumQ5eNWGMeyy+0PR/nUHX8tJa3JLnRXcPTCkdHoFSNG2PvFsPiXfZ0SDXXBfCIyJIGcIcj7Cl8UNdm9MlLQf1+E+jOYyLmOu42RLdYlDDOZcgFxLyrXXDER07mlOXq8XI78RMYWOlN8IWexYtjopAoUPXQSS7QUED+RVKtnBUwcnfdKDqay5S2Am/RqzHWCmtXozApQk6mguEEHKHNUuvS+Yrch1thINzkuyqlsuhEatLoVKOiT/5e8FwjQAvpstAvKXRDFtlgfq4LNDT8XIXYRBHc2A6zZbDGJkZGW+rjv6mQCK5Rbh1lm1/85BUwNJqhucIam25o++ZMP0IxYbleo7Rw8RFu/ZxARHGCBDykjhAfANv84b+yUlNGRRwRoGCRbJYqXUx86zb2Kk29twsplauM+GFVVQ0AUMYYANT08q8OkWjLDw==
+    PYTHONPATH: AgCpZl8nJJZ+Shy5Chx+1J1KEuU0D+z+WmQYkD8+cAZOJL8ARsHBRjvNtJIp5Mk88Pvc446N6oiwcIgbWaYQFuBxwLBF0d4bk4TV/cFKF0XrSn2v42gNqdtPmyAuiPTUG2DamVNizPPLz5d3JeyW5cq7bqPkCqZ7y30lKIMRpMTKLUAN1XjbW1iNDLVSo/bFYNkLp12XHBrpKBfGgLTQSohYbzdWlzBtD6cJukV72lL6T399JnCdADESSNxjImcrChU7CPSS89VUJUr2H5vhqURQPr06bXkDrl1tkaROetwwhTFP+svpvl4QBqiQ+g8whiSqaRtr4iS4LLaySWGboGAhMjQbd+oqCK5nY1gLnd5AxUOwcEX74XkUStW8AFOLVp65/B2dFsV+S7TsQGHAN+Ei9U/sun2jy2G8lHn9IkKdX9ZDK7tK1zaff6O+8Yq0gpo3eGnb2ok9eYI9k2qziDewAIkZXfsWGt1cFiMfJMG0QGQIMgvi550YLBdq8HMfI/nVSWrvGtmWFIKQoHo+TynPFL1aqo4wUcyC4Ul3NM84+COe3LjBdjaEE/qODF0hABtugoNUXTkQpl59idg/1RgWQHTTPgAqzE/+q6oXXEd2Ln6YuAczBVKO1Q/P/vmAChZcu6lQhrpde37d7obNgDDOdmNIV4ATLe6B3mkgBRnzGsHMC9uoqTDCiP6sZ8fG6pIqY9nR
+    REPO_NAME: AgAc4ji2maSXxoDRqd2EE6OU0nyqAE6g73p+FfNwawDBa3Luv3G9Bdu3rssm0GaHkd0iydIzivpHwNbMECP+FxhQ7BEAysgjgEKIkOUcq0nTLq3SELWzfQtrS4rDR3Z/AuRmiISx8DDbertNXxg8v4od/Hv60Jc7UZRKq5VIOQDDPtwz3hBcDiaTJ46MoKONXeSWbMdWqqyv9u3cIlt2o67EZT8Qoapz87q9OBi51hbSyZASixxgdF7UubFCvBi2wVtfX2OA8PCP7qiFQWCuVlfZGliKWj1FzVeplXth3hESkdzvVlVgC/udbIn/+XbB4FW+xE36auOwj6/j6TM/Z3mMN1axM3j3A2et6ZAoRwI6we9VUe4+TM45YdfJTXRTqGCxpBNFDBPpSaR+X9lhrIOT/wg/esnUmPF5zLEE8UPWVElcwOUqlBdVfNu6cGBwYMaxbNhJ+H46fIz3FkpeW3RTLnqgqotMGv93DVeUr7qwFKHyMjCE6XbqpcTM+EZPMps3A3MeW5b4LD+G23IBN+tAX5cLo9svQx+FYsHIX/OrjgCkJ0ARMiNVlHEFbrlNgtOmUhjZkTyvE/Kg5/YEq5Wng5GhmFQBrZLb9JNMyz+tQFK/6DltEIIhEGFziHnAiTMjDQ6P95XAlDriMuWooueGFhDcakcc9AjxpaCLIZUlpynuiE8KI19pODpAeFnGF57QIFfYePOYSboUGZ00jEXd3xvG9Yg=
+    VOLUME_PATH: AgCopuxW5TWrZOrPU2Mu0NUPo2X/GJLIvqc1Fpsy83bNk98bh2IDecT6CY752wwxczi4x2ZmyX9CVcAWtFNN5OM3sRl4YS8M5cr7+5ZlGWjNpkVJEpB6bwCJHoEyTGfnmajjurqzYZ/DTXAp0TKO5mo9OPNDNAObtEIQUpNf/pLuEVs5F1Bc3NFxd7gESJWpoHGHL8zKn8TRTrg2RvNLqeKE66yuQ8JoS5ccAnrFoer5VxnqJLpOOzl9FawsMJT6XoHYxy0ZpucokChB7ACryHayVdZ+XUZ0KLSckV8h12cojRnYCn6TgsM5GugaqDQwdXw3vbjeAPYjYLnd8zM3b2SPr3d3JBfhwsbXLMTZE2VvSQK7ZPndITJRnZ82EfdFLWlnjvn5SNOiFDL9RYk6RbgrFcqtUTStOC40E1wAdPGMizvAxHLRkwdsvMlNJgWNJzpXJ6C3SQtqug/aVjn76zFkxodBOSlJE8C6mmtfBw0SgHcbTWpF92a/ZtO4G0ElyH+uxy55KMhBcaasvMYcQI3rWL6YOdHflSJ09E1rmsa+sH3cwVh7BtkQWY75Z99H344bmnWu868GQTtXlZhNJZOhIEP9bm4WMFgpjEhyLz2jnYZCty2aSbpC/ePwHxFQgHCu2UQzPnRF9wUvVvnP2RbNe+rr7kO6H4chTIo2C8ivtnkdoavA0i5drTa9iwswNzoKdua37MgWDA==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: flask-secret
+      namespace: aqra
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: mongo-secret
+  namespace: aqra
+spec:
+  encryptedData:
+    MONDODB_LOG_DIR: AgBdonU9vCOdmBjypfIMBj849IXzab+xQYZoSdHMOVqEyH5bvDGnpO16a4JHIommSVoLf5snP6NCO2Fg4+LrqkAokiAhLMlGHCtardaDF1FLUItfWAJS8Wvyn0d+kV1n8lzta/9+e05A62y8PgLfxySFjwxkN1RKBoWYpo4y0q6FY4RMQ2o4v3RSUYtcxK6bDHrGSEUy+yOwNNR9kNnFoS70+La4lCUTbH0Hjps9qRxe/f9qtNNWaGOV+U86GnZmkKNS4fRUsXo+xyL3PsGTjci4dTTEc/jsUtd7uUzbPP5aIijEWBsPt/HiFPEZkntIBb5TzqClkhLpwkg6y5VGY3aWSCm7eGhCE3bpPU68e32vQmP5IYRVic2w5EAxWNyrMWC5rtF/vKLpxt4KPHolDJwSAeKi+x/kIilfFgHqNSvxGJ46pxQ9GEf1FY/Btidx/721wGwyH/L4T7Xu7PLfAEGFWAl3+qcoG093/c4ZKgSwYvG2VCU1w4qtlfF06aEmd7GC8bmskIjmILA36KB1VRMc4AnJ82KHW7EqxNVsw4cA53NcjfHMNph1UkmYKySA0x9Q4csWBGgjP75dGwPV9puuR48ODT9SdTy7CWxQEH8Njp1/pfp+jtDWqECKteqhhbG2RWA6EPGis2IXt8DuLMrJEJgRGU4WXbEBhbS3X/DhS4QSjHe6LSktmuxb5gEB/Un7H90yIRIFhgE=
+    MONGO_INITDB_DATABASE: AgA+eSlzsDFdxm4+iDSr5KXSfq21zJ5AODdAw/3uH3UY4k+FJcjw1GzgzD16CMC9HP5HLL39RAspe4mWVevbMwbG7A/CTGOVtMWRYF/R5kXDpYcsaXDJamfodV5WiVEDtL6e5z3w/kBDi33UGo/Y1TneirCGUGmdyL8hrTcwCpSGzLnVZpeP+3ZxVt/uSica8uxgdfkGjA48UH8JeNAPhIboLQ5m43xxrY0jwQJ1gyFKu7tBJU6LyL1Fy60MLnR19YnnEFVsYuoSeCBPSTsWpT4NL9bCiFx41G1VINDVUGmLWwer6YRtdkpQuJUblWBueC6Cpy7/YTYg5e6+L9Qq0iqQ4sTvHcXqeySCitwgYmYiczst56/d07JDaFu1N/VkmfxHJ4qFA9mr/h+dk686g3hIauz5PHaqswWOtg6OR87dNvhTR10jrt+3UvjVQdltkxsbU1uwCKePPW5M9aDfNVYzdZ9ajV3vpMASGcilnBtaEIyCAuP24jruA0W2yVKQxcd/3EBJkrJrG9XDcvWhkWO9g8T3pzQsaHWc2xid1cmdeXOZJrYLj2lYl4HO92DqFpEmpxrIZzJzOEI5oU+WnHO8wV7CXh47/l6ef+fx2r4iSilNvaFz+lZCwx06oHCpw4VQyCTJBk2+MzG1iZqwpDn2Rtr4xu2zuI46dhgX5x6RgIE3lNSrOMYhSd3LFATWHQI5H9Pn8wSFu1iC0w==
+    MONGO_INITDB_ROOT_PASSWORD: AgBqcRiYQrkmwpQKQy43mkINcHBWcMKmULnbEhS6YmEX+UM0GMzM64dIhm+PdI/X4h/aNqq4l/TnM7xj5pw7C/aXSfjUJuaT7j0eIN53hTHcj8kiLIZAshrvtr7N1/RAXhvyPwQtfwnMcLiPd/EO6J4Md8sRK2dHfVFbjN5B4tlgd75brWyJg43z9ysIenh4kKCnMaxqLzSYSuH8+n4mE3btdCPtMfAfDwrVt09h9IAzHS2ddtmrybN4DzU+kDvoOFI6zcdLGEu74iN6tEG6KOG+XeyGGslt7pJVY/6b0ti+XPEV2VdNfDCk9Y75Xab8JvX1fYzx5v25h3YErJ57AdKXbcE3/b/47iaXOQYrmlRJW9+vvGkRvGWEsUsoiSI/DkdfrFSyUQ/w5RKKL4QiWc5zI9KwBrpa8DQGopjsZiYsuULzTMP6fLJdsI1Sk7ka+Rhsz0Yk/o0Bb1BE9g5Em95LOEwxA3lmt8ztyWkvgSdxksR84GWv+uOriuZYA9z7bWdCdM74jdGLmWCOGYkXFg4kiauzwynB521133MNvy3NTNjGhyjb/p34T9l+QRDLZkc7m/myfXPDe/oGHlrBBiuJLQg/tgmnAAejCXWet5GFnXosydsTf3SABmS3RvCVOHNc0R7rqcYu+9adJnrdcLPxzl8nLqW/5xImMlLKOfObM5Tu/JSqoNWf1Qes7vSO/Tfwt+xv/2Q5cZIcLuaEKzNlsxWJZWk/jfYYjQ==
+    MONGO_INITDB_ROOT_USERNAME: AgCmZLfjs7afEAhDzy7JT3t4HAnXKQu1myO7FBpTHp6kyGvglUC5N5iXZZOgt5gcQFOVWBne0oqNzVQF4X9GVEvFj7avQq8VbUgK5MBGC7R4zTuLQ4XOsvzcToNAghmkUrfN8/16x3VPM7subiRiWVZ64mxRo2wEh9iTOQuKi1qRadp+ynjkWHmZVPx/2k0bKkMr34E7kNk6gt/7okgmYyaAhLfAjXNB2J7DPgAwDTH9E42ZjuHyg7Z+pZkPWJ0PluU+0Qiad8XcQllc0OL8ONW2Eri1z0ZPnAH5XhT+bcErvEbiiCEf5xHBrZ92yv/iH8Bdb1lBFgdKw5y8/QUctF9ZI/nXIVi+0RqVpGorAUUrnfotWLja3xcOm6y3e0XhvhoRKsrkpGxqCZEEoh7wOls5o6m3vNTOi3U15QSY94GD0c7DbA/zKLoTX5GgzYwVf49pdG3AKZlgenxZN30jAniy4JGG8hW21RXxpqKqtLUovhKGUG6N7dJ5Ag5vhixIwan4MZfGhKx5AFxbKa+Jjq4Rlpj4mrWYZ+VlyMXgKw4Yio9BlFIeVAJRjZMEixwIrfLnkV9WyKqeJ7bQEp84kXX17FhILvPeSY8oJd+ca9oGYWkpmX9WSiYfIvUN1StOLxMGXGP6QDh/n1l65fb4HyO4Caohh77KBBKxiW/DKvclMSYfkl6yJHuR6TYFWfFNh8QUAFqFIMDufixWDw==
+    MONGODB_DATA_DIR: AgCH4X5HSHrmDsUe1ZfuSyPXAmKDnH4yUesdf4FPdMl7TfizmSlXr1CZeWsM5s0rmGrarW69YSQXjJRWT0EAJvcBgXJwlttKsQBT7gqhzi0vDJCeHB3GxbbRNhdKTPd/z9YiX422tmc6etV4dJrnxSGJh9TfOAJ/ouuDRpfhTd3TskAJpgndhqYEbFMid6geBnPzLnmzZpBaJ7p/EnYXSxMPNtXo0CKk6FSaSWkeoozTw3H6uBjgSj44mr2uEKiMo9cA1RekXg8JrzaOrrXDsJ+JKG/e95dayQoGY0LHewDcDSNxA+AEHvRPHGP1phpOsPb82bc0uHT917Tytl4TzlLr07yVUPgmP0WdhB/g/2FJx2l/Ak01u2Ty4WFAqeiX1qg2VDSHT8Qrm7GMWx1lTYtIjk9WN9x+777UKEGwYIm4rT1Gyl+ovlWHK/2hJTqNWTAtL/yQXR8gY6oPaWd05ju1Zk38s3piFkWKOH8iJdUmJLGl+QVZq0QcnnVBA3UfSXBz/TPnQLGUEOf8DMgk8VyTXR6j51I6xn/2pHMaFe1jx/FVGzBgtQwe2IdH5zlEJuaXMlxoeb37D3o7bAqv99OWjQL7QTXdqhXRZo7wYr0PlLoxmZooCV2BgviMSi8UduUo9d//gBGJoIMrCPOm7a6WeL+ft67xWC6kTn//nNbOC839OpfZ8n1Zvr/vvOXhbGuh2JUkSQy0GA==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: mongo-secret
+      namespace: aqra
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  creationTimestamp: null
+  name: network
+  namespace: aqra
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              io.kompose.network/network: 'true'
+  podSelector:
+    matchLabels:
+      io.kompose.network/network: 'true'
