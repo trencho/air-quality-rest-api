@@ -102,54 +102,58 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     if check_pollutant_lock(city_name, sensor_id, pollutant):
         return
 
-    dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='inner')
-    encode_categorical_data(dataframe)
-    validation_split = len(dataframe) * 3 // 4
+    try:
+        dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='inner')
+        encode_categorical_data(dataframe)
+        validation_split = len(dataframe) * 3 // 4
 
-    train_dataframe = dataframe.iloc[:validation_split]
-    x_train, y_train = split_dataframe(train_dataframe, pollutant)
-    selected_features = x_train.columns.values.tolist()
+        train_dataframe = dataframe.iloc[:validation_split]
+        x_train, y_train = split_dataframe(train_dataframe, pollutant)
+        selected_features = x_train.columns.values.tolist()
 
-    test_dataframe = dataframe.iloc[validation_split:]
-    x_test, y_test = split_dataframe(test_dataframe, pollutant, selected_features)
+        test_dataframe = dataframe.iloc[validation_split:]
+        x_test, y_test = split_dataframe(test_dataframe, pollutant, selected_features)
 
-    save_selected_features(city_name, sensor_id, pollutant, selected_features)
+        save_selected_features(city_name, sensor_id, pollutant, selected_features)
 
-    best_model_error = inf
-    best_model = None
-    for model_name in regression_models:
-        if environ.get(app_env, app_dev) == app_dev and path.exists(
-                path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
-            model, model_error = read_model(city_name, sensor_id, pollutant, model_name, 'Mean Absolute Error')
+        best_model_error = inf
+        best_model = None
+        for model_name in regression_models:
+            if environ.get(app_env, app_dev) == app_dev and path.exists(
+                    path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
+                model, model_error = read_model(city_name, sensor_id, pollutant, model_name, 'Mean Absolute Error')
+                if model_error < best_model_error:
+                    best_model = model
+                    best_model_error = model_error
+                continue
+
+            create_paths(city_name, sensor_id, pollutant, model_name)
+
+            model = make_model(model_name)
+            params = hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant)
+            model.set_params(**params)
+            model.train(x_train, y_train)
+            model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
+
+            y_predicted = model.predict(x_test)
+
+            results = DataFrame({'Actual': y_test, 'Predicted': y_predicted}, x_test.index)
+            save_results(city_name, sensor_id, pollutant, model_name, results)
+
+            model_error = save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_predicted)
             if model_error < best_model_error:
                 best_model = model
                 best_model_error = model_error
-            continue
 
-        create_paths(city_name, sensor_id, pollutant, model_name)
+        if best_model is not None:
+            x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
+            best_model.train(x_train, y_train)
+            save_best_regression_model(city_name, sensor_id, pollutant, best_model.reg)
 
-        model = make_model(model_name)
-        params = hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant)
-        model.set_params(**params)
-        model.train(x_train, y_train)
-        model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
-
-        y_predicted = model.predict(x_test)
-
-        results = DataFrame({'Actual': y_test, 'Predicted': y_predicted}, x_test.index)
-        save_results(city_name, sensor_id, pollutant, model_name, results)
-
-        model_error = save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_predicted)
-        if model_error < best_model_error:
-            best_model = model
-            best_model_error = model_error
-
-    if best_model is not None:
-        x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
-        best_model.train(x_train, y_train)
-        save_best_regression_model(city_name, sensor_id, pollutant, best_model.reg)
-
-    remove_pollutant_lock(city_name, sensor_id, pollutant)
+    except ValueError:
+        print(format_exc())
+    finally:
+        remove_pollutant_lock(city_name, sensor_id, pollutant)
 
 
 def train_regression_model(city, sensor, pollutant):
@@ -164,10 +168,6 @@ def train_regression_model(city, sensor, pollutant):
             draw_predictions(city, sensor, pollutant)
     except FileNotFoundError:
         pass
-    except ValueError:
-        print(format_exc())
-
-    remove_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
 
 
 def train_city_sensors(city, sensor, pollutant):
