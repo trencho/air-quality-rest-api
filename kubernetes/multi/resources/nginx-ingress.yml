@@ -16,7 +16,7 @@ spec:
                 name: nginx
                 port:
                   number: 80
-            path: /api/v1
+            path: /
             pathType: Prefix
   tls:
     - hosts:
