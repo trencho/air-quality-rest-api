@@ -29,13 +29,8 @@ kubernetes/ingress-nginx.yml
 
 ###### Apply MetalLB resources
 
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.6/manifests/namespace.yaml
-
-###### On first install only
-
-kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey='$(openssl rand -base64 128)'
-
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.6/manifests/metallb.yaml  
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml  
 kubectl apply -f kubernetes/metallb-configmap.yml
 
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
