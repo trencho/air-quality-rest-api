@@ -101,6 +101,7 @@ def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
 def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     if check_pollutant_lock(city_name, sensor_id, pollutant):
         return
+    create_pollutant_lock(city_name, sensor_id, pollutant)
 
     try:
         dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='inner')
@@ -162,7 +163,6 @@ def train_regression_model(city, sensor, pollutant):
                              index_col='time')
         dataframe.index = to_datetime(dataframe.index, unit='s')
         if pollutant in dataframe.columns:
-            create_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
             generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
