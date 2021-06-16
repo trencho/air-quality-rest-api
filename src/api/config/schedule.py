@@ -43,7 +43,7 @@ def data_dump():
         update_git_files(file_names, file_list, repository_name, branch, commit_message)
 
 
-@scheduler.scheduled_job(trigger='cron', minute=15)
+@scheduler.scheduled_job(trigger='cron', hour='*/2')
 def fetch_hourly_data():
     cities = cache.get('cities') or []
     for city in cities:
