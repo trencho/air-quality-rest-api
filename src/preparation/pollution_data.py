@@ -12,7 +12,7 @@ from .handle_data import save_dataframe
 
 
 def fetch_pollution_data(city_name, sensor):
-    url = 'https://api.openweathermap.org/data/2.5/air_pollution'
+    url = 'https://api.openweathermap.org/data/2.5/air_pollution/forecast'
     sensor_position = sensor['position'].split(',')
     lat, lon = float(sensor_position[0]), float(sensor_position[1])
     token = environ[open_weather_token]
