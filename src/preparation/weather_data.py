@@ -27,7 +27,7 @@ def fetch_weather_data(city_name, sensor):
         df = json_normalize([flatten_json(hourly) for hourly in hourly_data])
         df.rename(columns={'dt': 'time'}, inplace=True, errors='ignore')
         dataframe = dataframe.append(df, ignore_index=True)
-    except (KeyError, ValueError):
+    except (KeyError, OSError, ValueError):
         print(weather_response)
         print(format_exc())
 

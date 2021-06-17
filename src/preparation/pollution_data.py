@@ -30,7 +30,7 @@ def fetch_pollution_data(city_name, sensor):
             pollution_dict.update(pollution['components'])
             data.append(pollution_dict)
         dataframe = dataframe.append(DataFrame(data), ignore_index=True)
-    except ValueError:
+    except (KeyError, OSError, ValueError):
         print(pollution_response)
         print(format_exc())
 
