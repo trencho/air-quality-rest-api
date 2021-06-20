@@ -26,11 +26,11 @@ def create_app():
     if environ.get(mongodb_connection) is not None:
         configure_database(app)
 
+    configure_swagger(app)
+
     fetch_data()
 
     # Comment this line to skip training regression models for all available locations during application startup
     model_training()
-
-    configure_swagger(app)
 
     return app
