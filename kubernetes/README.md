@@ -1,10 +1,10 @@
-# Kubernetes cheatsheet
+# Single node kubernetes cluster
 
-###### Initialize kubernetes single node cluster
+###### Initialize single node kubernetes cluster
 
 kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.feit.ukim.edu.mk
 
-###### Generate single yml file for applying all necessary kubernetes resources
+###### Generate single yml files for applying all necessary kubernetes resources
 
 kubectl kustomize kubernetes > kubernetes/resources.yml  
 kubectl kustomize kubernetes/multi/resources > kubernetes/multi/resources.yml  
@@ -29,7 +29,7 @@ kubernetes/ingress-nginx.yml
 
 ###### Apply MetalLB resources
 
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/namespace.yaml  
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml  
 kubectl apply -f kubernetes/metallb-configmap.yml
 
@@ -42,9 +42,7 @@ kubeseal < kubernetes/mongo-secret.yml -o yaml > kubernetes/mongo-sealed-secret.
 ###### Apply all system resources
 
 kubectl apply -f kubernetes/prod-issuer.yml,kubernetes/staging-issuer.yml  
-kubectl apply -f kubernetes/resources.yml
-
-[comment]: <> (kubectl apply -f kubernetes/multi/resources.yml)
+kubectl apply -f kubernetes/resources.yml  
 kubectl apply -f kubernetes/single/resources.yml
 
 ###### Get deployed pods in namespace aqra
@@ -59,9 +57,12 @@ kubectl logs -f <pod-name> -n aqra
 
 kubectl exec -n aqra --stdin --tty <pod-name> -- /bin/bash
 
-###### Delete deployments if changes will be made
+###### Delete and reapply deployments if changes are made to the Docker images
 
-kubectl delete -f kubernetes/mongo-deployment.yml kubectl delete -f kubernetes/single/resources/flask-deployment.yml
+kubectl delete -f kubernetes/mongo-deployment.yml  
+kubectl delete -f kubernetes/single/resources/flask-deployment.yml  
+kubectl apply -f kubernetes/mongo-deployment.yml  
+kubectl apply -f kubernetes/single/resources/flask-deployment.yml
 
 ###### Retrieve sealed secrets from the cluster
 
