@@ -33,11 +33,11 @@ def fetch_pollution_data(city_name, sensor):
         current_datetime = current_hour(datetime.now())
         current_timestamp = int(datetime.timestamp(current_datetime))
         dataframe.drop(index=dataframe.loc[dataframe['time'] > current_timestamp].index, inplace=True, errors='ignore')
+        sleep(1)
     except (KeyError, OSError, ValueError):
         print(pollution_response)
         print(format_exc())
-
-    sleep(1)
+        return
 
     if not dataframe.empty:
         data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'pollution.csv')
