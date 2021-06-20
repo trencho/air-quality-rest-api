@@ -151,7 +151,7 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
             best_model.train(x_train, y_train)
             save_best_regression_model(city_name, sensor_id, pollutant, best_model.reg)
 
-    except ValueError:
+    except Exception:
         print(format_exc())
     finally:
         remove_pollutant_lock(city_name, sensor_id, pollutant)
