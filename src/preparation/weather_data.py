@@ -27,13 +27,12 @@ def fetch_weather_data(city_name, sensor):
         df = json_normalize([flatten_json(hourly) for hourly in hourly_data])
         df.rename(columns={'dt': 'time'}, inplace=True, errors='ignore')
         dataframe = dataframe.append(df, ignore_index=True)
+        dataframe.drop(columns='weather', inplace=True, errors='ignore')
     except (KeyError, OSError, ValueError):
         print(weather_response)
         print(format_exc())
 
     sleep(1)
-
-    dataframe.drop(columns='weather', inplace=True, errors='ignore')
 
     if not dataframe.empty:
         data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'weather.csv')
