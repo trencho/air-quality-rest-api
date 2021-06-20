@@ -68,7 +68,7 @@ def process_data(city_name, sensor_id, collection):
         return
 
     df_columns = dataframe.columns.copy()
-    df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'sensorId', 'summary'], errors='ignore')
+    df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
 
     imp = KNNImputer()
     for column in df_columns:
@@ -77,10 +77,9 @@ def process_data(city_name, sensor_id, collection):
             dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
             dataframe[column].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
         else:
-            dataframe.drop(columns=column)
+            dataframe.drop(columns=column, inplace=True, errors='ignore')
 
-    pollutants_wo_aqi = pollutants.copy()
-    pollutants_wo_aqi.pop('aqi')
+    pollutants_wo_aqi = pollutants.copy().pop('aqi')
     columns = pollutants_wo_aqi.copy()
     for column in columns:
         if column not in dataframe.columns:
