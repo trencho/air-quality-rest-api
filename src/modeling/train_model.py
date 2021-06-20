@@ -1,5 +1,5 @@
 from math import inf
-from os import cpu_count, environ, makedirs, path, remove as os_remove
+from os import environ, makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
 from threading import Thread
 from traceback import format_exc
@@ -75,8 +75,8 @@ def create_pollutant_lock(city_name, sensor_id, pollutant):
 
 
 def hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant):
-    # model_cv = GridSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
-    model_cv = RandomizedSearchCV(model.reg, model.param_grid, n_jobs=cpu_count() // 2, cv=5)
+    # model_cv = GridSearchCV(model.reg, model.param_grid, cv=5)
+    model_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
     model_cv.fit(x_train, y_train)
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,

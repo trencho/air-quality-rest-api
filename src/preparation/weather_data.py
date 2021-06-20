@@ -28,11 +28,11 @@ def fetch_weather_data(city_name, sensor):
         df.rename(columns={'dt': 'time'}, inplace=True, errors='ignore')
         dataframe = dataframe.append(df, ignore_index=True)
         dataframe.drop(columns='weather', inplace=True, errors='ignore')
+        sleep(1)
     except (KeyError, OSError, ValueError):
         print(weather_response)
         print(format_exc())
-
-    sleep(1)
+        return
 
     if not dataframe.empty:
         data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'weather.csv')
