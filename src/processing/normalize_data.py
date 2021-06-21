@@ -67,12 +67,18 @@ def process_data(city_name, sensor_id, collection):
     except FileNotFoundError:
         return
 
+    collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
+    if path.exists(collection_path):
+        dataframe = dataframe.append(read_csv(collection_path), ignore_index=True, sort=True)
+
     df_columns = dataframe.columns.copy()
     df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
 
     imp = KNNImputer()
     for column in df_columns:
         dataframe[column] = to_numeric(dataframe[column], errors='coerce')
+        if not dataframe[column].isna().any():
+            continue
         if not dataframe[column].isna().all():
             dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
             dataframe[column].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
@@ -106,8 +112,5 @@ def process_data(city_name, sensor_id, collection):
     dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
     trim_dataframe(dataframe, 'time')
     if not dataframe.empty:
-        collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
-        if path.exists(collection_path):
-            dataframe = dataframe.append(read_csv(collection_path), ignore_index=True, sort=True)
         trim_dataframe(dataframe, 'time')
         dataframe.to_csv(collection_path, index=False)
