@@ -66,12 +66,12 @@ def fetch_coordinates_history(latitude, longitude, data_type):
 def retrieve_history_timestamps():
     current_datetime = current_hour(datetime.now())
     current_timestamp = int(datetime.timestamp(current_datetime))
-    start_time = request.args.get('start_time', default=current_timestamp, type=int)
+    week_in_seconds = 604800
+    start_time = request.args.get('start_time', default=current_timestamp - week_in_seconds, type=int)
     end_time = request.args.get('end_time', default=current_timestamp, type=int)
     if start_time > end_time:
         message = 'Specify end timestamp larger than the current hour\'s timestamp.'
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
-    week_in_seconds = 604800
     if end_time > start_time + week_in_seconds:
         message = 'Specify start and end time in one week range.'
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
