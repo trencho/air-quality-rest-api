@@ -31,6 +31,6 @@ def create_app():
     fetch_data()
 
     # Comment this line to skip training regression models for all available locations during application startup
-    model_training()
+    # model_training()
 
     return app
