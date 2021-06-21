@@ -79,7 +79,8 @@ def process_data(city_name, sensor_id, collection):
         else:
             dataframe.drop(columns=column, inplace=True, errors='ignore')
 
-    pollutants_wo_aqi = pollutants.copy().pop('aqi')
+    pollutants_wo_aqi = pollutants.copy()
+    pollutants_wo_aqi.pop('aqi')
     columns = pollutants_wo_aqi.copy()
     for column in columns:
         if column not in dataframe.columns:
