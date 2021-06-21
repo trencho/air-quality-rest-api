@@ -75,7 +75,6 @@ def create_pollutant_lock(city_name, sensor_id, pollutant):
 
 
 def hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant):
-    # model_cv = GridSearchCV(model.reg, model.param_grid, cv=5)
     model_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
     model_cv.fit(x_train, y_train)
 
