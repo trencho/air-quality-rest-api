@@ -57,11 +57,9 @@ def draw_errors(city, sensor, pollutant):
                   alpha=0.7, linewidth=40, label=pollutants[pollutant])
         ax.legend()
 
-        # Annotate Text
         for i, value in enumerate(dataframe_algorithms[pollutant]):
             ax.text(i, value + 0.5, round(value, 1), fontsize=22, horizontalalignment='center')
 
-        # Title, Label, Ticks and Ylim
         ax.set_title(f'{city["siteName"]} - {sensor["description"]}', fontdict={'size': 22})
         ax.set_ylabel(error_type, fontsize=22)
         y_lim = dataframe_algorithms[pollutant].max() + 10 - (dataframe_algorithms[pollutant].max() % 10)

@@ -6,8 +6,8 @@ config = {
         {
             'endpoint': 'apispec_1',
             'route': '/api/v1/apispec_1.json',
-            'rule_filter': lambda rule: True,  # all in
-            'model_filter': lambda tag: True,  # all in
+            'rule_filter': lambda rule: True,
+            'model_filter': lambda tag: True,
         }
     ],
     'specs_route': '/api/v1/apidocs/'}
