@@ -7,7 +7,7 @@ from traceback import format_exc
 from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
-from definitions import app_env, app_dev, DATA_RAW_PATH, MODELS_PATH, pollutants, regression_models, \
+from definitions import app_env, app_dev, DATA_PROCESSED_PATH, MODELS_PATH, pollutants, regression_models, \
     RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
 from processing import backward_elimination, encode_categorical_data, generate_features, value_scaling
@@ -149,7 +149,7 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
 
 def train_regression_model(city, sensor, pollutant):
     try:
-        dataframe = read_csv(path.join(DATA_RAW_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
+        dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
                              index_col='time')
         dataframe.index = to_datetime(dataframe.index, unit='s')
         if pollutant in dataframe.columns:
