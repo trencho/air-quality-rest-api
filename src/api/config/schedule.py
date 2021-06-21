@@ -1,7 +1,8 @@
 from base64 import b64encode
 from datetime import datetime
 from json import dump as json_dump
-from os import environ, makedirs, path, rmdir, walk
+from os import environ, makedirs, path, walk
+from shutil import rmtree
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_pymongo import ASCENDING
@@ -66,7 +67,7 @@ def import_data():
         sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
             merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
-            rmdir(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']))
+            rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), True)
 
 
 @scheduler.scheduled_job(trigger='cron', day=1)
