@@ -116,7 +116,7 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
     best_model = None
     for model_name in regression_models:
         if environ.get(app_env, app_dev) == app_dev and path.exists(
-                path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name)):
+                path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, f'{model_name}.pkl')):
             model, model_error = read_model(city_name, sensor_id, pollutant, model_name, 'Mean Absolute Error')
             if model_error < best_model_error:
                 best_model = model

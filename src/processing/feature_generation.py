@@ -108,4 +108,4 @@ def generate_features(target):
     time_features = generate_time_features(target)
     features = lag_features.join(time_features, how='inner')
 
-    return features.dropna(axis='columns', how='all').dropna(axis='index', how='all')
+    return features.dropna(axis='columns', how='all').dropna(axis='index', how='any')
