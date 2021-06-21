@@ -31,13 +31,11 @@ def draw_predictions(city, sensor, pollutant):
     y1 = dataframe_predictions['Actual']
     y2 = dataframe_predictions['Predicted']
 
-    # Plot Line (left Y axis)
     fig, ax = plt.subplots(1, 1, figsize=(16, 10), dpi=80)
     ax.plot(x, y1, color='tab:red', label='Actual')
     ax.plot(x, y2, color='tab:green',
             label=f'Predicted: {regression_models[dataframe_algorithms.iloc[algorithm_index]["algorithm"]]}')
-    # Decorations
-    # ax (left Y axis)
+
     ax.set_xlabel('Dates', fontsize=22)
     ax.tick_params(axis='x', rotation=0, labelsize=18)
     ax.set_ylabel(f'{pollutants[pollutant]} values', fontsize=22)
