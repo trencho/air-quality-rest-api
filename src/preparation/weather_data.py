@@ -29,7 +29,7 @@ def fetch_weather_data(city_name, sensor):
         dataframe = dataframe.append(df, ignore_index=True)
         dataframe.drop(columns='weather', inplace=True, errors='ignore')
         sleep(1)
-    except (KeyError, OSError, ValueError):
+    except Exception:
         print(weather_response)
         print(format_exc())
         return
