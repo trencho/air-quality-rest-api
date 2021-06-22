@@ -34,7 +34,7 @@ def fetch_pollution_data(city_name, sensor):
         current_timestamp = int(datetime.timestamp(current_datetime))
         dataframe.drop(index=dataframe.loc[dataframe['time'] > current_timestamp].index, inplace=True, errors='ignore')
         sleep(1)
-    except (KeyError, OSError, ValueError):
+    except Exception:
         print(pollution_response)
         print(format_exc())
         return
