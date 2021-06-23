@@ -15,13 +15,13 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY ./requirements.txt /requirements.txt
-COPY ./docker/single/nginx.conf /etc/nginx/nginx.conf
 
 # Install the dependencies
 RUN pip3 install --upgrade pip
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container
+COPY ./docker/single/nginx.conf /etc/nginx/nginx.conf
 COPY . /
 
 RUN adduser --disabled-password --gecos '' nginx && \
