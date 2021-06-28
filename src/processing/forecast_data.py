@@ -11,7 +11,7 @@ from .feature_scaling import value_scaling
 from .normalize_data import next_hour
 
 FORECAST_PERIOD = '1H'
-FORECAST_STEPS = 48
+FORECAST_STEPS = 24
 
 
 @cache.memoize(timeout=3600)
