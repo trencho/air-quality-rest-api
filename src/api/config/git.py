@@ -1,7 +1,7 @@
 from datetime import datetime
 from io import BytesIO, StringIO
 from os import environ, path
-from traceback import format_exc
+from traceback import print_exc
 
 from github import Github, GithubException, InputGitTreeElement
 from pandas import read_csv
@@ -26,7 +26,7 @@ def merge_csv_files(repository_name, file_name, data):
         repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
         local_file_content = local_file_content.append(repo_file_content, ignore_index=True, sort=True)
     except GithubException:
-        print(format_exc())
+        print_exc()
     local_file_content.drop_duplicates(inplace=True)
     return local_file_content.to_csv(index=False)
 
@@ -43,7 +43,7 @@ def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, 
                              master_ref)
             commit_git_files(repo, element_list[len(element_list) // 2:], base_tree, master_sha, commit_message,
                              master_ref)
-        print(format_exc())
+        print_exc()
     finally:
         return 'Update complete'
 

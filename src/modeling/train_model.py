@@ -2,7 +2,7 @@ from math import inf
 from os import environ, makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
 from threading import Thread
-from traceback import format_exc
+from traceback import print_exc
 
 from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
@@ -158,7 +158,7 @@ def train_regression_model(city, sensor, pollutant):
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
     except Exception:
-        print(format_exc())
+        print_exc()
     finally:
         remove_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
 
