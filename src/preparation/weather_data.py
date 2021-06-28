@@ -1,6 +1,6 @@
 from os import environ, path
 from time import sleep
-from traceback import format_exc
+from traceback import print_exc
 
 from pandas import DataFrame, json_normalize
 from requests import get as requests_get
@@ -31,7 +31,7 @@ def fetch_weather_data(city_name, sensor):
         sleep(1)
     except Exception:
         print(weather_response)
-        print(format_exc())
+        print_exc()
         return
 
     if not dataframe.empty:
