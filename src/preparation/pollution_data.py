@@ -1,7 +1,7 @@
 from datetime import datetime
 from os import environ, path
 from time import sleep
-from traceback import format_exc
+from traceback import print_exc
 
 from pandas import DataFrame
 from requests import get as requests_get
@@ -36,7 +36,7 @@ def fetch_pollution_data(city_name, sensor):
         sleep(1)
     except Exception:
         print(pollution_response)
-        print(format_exc())
+        print_exc()
         return
 
     if not dataframe.empty:
