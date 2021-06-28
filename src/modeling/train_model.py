@@ -164,4 +164,4 @@ def train_regression_model(city, sensor, pollutant):
 
 
 def train_city_sensors(city, sensor, pollutant):
-    Thread(target=train_regression_model, args=(city, sensor, pollutant)).start()
+    Thread(target=train_regression_model, args=(city, sensor, pollutant), daemon=True).start()
