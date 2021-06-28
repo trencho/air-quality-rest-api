@@ -18,7 +18,7 @@ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documen
 
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.4.0/cert-manager.yaml
 
-###### Apply ingress-nginx resources with values in a custom yml file
+###### Apply ingress-nginx resources with values from a custom yml file
 
 helm install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace --values
 kubernetes/ingress-nginx.yml
@@ -27,7 +27,7 @@ kubernetes/ingress-nginx.yml
 
 [comment]: <> (kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.46.0/deploy/static/provider/cloud/deploy.yaml)
 
-###### Apply MetalLB resources
+###### Apply MetalLB resources for deploying a load balancer
 
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/namespace.yaml  
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.2/manifests/metallb.yaml  
