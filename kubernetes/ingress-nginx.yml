@@ -222,7 +222,7 @@ controller:
     #         - ingress-nginx
     #       - key: app.kubernetes.io/component
     #         operator: In
-    #         values:
+  #         values:
   #         - controller
   #     topologyKey: "kubernetes.io/hostname"
 
@@ -233,7 +233,7 @@ controller:
     # - maxSkew: 1
     #   topologyKey: failure-domain.beta.kubernetes.io/zone
     #   whenUnsatisfiable: DoNotSchedule
-    #   labelSelector:
+  #   labelSelector:
   #     matchLabels:
   #       app.kubernetes.io/instance: ingress-nginx-internal
 
@@ -600,7 +600,7 @@ controller:
         #   for: 1m
         #   labels:
         #     severity: warning
-        #   annotations:
+      #   annotations:
       #     description: Too many 4XXs
       #     summary: More than 5% of all requests returned 4XX, this requires your attention
 
