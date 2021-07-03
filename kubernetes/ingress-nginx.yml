@@ -186,42 +186,42 @@ controller:
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   ##
   affinity: { }
-    # # An example of preferred pod anti-affinity, weight is in the range 1-100
-    # podAntiAffinity:
-    #   preferredDuringSchedulingIgnoredDuringExecution:
-    #   - weight: 100
-    #     podAffinityTerm:
-    #       labelSelector:
-    #         matchExpressions:
-    #         - key: app.kubernetes.io/name
-    #           operator: In
-    #           values:
-    #           - ingress-nginx
-    #         - key: app.kubernetes.io/instance
-    #           operator: In
-    #           values:
-    #           - ingress-nginx
-    #         - key: app.kubernetes.io/component
-    #           operator: In
-    #           values:
-    #           - controller
-    #       topologyKey: kubernetes.io/hostname
+  # # An example of preferred pod anti-affinity, weight is in the range 1-100
+  # podAntiAffinity:
+  #   preferredDuringSchedulingIgnoredDuringExecution:
+  #   - weight: 100
+  #     podAffinityTerm:
+  #       labelSelector:
+  #         matchExpressions:
+  #         - key: app.kubernetes.io/name
+  #           operator: In
+  #           values:
+  #           - ingress-nginx
+  #         - key: app.kubernetes.io/instance
+  #           operator: In
+  #           values:
+  #           - ingress-nginx
+  #         - key: app.kubernetes.io/component
+  #           operator: In
+  #           values:
+  #           - controller
+  #       topologyKey: kubernetes.io/hostname
 
-    # # An example of required pod anti-affinity
-    # podAntiAffinity:
-    #   requiredDuringSchedulingIgnoredDuringExecution:
-    #   - labelSelector:
-    #       matchExpressions:
-    #       - key: app.kubernetes.io/name
-    #         operator: In
-    #         values:
-    #         - ingress-nginx
-    #       - key: app.kubernetes.io/instance
-    #         operator: In
-    #         values:
-    #         - ingress-nginx
-    #       - key: app.kubernetes.io/component
-    #         operator: In
+  # # An example of required pod anti-affinity
+  # podAntiAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #   - labelSelector:
+  #       matchExpressions:
+  #       - key: app.kubernetes.io/name
+  #         operator: In
+  #         values:
+  #         - ingress-nginx
+  #       - key: app.kubernetes.io/instance
+  #         operator: In
+  #         values:
+  #         - ingress-nginx
+  #       - key: app.kubernetes.io/component
+  #         operator: In
   #         values:
   #         - controller
   #     topologyKey: "kubernetes.io/hostname"
@@ -230,9 +230,9 @@ controller:
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
   ##
   topologySpreadConstraints: [ ]
-    # - maxSkew: 1
-    #   topologyKey: failure-domain.beta.kubernetes.io/zone
-    #   whenUnsatisfiable: DoNotSchedule
+  # - maxSkew: 1
+  #   topologyKey: failure-domain.beta.kubernetes.io/zone
+  #   whenUnsatisfiable: DoNotSchedule
   #   labelSelector:
   #     matchLabels:
   #       app.kubernetes.io/instance: ingress-nginx-internal
@@ -570,54 +570,54 @@ controller:
       additionalLabels: { }
       # namespace: ""
       rules: [ ]
-        # # These are just examples rules, please adapt them to your needs
-        # - alert: NGINXConfigFailed
-        #   expr: count(nginx_ingress_controller_config_last_reload_successful == 0) > 0
-        #   for: 1s
-        #   labels:
-        #     severity: critical
-        #   annotations:
-        #     description: bad ingress config - nginx config test failed
-        #     summary: uninstall the latest ingress changes to allow config reloads to resume
-        # - alert: NGINXCertificateExpiry
-        #   expr: (avg(nginx_ingress_controller_ssl_expire_time_seconds) by (host) - time()) < 604800
-        #   for: 1s
-        #   labels:
-        #     severity: critical
-        #   annotations:
-        #     description: ssl certificate(s) will expire in less then a week
-        #     summary: renew expiring certificates to avoid downtime
-        # - alert: NGINXTooMany500s
-        #   expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"5.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
-        #   for: 1m
-        #   labels:
-        #     severity: warning
-        #   annotations:
-        #     description: Too many 5XXs
-        #     summary: More than 5% of all requests returned 5XX, this requires your attention
-        # - alert: NGINXTooMany400s
-        #   expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"4.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
-        #   for: 1m
-        #   labels:
-        #     severity: warning
+      # # These are just examples rules, please adapt them to your needs
+      # - alert: NGINXConfigFailed
+      #   expr: count(nginx_ingress_controller_config_last_reload_successful == 0) > 0
+      #   for: 1s
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     description: bad ingress config - nginx config test failed
+      #     summary: uninstall the latest ingress changes to allow config reloads to resume
+      # - alert: NGINXCertificateExpiry
+      #   expr: (avg(nginx_ingress_controller_ssl_expire_time_seconds) by (host) - time()) < 604800
+      #   for: 1s
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     description: ssl certificate(s) will expire in less then a week
+      #     summary: renew expiring certificates to avoid downtime
+      # - alert: NGINXTooMany500s
+      #   expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"5.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
+      #   for: 1m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     description: Too many 5XXs
+      #     summary: More than 5% of all requests returned 5XX, this requires your attention
+      # - alert: NGINXTooMany400s
+      #   expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"4.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
+      #   for: 1m
+      #   labels:
+      #     severity: warning
       #   annotations:
       #     description: Too many 4XXs
       #     summary: More than 5% of all requests returned 4XX, this requires your attention
 
-  ## Improve connection draining when ingress controller pod is deleted using a lifecycle hook:
-  ## With this new hook, we increased the default terminationGracePeriodSeconds from 30 seconds
-  ## to 300, allowing the draining of connections up to five minutes.
-  ## If the active connections end before that, the pod will terminate gracefully at that time.
-  ## To effectively take advantage of this feature, the Configmap feature
-  ## worker-shutdown-timeout new value is 240s instead of 10s.
-  ##
-  lifecycle:
-    preStop:
-      exec:
-        command:
-          - /wait-shutdown
+## Improve connection draining when ingress controller pod is deleted using a lifecycle hook:
+## With this new hook, we increased the default terminationGracePeriodSeconds from 30 seconds
+## to 300, allowing the draining of connections up to five minutes.
+## If the active connections end before that, the pod will terminate gracefully at that time.
+## To effectively take advantage of this feature, the Configmap feature
+## worker-shutdown-timeout new value is 240s instead of 10s.
+##
+lifecycle:
+  preStop:
+    exec:
+      command:
+        - /wait-shutdown
 
-  priorityClassName: ""
+priorityClassName: ""
 
 ## Rollback limit
 ##
