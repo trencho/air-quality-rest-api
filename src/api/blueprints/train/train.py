@@ -1,3 +1,5 @@
+from typing import Optional
+
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, request
 from starlette.status import HTTP_404_NOT_FOUND
@@ -18,7 +20,7 @@ train_blueprint = Blueprint('train', __name__)
 @swag_from('train_city.yml', endpoint='train.train_city', methods=['GET'])
 @swag_from('train_city_sensor.yml', endpoint='train.train_city_sensor', methods=['GET'])
 def train_data(city_name=None, sensor_id=None):
-    pollutant_name = request.args.get('pollutant', default=None, type=str)
+    pollutant_name = request.args.get('pollutant', default=None, type=Optional[str])
     if pollutant_name is not None and pollutant_name not in pollutants:
         message = 'Data cannot be trained because the pollutant is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
