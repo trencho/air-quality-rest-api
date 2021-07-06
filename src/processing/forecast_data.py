@@ -114,7 +114,6 @@ def recursive_forecast(y, city_name, sensor_id, model, model_features, lags=FORE
         new_point = forecasted_values[-1] if len(forecasted_values) > 0 else 0.0
         target = target.append(Series(new_point, [date]))
 
-        # Forecast
         timestamp = int((date - Timedelta(hours=1)).timestamp())
         data = fetch_weather_features(city_name, sensor_id, model_features, timestamp)
         if not data:
@@ -132,11 +131,9 @@ def recursive_forecast(y, city_name, sensor_id, model, model_features, lags=FORE
         try:
             features = value_scaling(features)
             predictions = model.predict(features)
+            forecasted_values.append(predictions[-1])
         except ValueError:
             forecasted_values.append(nan)
-            target.update(Series(forecasted_values[-1], [target.index[-1]]))
-            continue
-        forecasted_values.append(predictions[-1])
         target.update(Series(forecasted_values[-1], [target.index[-1]]))
 
     return Series(forecasted_values, forecast_range)

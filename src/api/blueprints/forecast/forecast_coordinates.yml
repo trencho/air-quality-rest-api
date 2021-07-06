@@ -3,7 +3,7 @@ tags:
 #    description: Forecast values for a specified pollutant
 summary: Returns a json object containing forecasts of all pollutants for the specified coordinates
 description: 'Fetches forecast data for all available pollutants for specific latitude and longitude coordinates
-converted to degrees. The forecast is based upon 48 hours from the moment the request is sent.'
+converted to degrees. The forecast is based upon 24 hours from the moment the request is sent.'
 parameters:
   - in: path
     name: latitude
