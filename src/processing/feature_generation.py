@@ -31,7 +31,7 @@ def encode_categorical_data(dataframe):
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
-def generate_lag_features(target, lags=48):
+def generate_lag_features(target, lags=24):
     partial = Series(data=pacf(target, nlags=lags))
     lags = list(partial[abs(partial) >= 0.2].index)
 
