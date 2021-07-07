@@ -12,7 +12,7 @@ from .swagger import configure_swagger
 
 
 def create_app():
-    # Comment these 2 lines to skip the environment variable check and scheduling of api operations when running
+    # Comment these 2 lines to skip the environment variable check and scheduling of operations when running
     # application in debug mode
     check_environment_variables()
     schedule_jobs()
