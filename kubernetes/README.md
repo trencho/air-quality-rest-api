@@ -41,7 +41,6 @@ kubeseal < kubernetes/mongo-secret.yml -o yaml > kubernetes/mongo-sealed-secret.
 
 ###### Apply all system resources
 
-kubectl apply -f kubernetes/prod-issuer.yml,kubernetes/staging-issuer.yml  
 kubectl apply -f kubernetes/resources.yml  
 kubectl apply -f kubernetes/single/resources.yml
 
@@ -51,11 +50,11 @@ kubectl get pods -n aqra
 
 ###### Follow logs of deployed pod
 
-kubectl logs -f <pod-name> -n aqra
+kubectl logs -f [pod-name] -n aqra
 
 ###### Enter bash of deployed pod
 
-kubectl exec -n aqra --stdin --tty <pod-name> -- /bin/bash
+kubectl exec -n aqra --stdin --tty [pod-name] -- /bin/bash
 
 ###### Delete and reapply deployments if changes are made to the Docker images
 
