@@ -112,5 +112,4 @@ def process_data(city_name, sensor_id, collection):
     dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
     trim_dataframe(dataframe, 'time')
     if not dataframe.empty:
-        trim_dataframe(dataframe, 'time')
         dataframe.to_csv(collection_path, index=False)
