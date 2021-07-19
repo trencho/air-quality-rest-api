@@ -44,8 +44,6 @@ def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, 
             commit_git_files(repo, element_list[len(element_list) // 2:], base_tree, master_sha, commit_message,
                              master_ref)
         print_exc()
-    finally:
-        return 'Update complete'
 
 
 def update_git_files(file_names, file_list, repository_name, branch,
@@ -65,4 +63,4 @@ def update_git_files(file_names, file_list, repository_name, branch,
             element = InputGitTreeElement(file_names[i], '100644', 'blob', sha=file_list[i].sha)
             element_list.append(element)
 
-    print(commit_git_files(repo, element_list, base_tree, master_sha, commit_message, master_ref))
+    commit_git_files(repo, element_list, base_tree, master_sha, commit_message, master_ref)
