@@ -2,7 +2,7 @@
 
 ###### Initialize single node kubernetes cluster
 
-kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.feit.ukim.edu.mk
+kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=[cluster-endpoint]
 
 ###### Generate single yml files for applying all necessary kubernetes resources
 
@@ -12,20 +12,16 @@ kubectl kustomize kubernetes/single/resources > kubernetes/single/resources.yml
 
 ###### Apply flannel network for kubernetes pods
 
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 
 ###### Apply cert-manager resources
 
-kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.4.0/cert-manager.yaml
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/download/cert-manager.yaml
 
 ###### Apply ingress-nginx resources with values from a custom yml file
 
 helm install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace --values
 kubernetes/ingress-nginx.yml
-
-[comment]: <> (kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.46.0/deploy/static/provider/baremetal/deploy.yaml)
-
-[comment]: <> (kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.46.0/deploy/static/provider/cloud/deploy.yaml)
 
 ###### Apply MetalLB resources for deploying a load balancer
 
@@ -35,7 +31,7 @@ kubectl apply -f kubernetes/metallb-configmap.yml
 
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
 
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.16.0/controller.yaml  
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml  
 kubeseal < kubernetes/flask-secret.yml -o yaml > kubernetes/flask-sealed-secret.yml  
 kubeseal < kubernetes/mongo-secret.yml -o yaml > kubernetes/mongo-sealed-secret.yml
 
