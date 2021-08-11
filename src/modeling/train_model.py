@@ -1,3 +1,4 @@
+from datetime import datetime
 from math import inf
 from os import environ, makedirs, path, remove as os_remove
 from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
@@ -8,11 +9,13 @@ from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
 from definitions import app_env, app_dev, DATA_PROCESSED_PATH, MODELS_PATH, pollutants, regression_models, \
-    RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
+    RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, week_in_seconds
 from models import make_model
-from processing import backward_elimination, encode_categorical_data, generate_features, value_scaling
+from processing import backward_elimination, current_hour, encode_categorical_data, generate_features, value_scaling
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
+
+lock_file = '.lock'
 
 
 def previous_value_overwrite(dataframe):
@@ -65,12 +68,12 @@ def create_paths(city_name, sensor_id, pollutant, model_name):
 
 
 def check_pollutant_lock(city_name, sensor_id, pollutant):
-    return path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, '.lock'))
+    return path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, lock_file))
 
 
 def create_pollutant_lock(city_name, sensor_id, pollutant):
     makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant), exist_ok=True)
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, '.lock'), 'w'):
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, lock_file), 'w'):
         pass
 
 
@@ -87,9 +90,19 @@ def hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollut
 
 def remove_pollutant_lock(city_name, sensor_id, pollutant):
     try:
-        os_remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, '.lock'))
+        os_remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, lock_file))
     except OSError:
         pass
+
+
+def check_best_regression_model(city_name, sensor_id, pollutant):
+    try:
+        last_modified = int(
+            path.getmtime(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl')))
+        if last_modified < int(datetime.timestamp(current_hour())) - week_in_seconds:
+            return True
+    except OSError:
+        return False
 
 
 def save_best_regression_model(city_name, sensor_id, pollutant, best_model):
@@ -147,6 +160,8 @@ def generate_regression_model(dataframe, city_name, sensor_id, pollutant):
 
 
 def train_regression_model(city, sensor, pollutant):
+    if check_best_regression_model(city['cityName'], sensor['sensorId'], pollutant):
+        return
     try:
         dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
                              index_col='time')

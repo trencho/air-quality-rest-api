@@ -10,7 +10,7 @@ from pandas import read_csv
 
 from api.blueprints import fetch_city_data
 from definitions import DATA_EXTERNAL_PATH, DATA_RAW_PATH, mongodb_connection, pollutants, repo_name, ROOT_PATH
-from modeling import train_city_sensors
+from modeling import train_regression_model
 from preparation import fetch_cities, fetch_sensors, save_dataframe
 from processing import merge_air_quality_data
 from .cache import cache
@@ -70,14 +70,14 @@ def import_data():
             rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), True)
 
 
-@scheduler.scheduled_job(trigger='cron', day=1)
+@scheduler.scheduled_job(trigger='cron', day=2)
 def model_training():
     cities = cache.get('cities') or []
     for city in cities:
         sensors = cache.get('sensors') or {}
         for sensor in sensors[city['cityName']]:
             for pollutant in pollutants:
-                train_city_sensors(city, sensor, pollutant)
+                train_regression_model(city, sensor, pollutant)
 
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
