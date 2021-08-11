@@ -1,3 +1,4 @@
+from datetime import datetime
 from os import path
 
 from numpy import abs, nan, number
@@ -16,7 +17,8 @@ def closest_hour(t):
                      microsecond=0)
 
 
-def current_hour(t):
+def current_hour():
+    t = datetime.now()
     return t.replace(hour=t.hour, minute=0, second=0, microsecond=0)
 
 

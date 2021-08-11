@@ -7,6 +7,7 @@ from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
 from api.config.cache import cache
+from definitions import week_in_seconds
 from preparation import calculate_nearest_sensor, check_city, check_sensor
 from processing import current_hour
 
@@ -64,9 +65,8 @@ def fetch_coordinates_history(latitude, longitude, data_type):
 
 
 def retrieve_history_timestamps():
-    current_datetime = current_hour(datetime.now())
+    current_datetime = current_hour()
     current_timestamp = int(datetime.timestamp(current_datetime))
-    week_in_seconds = 604800
     start_time = request.args.get('start_time', default=current_timestamp - week_in_seconds, type=int)
     end_time = request.args.get('end_time', default=current_timestamp, type=int)
     if start_time > end_time:

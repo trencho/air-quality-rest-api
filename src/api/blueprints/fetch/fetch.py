@@ -20,7 +20,7 @@ fetch_blueprint = Blueprint('fetch', __name__)
 @swag_from('fetch_city.yml', endpoint='fetch.fetch_city', methods=['GET'])
 @swag_from('fetch_city_sensor.yml', endpoint='fetch.fetch_city_sensor', methods=['GET'])
 def fetch_data(city_name=None, sensor_id=None):
-    current_datetime = current_hour(datetime.now())
+    current_datetime = current_hour()
     current_timestamp = int(datetime.timestamp(current_datetime))
     start_time = request.args.get('start_time', default=current_timestamp, type=int)
 
