@@ -74,3 +74,5 @@ regression_models = {
     # 'TPOTRegressionModel': 'TPOT',
     'XGBoostRegressionModel': 'XGBoost'
 }
+
+week_in_seconds = 604800

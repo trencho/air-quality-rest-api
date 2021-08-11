@@ -30,7 +30,7 @@ def fetch_pollution_data(city_name, sensor):
             pollution_dict.update(pollution['components'])
             data.append(pollution_dict)
         dataframe = dataframe.append(DataFrame(data), ignore_index=True)
-        current_datetime = current_hour(datetime.now())
+        current_datetime = current_hour()
         current_timestamp = int(datetime.timestamp(current_datetime))
         dataframe.drop(index=dataframe.loc[dataframe['time'] > current_timestamp].index, inplace=True, errors='ignore')
 

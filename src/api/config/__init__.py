@@ -1,4 +1,5 @@
 from os import environ
+from threading import Thread
 
 from flask import Flask
 
@@ -31,6 +32,6 @@ def create_app():
     fetch_data()
 
     # Comment this line to skip training regression models for all available locations during application startup
-    # model_training()
+    Thread(target=model_training, daemon=True).start()
 
     return app
