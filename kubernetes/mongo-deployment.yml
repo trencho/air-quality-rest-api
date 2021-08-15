@@ -33,7 +33,6 @@ spec:
           volumeMounts:
             - mountPath: /data/db
               name: mongodata
-      restartPolicy: Always
       serviceAccountName: ''
       volumes:
         - name: mongodata
