@@ -39,7 +39,6 @@ spec:
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
-      restartPolicy: Always
       serviceAccountName: ''
       volumes:
         - name: flaskdata
