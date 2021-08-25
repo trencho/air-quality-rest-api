@@ -1,14 +1,14 @@
 from math import isnan
-from os import path
+from os import environ, path
 from pickle import load as pickle_load
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response
-from pandas import read_csv, to_datetime
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
-from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
+from api.config.database import mongo
+from definitions import MODELS_PATH, mongodb_connection, pollutants
 from modeling import train_city_sensors
 from preparation import calculate_nearest_sensor, check_city, check_sensor
 from processing.forecast_data import recursive_forecast
@@ -77,15 +77,17 @@ def forecast_city_sensor(city, sensor, pollutant):
 
     model, model_features = load_model
 
-    dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
-                         index_col='time')
-    dataframe.index = to_datetime(dataframe.index, unit='s')
-
-    return recursive_forecast(dataframe[pollutant], city['cityName'], sensor['sensorId'], model, model_features)
+    return recursive_forecast(city['cityName'], sensor['sensorId'], pollutant, model, model_features)
 
 
 @cache.memoize(timeout=3600)
 def return_forecast_results(latitude, longitude, city, sensor):
+    if environ.get(mongodb_connection) is not None:
+        forecast_results = mongo.db['predictions'].find({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+                                                        projection={'_id': False, 'cityName': False, 'sensorId': False})
+        if len(forecast_results):
+            return make_response(forecast_results)
+
     forecast_result = {}
     for pollutant in pollutants:
         predictions = forecast_city_sensor(city, sensor, pollutant)
@@ -99,4 +101,7 @@ def return_forecast_results(latitude, longitude, city, sensor):
 
     forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
     forecast_results['data'].extend(forecast_result.values())
+    if environ.get(mongodb_connection) is not None:
+        mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+                                            forecast_results, upsert=True)
     return make_response(forecast_results)

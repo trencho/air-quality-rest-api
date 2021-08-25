@@ -2,7 +2,7 @@ from datetime import datetime
 from math import nan
 from os import path
 
-from pandas import concat as pandas_concat, DataFrame, date_range, read_csv, Series, Timedelta
+from pandas import concat as pandas_concat, DataFrame, date_range, read_csv, Series, Timedelta, to_datetime
 
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH
@@ -36,6 +36,7 @@ def forecast_sensor(city_name, sensor_id, timestamp):
     return {}
 
 
+@cache.memoize(timeout=3600)
 def direct_forecast(y, model, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD):
     """Multi-step direct forecasting using a machine learning model to forecast each time period ahead
 
@@ -82,15 +83,16 @@ def direct_forecast(y, model, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=
     return Series(forecast_values, forecast_range)
 
 
-def recursive_forecast(y, city_name, sensor_id, model, model_features, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS,
-                       step=FORECAST_PERIOD):
+@cache.memoize(timeout=3600)
+def recursive_forecast(city_name, sensor_id, pollutant, model, model_features, lags=FORECAST_STEPS,
+                       n_steps=FORECAST_STEPS, step=FORECAST_PERIOD):
     """Multi-step recursive forecasting using the input time series data and a pre-trained machine learning model
 
     Parameters
     ----------
-    y: pd.Series holding the input time-series to forecast
     city_name: The name of the city where the sensor is located
     sensor_id: The ID of the sensor to fetch weather data
+    pollutant: The pollutant that is used as a forecasting target
     model: An already trained machine learning model implementing the scikit-learn interface
     model_features: Selected model features for forecasting
     lags: List of lags used for training the model
@@ -107,7 +109,9 @@ def recursive_forecast(y, city_name, sensor_id, model, model_features, lags=FORE
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
     forecasted_values = []
-    target = y.copy()
+    dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'summary.csv'), index_col='time')
+    dataframe.index = to_datetime(dataframe.index, unit='s')
+    target = dataframe[pollutant].copy()
 
     for date in forecast_range:
         # Build target time series using previously forecast value
