@@ -1,4 +1,37 @@
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cronjob-sa
+  namespace: aqra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cronjob-cert-delete
+rules:
+  - apiGroups:
+      - ''
+      - cert-manager.io
+    resources:
+      - certificates
+      - secrets
+    verbs:
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cronjob-crb
+roleRef:
+  apiGroup: ''
+  kind: ClusterRole
+  name: cronjob-cert-delete
+subjects:
+  - kind: ServiceAccount
+    name: cronjob-sa
+    namespace: aqra
+---
+apiVersion: v1
 kind: Service
 metadata:
   annotations:
@@ -64,6 +97,28 @@ spec:
           persistentVolumeClaim:
             claimName: flaskdata-pvc
 status: { }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob
+  namespace: aqra
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - command:
+                - /bin/sh
+                - -c
+                - kubectl delete certificate flask-tls -n aqra && kubectl delete secret
+                  flask-tls -n aqra
+              image: bitnami/kubectl:latest
+              name: cronjob
+          restartPolicy: OnFailure
+          serviceAccountName: cronjob-sa
+  schedule: 0 0 1 */2 *
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
