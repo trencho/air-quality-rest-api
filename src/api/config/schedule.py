@@ -13,6 +13,7 @@ from definitions import DATA_EXTERNAL_PATH, DATA_RAW_PATH, mongodb_connection, p
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_sensors, save_dataframe
 from processing import merge_air_quality_data
+from processing.forecast_data import fetch_forecast_result
 from .cache import cache
 from .database import mongo
 from .git import append_commit_files, merge_csv_files, update_git_files
@@ -21,7 +22,7 @@ scheduler = BackgroundScheduler()
 
 
 @scheduler.scheduled_job(trigger='cron', day=1)
-def data_dump():
+def data_dump() -> None:
     repository_name = environ[repo_name]
 
     file_list = []
@@ -45,7 +46,7 @@ def data_dump():
 
 
 @scheduler.scheduled_job(trigger='cron', hour='*/2')
-def fetch_hourly_data():
+def fetch_hourly_data() -> None:
     cities = cache.get('cities') or []
     for city in cities:
         sensors = cache.get('sensors') or {}
@@ -54,34 +55,7 @@ def fetch_hourly_data():
 
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
-def import_data():
-    for root, directories, files in walk(DATA_EXTERNAL_PATH):
-        for file in files:
-            file_path = path.join(root, file)
-            if file.endswith('weather.csv') or file.endswith('pollution.csv'):
-                dataframe = read_csv(file_path)
-                save_dataframe(dataframe, path.splitext(file)[0], None, path.basename(path.dirname(file_path)))
-
-    cities = cache.get('cities') or []
-    for city in cities:
-        sensors = cache.get('sensors') or {}
-        for sensor in sensors[city['cityName']]:
-            merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
-            rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), True)
-
-
-@scheduler.scheduled_job(trigger='cron', day=2)
-def model_training():
-    cities = cache.get('cities') or []
-    for city in cities:
-        sensors = cache.get('sensors') or {}
-        for sensor in sensors[city['cityName']]:
-            for pollutant in pollutants:
-                train_regression_model(city, sensor, pollutant)
-
-
-@scheduler.scheduled_job(trigger='cron', hour=0)
-def fetch_locations():
+def fetch_locations() -> None:
     if environ.get(mongodb_connection) is not None:
         mongo.db['cities'].create_index([('cityName', ASCENDING)])
         mongo.db['sensors'].create_index([('sensorId', ASCENDING)])
@@ -106,5 +80,43 @@ def fetch_locations():
     cache.set('sensors', sensors)
 
 
-def schedule_jobs():
+@scheduler.scheduled_job(trigger='cron', hour=0)
+def import_data() -> None:
+    for root, directories, files in walk(DATA_EXTERNAL_PATH):
+        for file in files:
+            file_path = path.join(root, file)
+            if file.endswith('weather.csv') or file.endswith('pollution.csv'):
+                dataframe = read_csv(file_path)
+                save_dataframe(dataframe, path.splitext(file)[0], None, path.basename(path.dirname(file_path)))
+
+    cities = cache.get('cities') or []
+    for city in cities:
+        sensors = cache.get('sensors') or {}
+        for sensor in sensors[city['cityName']]:
+            merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
+            rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), True)
+
+
+@scheduler.scheduled_job(trigger='cron', day=2)
+def model_training() -> None:
+    cities = cache.get('cities') or []
+    for city in cities:
+        sensors = cache.get('sensors') or {}
+        for sensor in sensors[city['cityName']]:
+            for pollutant in pollutants:
+                train_regression_model(city, sensor, pollutant)
+
+
+@scheduler.scheduled_job(trigger='cron', minute=0)
+def predict_locations() -> None:
+    if environ.get(mongodb_connection) is not None:
+        cities = cache.get('cities') or []
+        for city in cities:
+            sensors = cache.get('sensors') or {}
+            for sensor in sensors[city['cityName']]:
+                mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+                                                    fetch_forecast_result(city, sensor), upsert=True)
+
+
+def schedule_jobs() -> None:
     scheduler.start()

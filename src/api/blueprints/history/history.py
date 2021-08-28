@@ -16,10 +16,10 @@ history_blueprint = Blueprint('history', __name__)
 data_types = ['pollution', 'weather']
 
 
-@history_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/history/<data_type>/',
+@history_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/history/<string:data_type>/',
                          endpoint='city_sensor', methods=['GET'])
 @swag_from('history_city_sensor.yml', endpoint='history.city_sensor', methods=['GET'])
-def fetch_city_sensor_history(city_name, sensor_id, data_type):
+def fetch_city_sensor_history(city_name: str, sensor_id: str, data_type: str) -> Response:
     if data_type not in data_types:
         message = 'Cannot return historical data because the data type is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
@@ -42,10 +42,10 @@ def fetch_city_sensor_history(city_name, sensor_id, data_type):
     return return_historical_data(city_name, sensor, data_type, start_time, end_time)
 
 
-@history_blueprint.route('/coordinates/<float:latitude>,<float:longitude>/history/<data_type>/',
+@history_blueprint.route('/coordinates/<float:latitude>,<float:longitude>/history/<string:data_type>/',
                          endpoint='coordinates', methods=['GET'])
 @swag_from('history_coordinates.yml', endpoint='history.coordinates', methods=['GET'])
-def fetch_coordinates_history(latitude, longitude, data_type):
+def fetch_coordinates_history(latitude: float, longitude: float, data_type: str) -> Response:
     if data_type not in data_types:
         message = 'Cannot return historical data because the data type is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
@@ -64,7 +64,7 @@ def fetch_coordinates_history(latitude, longitude, data_type):
     return return_historical_data(sensor['cityName'], sensor, data_type, start_time, end_time)
 
 
-def retrieve_history_timestamps():
+def retrieve_history_timestamps() -> [Response, tuple]:
     current_datetime = current_hour()
     current_timestamp = int(datetime.timestamp(current_datetime))
     start_time = request.args.get('start_time', default=current_timestamp - week_in_seconds, type=int)
@@ -80,7 +80,7 @@ def retrieve_history_timestamps():
 
 
 @cache.memoize(timeout=3600)
-def return_historical_data(city_name, sensor, data_type, start_time, end_time):
+def return_historical_data(city_name: str, sensor: dict, data_type: str, start_time: int, end_time: int) -> Response:
     dataframe = fetch_dataframe(city_name, sensor['sensorId'], data_type)
     if isinstance(dataframe, Response):
         return dataframe

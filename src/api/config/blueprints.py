@@ -1,3 +1,5 @@
+from flask import Flask
+
 from api.blueprints.cities import cities_blueprint
 from api.blueprints.errors import errors_blueprint
 from api.blueprints.forecast import forecast_blueprint
@@ -17,6 +19,6 @@ __all__ = [
 ]
 
 
-def register_blueprints(app):
+def register_blueprints(app: Flask) -> None:
     for blueprint in __all__:
         app.register_blueprint(globals()[blueprint], url_prefix='/api/v1')

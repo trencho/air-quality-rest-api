@@ -1,5 +1,5 @@
 from flasgger import swag_from
-from flask import Blueprint, jsonify, make_response
+from flask import Blueprint, jsonify, make_response, Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
@@ -14,7 +14,7 @@ sensors_blueprint = Blueprint('sensors', __name__)
 @cache.memoize(timeout=3600)
 @swag_from('sensors_all.yml', endpoint='sensors.sensors_all', methods=['GET'])
 @swag_from('sensors_id.yml', endpoint='sensors.sensors_id', methods=['GET'])
-def fetch_city_sensor(city_name, sensor_id=None):
+def fetch_city_sensor(city_name: str, sensor_id: str = None) -> Response:
     if check_city(city_name) is None:
         message = 'Cannot return data because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)

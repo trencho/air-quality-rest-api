@@ -1,4 +1,5 @@
 from flasgger import Swagger
+from flask import Flask
 
 config = {
     'openapi': '3.0.3',
@@ -14,5 +15,5 @@ config = {
 swagger = Swagger(config=config, merge=True)
 
 
-def configure_swagger(app):
+def configure_swagger(app: Flask) -> None:
     swagger.init_app(app)

@@ -12,7 +12,7 @@ from .schedule import model_training, schedule_jobs
 from .swagger import configure_swagger
 
 
-def create_app():
+def create_app() -> Flask:
     # Comment these 2 lines to skip the environment variable check and scheduling of operations when running
     # application in debug mode
     check_environment_variables()

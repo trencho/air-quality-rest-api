@@ -10,7 +10,7 @@ from .handle_plot import save_plot
 filterwarnings(action='once')
 
 
-def draw_predictions(city, sensor, pollutant):
+def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
     dataframe_algorithms = DataFrame(columns=['algorithm', pollutant])
     for algorithm in regression_models:
         dataframe_errors = read_csv(

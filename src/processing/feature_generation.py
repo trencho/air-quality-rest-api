@@ -8,7 +8,7 @@ from tsfresh import extract_features, select_features
 from tsfresh.utilities.dataframe_functions import impute
 
 
-def get_season(time):
+def get_season(time) -> str:
     dummy_leap_year = 2000  # Dummy leap year to allow input 29-02-X (leap day)
 
     dt = time.date()
@@ -24,14 +24,14 @@ def get_season(time):
     return next(season for season, (start, end) in seasons if start <= dt <= end)
 
 
-def encode_categorical_data(dataframe):
+def encode_categorical_data(dataframe: DataFrame) -> None:
     obj_columns = dataframe.select_dtypes('object').columns
     dataframe[obj_columns] = dataframe[obj_columns].astype('category')
     cat_columns = dataframe.select_dtypes('category').columns
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
-def generate_lag_features(target, lags=24):
+def generate_lag_features(target: Series, lags=24) -> DataFrame:
     partial = Series(data=pacf(target, nlags=lags))
     lags = list(partial[abs(partial) >= 0.2].index)
 
@@ -46,7 +46,7 @@ def generate_lag_features(target, lags=24):
     return features
 
 
-def generate_time_features(target):
+def generate_time_features(target) -> DataFrame:
     features = DataFrame()
     features['month'] = target.index.month
     features['day'] = target.index.day
@@ -76,7 +76,7 @@ def generate_time_features(target):
     return features
 
 
-def select_time_series_features(dataframe, target):
+def select_time_series_features(dataframe: DataFrame, target: str) -> DataFrame:
     validation_split = len(dataframe) * 3 // 4
 
     train_x = dataframe.iloc[:validation_split].drop(columns=target)
@@ -85,7 +85,7 @@ def select_time_series_features(dataframe, target):
     return select_features(train_x, train_y)
 
 
-def generate_time_series_features(dataframe, target):
+def generate_time_series_features(dataframe: DataFrame, target: str) -> DataFrame:
     y = dataframe[target]
     features = dataframe.drop(columns=target)
 
@@ -103,7 +103,7 @@ def generate_time_series_features(dataframe, target):
     return select_time_series_features(features, target)
 
 
-def generate_features(target):
+def generate_features(target: Series) -> DataFrame:
     lag_features = generate_lag_features(target)
     time_features = generate_time_features(target)
     features = lag_features.join(time_features, how='inner')

@@ -11,7 +11,7 @@ pollutants_blueprint = Blueprint('pollutants', __name__)
 
 
 @cache.memoize(timeout=3600)
-def fetch_measurements(city_name, sensor_id):
+def fetch_measurements(city_name: str, sensor_id: str) -> Response:
     dataframe = fetch_dataframe(city_name, sensor_id, 'pollution')
     if isinstance(dataframe, Response):
         return dataframe
@@ -26,7 +26,7 @@ def fetch_measurements(city_name, sensor_id):
                             methods=['GET'])
 @cache.memoize(timeout=3600)
 @swag_from('pollutants_city_sensor.yml', endpoint='pollutants.city_sensor', methods=['GET'])
-def fetch_city_sensor_pollutants(city_name, sensor_id):
+def fetch_city_sensor_pollutants(city_name: str, sensor_id: str) -> Response:
     city = check_city(city_name)
     if city is None:
         message = 'Cannot return available pollutants because the city is not found or is invalid.'
@@ -43,7 +43,7 @@ def fetch_city_sensor_pollutants(city_name, sensor_id):
 @pollutants_blueprint.route('/coordinates/<float:latitude>,<float:longitude>/pollutants/', endpoint='coordinates',
                             methods=['GET'])
 @swag_from('pollutants_coordinates.yml', endpoint='pollutants.coordinates', methods=['GET'])
-def fetch_coordinates_pollutants(latitude, longitude):
+def fetch_coordinates_pollutants(latitude: float, longitude: float) -> Response:
     coordinates = (latitude, longitude)
     sensor = calculate_nearest_sensor(coordinates)
     if sensor is None:
