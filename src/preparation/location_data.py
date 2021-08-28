@@ -1,4 +1,5 @@
 from math import modf
+from typing import Optional
 
 from haversine import haversine_vector
 from numpy import where
@@ -9,7 +10,7 @@ from definitions import countries
 
 
 @cache.memoize(timeout=3600)
-def check_city(city_name):
+def check_city(city_name: str) -> Optional[dict]:
     cities = cache.get('cities') or []
     for city in cities:
         if city['cityName'] == city_name:
@@ -19,7 +20,7 @@ def check_city(city_name):
 
 
 @cache.memoize(timeout=3600)
-def check_sensor(city_name, sensor_id):
+def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
     sensors = cache.get('sensors') or {}
     for sensor in sensors[city_name]:
         if sensor['sensorId'] == sensor_id:
@@ -28,7 +29,7 @@ def check_sensor(city_name, sensor_id):
     return None
 
 
-def fetch_cities():
+def fetch_cities() -> list:
     response = requests_get('https://pulse.eco/rest/city/')
     try:
         cities_json = response.json()
@@ -37,7 +38,7 @@ def fetch_cities():
         return []
 
 
-def fetch_sensors(city_name):
+def fetch_sensors(city_name: str) -> list:
     response = requests_get(f'https://{city_name}.pulse.eco/rest/sensor/')
     try:
         sensors_json = response.json()
@@ -46,7 +47,7 @@ def fetch_sensors(city_name):
         return []
 
 
-def recalculate_coordinate(val, _as=None):
+def recalculate_coordinate(val: tuple, _as: Optional[str] = None) -> [float, tuple]:
     """
     Accepts a coordinate as a tuple (degree, minutes, seconds) You can give only one of them (e.g. only minutes as a
     floating point number) and it will be duly recalculated into degrees, minutes and seconds. Return value can be
@@ -76,7 +77,7 @@ def recalculate_coordinate(val, _as=None):
     return degrees, minutes, seconds
 
 
-def calculate_nearest_sensor(coordinates, radius_of_effect=2):
+def calculate_nearest_sensor(coordinates, radius_of_effect: int = 2) -> Optional[dict]:
     sensors = [sensor for sensor_list in list(cache.get('sensors').values()) for sensor in sensor_list]
     distances = haversine_vector(coordinates, [tuple(map(float, sensor['position'].split(','))) for sensor in sensors],
                                  comb=True)

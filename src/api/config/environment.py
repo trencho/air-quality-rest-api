@@ -19,14 +19,14 @@ system_paths = [
 ]
 
 
-def check_environment_variables():
+def check_environment_variables() -> None:
     for environment_variable in environment_variables:
         if environ.get(environment_variable) is None:
             print(f'The environment variable "{environment_variable}" is missing')
             exit(-1)
 
 
-def fetch_collection(collection, city_name, sensor_id):
+def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
     collection_dir = path.join(DATA_RAW_PATH, city_name, sensor_id)
     mongo.db[collection].create_index([('sensorId', ASCENDING)])
     db_records = DataFrame(
@@ -36,7 +36,7 @@ def fetch_collection(collection, city_name, sensor_id):
         db_records.to_csv(path.join(collection_dir, f'{collection}.csv'), index=False)
 
 
-def fetch_db_data():
+def fetch_db_data() -> None:
     cities = cache.get('cities') or []
     sensors = cache.get('sensors') or {}
     for city in cities:
@@ -45,13 +45,13 @@ def fetch_db_data():
                 fetch_collection(collection, city['cityName'], sensor['sensorId'])
 
 
-def fetch_data():
+def fetch_data() -> None:
     init_system_paths()
     fetch_locations()
     if environ.get(mongodb_connection) is not None:
         fetch_db_data()
 
 
-def init_system_paths():
+def init_system_paths() -> None:
     for system_path in system_paths:
         makedirs(system_path, exist_ok=True)

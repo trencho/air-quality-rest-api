@@ -1,4 +1,5 @@
 from os import environ, path
+from typing import Optional
 
 from pandas import DataFrame, read_csv
 
@@ -6,7 +7,7 @@ from api.config.database import mongo
 from definitions import mongodb_connection
 
 
-def save_dataframe(dataframe, collection, collection_path, sensor_id):
+def save_dataframe(dataframe: DataFrame, collection: str, collection_path: Optional[str], sensor_id: str) -> None:
     if environ.get(mongodb_connection) is not None:
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 
@@ -25,7 +26,7 @@ def save_dataframe(dataframe, collection, collection_path, sensor_id):
         dataframe.to_csv(collection_path, index=False)
 
 
-def trim_dataframe(dataframe, column):
+def trim_dataframe(dataframe: DataFrame, column: str) -> None:
     dataframe.drop_duplicates(subset=column, keep='last', inplace=True)
     dataframe.reset_index(drop=True, inplace=True)
     dataframe.sort_values(by=column, inplace=True)

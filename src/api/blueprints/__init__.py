@@ -1,7 +1,7 @@
 from os import makedirs, path
 
-from flask import jsonify, make_response
-from pandas import read_csv
+from flask import jsonify, make_response, Response
+from pandas import DataFrame, read_csv
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
@@ -11,7 +11,7 @@ from processing import merge_air_quality_data, process_data
 
 
 @cache.memoize(timeout=3600)
-def fetch_dataframe(city_name, sensor_id, collection):
+def fetch_dataframe(city_name: str, sensor_id: str, collection: str) -> [DataFrame, Response]:
     try:
         return read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv'))
     except FileNotFoundError:
@@ -19,12 +19,12 @@ def fetch_dataframe(city_name, sensor_id, collection):
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
 
-def create_data_paths(city_name, sensor_id):
+def create_data_paths(city_name: str, sensor_id: str) -> None:
     makedirs(path.join(DATA_RAW_PATH, city_name, sensor_id), exist_ok=True)
     makedirs(path.join(DATA_PROCESSED_PATH, city_name, sensor_id), exist_ok=True)
 
 
-def fetch_city_data(city_name, sensor):
+def fetch_city_data(city_name: str, sensor: dict) -> None:
     create_data_paths(city_name, sensor['sensorId'])
 
     fetch_weather_data(city_name, sensor)

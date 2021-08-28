@@ -11,7 +11,7 @@ from .handle_plot import save_plot
 filterwarnings(action='once')
 
 
-def draw_errors(city, sensor, pollutant):
+def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
     error_types = [
         'Mean Absolute Error',
         'Mean Absolute Percentage Error',

@@ -1,11 +1,15 @@
 from datetime import datetime
-from math import nan
+from math import isnan, nan
 from os import path
+from pickle import load as pickle_load
+from typing import Optional
 
 from pandas import concat as pandas_concat, DataFrame, date_range, read_csv, Series, Timedelta, to_datetime
 
 from api.config.cache import cache
-from definitions import DATA_PROCESSED_PATH
+from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
+from modeling import train_city_sensors
+from models.base_regression_model import BaseRegressionModel
 from .feature_generation import encode_categorical_data, generate_lag_features, generate_time_features
 from .feature_scaling import value_scaling
 from .normalize_data import next_hour
@@ -14,8 +18,23 @@ FORECAST_PERIOD = '1H'
 FORECAST_STEPS = 24
 
 
+def fetch_forecast_result(city: dict, sensor: dict) -> dict:
+    forecast_result = {}
+    for pollutant in pollutants:
+        predictions = forecast_city_sensor(city, sensor, pollutant)
+        if predictions is None:
+            continue
+
+        for index, value in predictions.items():
+            timestamp_dict = forecast_result.get(int(index.timestamp()), {})
+            timestamp_dict.update({'time': int(index.timestamp()), pollutant: None if isnan(value) else value})
+            forecast_result.update({int(index.timestamp()): timestamp_dict})
+
+    return forecast_result
+
+
 @cache.memoize(timeout=3600)
-def fetch_weather_features(city_name, sensor_id, model_features, timestamp):
+def fetch_weather_features(city_name: str, sensor_id: str, model_features: list, timestamp: int) -> dict:
     forecast_data = forecast_sensor(city_name, sensor_id, timestamp)
     data = {}
     for model_feature in model_features:
@@ -27,7 +46,18 @@ def fetch_weather_features(city_name, sensor_id, model_features, timestamp):
 
 
 @cache.memoize(timeout=3600)
-def forecast_sensor(city_name, sensor_id, timestamp):
+def forecast_city_sensor(city: dict, sensor: dict, pollutant: str) -> Optional[Series]:
+    load_model = load_regression_model(city, sensor, pollutant)
+    if load_model is None:
+        return load_model
+
+    model, model_features = load_model
+
+    return recursive_forecast(city['cityName'], sensor['sensorId'], pollutant, model, model_features)
+
+
+@cache.memoize(timeout=3600)
+def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
     dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'weather.csv'))
     dataframe = dataframe.loc[dataframe['time'] == timestamp]
     if not dataframe.empty:
@@ -37,7 +67,26 @@ def forecast_sensor(city_name, sensor_id, timestamp):
 
 
 @cache.memoize(timeout=3600)
-def direct_forecast(y, model, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=FORECAST_PERIOD):
+def load_regression_model(city: dict, sensor: dict, pollutant: str) -> Optional[tuple]:
+    if not path.exists(
+            path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
+        train_city_sensors(city, sensor, pollutant)
+        return None
+
+    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
+              'rb') as in_file:
+        model = pickle_load(in_file)
+
+    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'selected_features.pkl'),
+              'rb') as in_file:
+        model_features = pickle_load(in_file)
+
+    return model, model_features
+
+
+@cache.memoize(timeout=3600)
+def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
+                    step: str = FORECAST_PERIOD) -> Series:
     """Multi-step direct forecasting using a machine learning model to forecast each time period ahead
 
     Parameters
@@ -53,7 +102,7 @@ def direct_forecast(y, model, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=
     forecast_values: pd.Series with forecasted values indexed by forecast horizon dates
     """
 
-    def one_step_features(date, step):
+    def one_step_features(date, step: int):
         # Features must be obtained using data lagged by the desired number of steps (the for loop index)
         tmp = y[y.index <= date]
         lags_features = generate_lag_features(tmp, lags)
@@ -84,8 +133,9 @@ def direct_forecast(y, model, lags=FORECAST_STEPS, n_steps=FORECAST_STEPS, step=
 
 
 @cache.memoize(timeout=3600)
-def recursive_forecast(city_name, sensor_id, pollutant, model, model_features, lags=FORECAST_STEPS,
-                       n_steps=FORECAST_STEPS, step=FORECAST_PERIOD):
+def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: BaseRegressionModel, model_features: list,
+                       lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
+                       step: str = FORECAST_PERIOD) -> Series:
     """Multi-step recursive forecasting using the input time series data and a pre-trained machine learning model
 
     Parameters
