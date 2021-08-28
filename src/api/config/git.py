@@ -11,14 +11,14 @@ from definitions import github_token, ROOT_PATH
 g = Github(environ.get(github_token))
 
 
-def append_commit_files(file_list, file_names, root, data, file):
+def append_commit_files(file_list: list, file_names: list, root: str, data, file: str) -> None:
     file_list.append(data)
     rel_dir = path.relpath(root, ROOT_PATH)
     rel_file = path.join(rel_dir, file).replace('\\', '/')
     file_names.append(rel_file)
 
 
-def merge_csv_files(repo_name, file_name, data):
+def merge_csv_files(repo_name: str, file_name: str, data):
     local_file_content = read_csv(StringIO(data))
     try:
         repo = g.get_user().get_repo(repo_name)
@@ -31,7 +31,7 @@ def merge_csv_files(repo_name, file_name, data):
     return local_file_content.to_csv(index=False)
 
 
-def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, master_ref):
+def commit_git_files(repo, element_list: list, base_tree, master_sha, commit_message: str, master_ref) -> None:
     try:
         tree = repo.create_git_tree(element_list, base_tree)
         parent = repo.get_git_commit(master_sha)
@@ -46,8 +46,8 @@ def commit_git_files(repo, element_list, base_tree, master_sha, commit_message, 
         print_exc()
 
 
-def update_git_files(file_names, file_list, repo_name, branch,
-                     commit_message=f'Data Updated - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}'):
+def update_git_files(file_names: list, file_list: list, repo_name: str, branch: str,
+                     commit_message: str = f'Data Updated - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}') -> None:
     repo = g.get_user().get_repo(repo_name)
     master_ref = repo.get_git_ref(f'heads/{branch}')
     master_sha = master_ref.object.sha

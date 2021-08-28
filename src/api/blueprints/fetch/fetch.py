@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, jsonify, make_response, request, Response
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_city_data
@@ -19,7 +19,7 @@ fetch_blueprint = Blueprint('fetch', __name__)
 @swag_from('fetch_all.yml', endpoint='fetch.fetch_all', methods=['GET'])
 @swag_from('fetch_city.yml', endpoint='fetch.fetch_city', methods=['GET'])
 @swag_from('fetch_city_sensor.yml', endpoint='fetch.fetch_city_sensor', methods=['GET'])
-def fetch_data(city_name=None, sensor_id=None):
+def fetch_data(city_name: str = None, sensor_id: str = None) -> Response:
     current_datetime = current_hour()
     current_timestamp = int(datetime.timestamp(current_datetime))
     start_time = request.args.get('start_time', default=current_timestamp, type=int)

@@ -8,16 +8,16 @@ from sklearn.impute import KNNImputer
 
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, pollutants
 from preparation import trim_dataframe
-from processing.calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
+from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
     calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
 
 
-def closest_hour(t):
+def closest_hour(t: datetime) -> datetime:
     return t.replace(hour=t.hour if t.minute <= 30 else 0 if t.hour == 23 else t.hour + 1, minute=0, second=0,
                      microsecond=0)
 
 
-def current_hour():
+def current_hour() -> datetime:
     t = datetime.now()
     return t.replace(hour=t.hour, minute=0, second=0, microsecond=0)
 
@@ -30,7 +30,7 @@ def drop_numerical_outliers(dataframe, z_thresh=3):
     dataframe.drop(index=dataframe.index[~constrains], inplace=True)
 
 
-def flatten_json(nested_json: dict, exclude=None):
+def flatten_json(nested_json: dict, exclude=None) -> dict:
     """
     Flatten a list of nested dicts.
     """
@@ -38,7 +38,7 @@ def flatten_json(nested_json: dict, exclude=None):
         exclude = ['']
     out = dict()
 
-    def flatten(x: (list, dict, str), name: str = '', exclude=exclude):
+    def flatten(x: (list, dict, str), name: str = '', exclude=exclude) -> None:
         if type(x) is dict:
             for a in x:
                 if a not in exclude:
@@ -58,12 +58,12 @@ def flatten_json(nested_json: dict, exclude=None):
     return out
 
 
-def next_hour(t):
+def next_hour(t: datetime) -> datetime:
     return t.replace(day=t.day + 1 if t.hour == 23 else t.day, hour=0 if t.hour == 23 else t.hour + 1, minute=0,
                      second=0, microsecond=0)
 
 
-def process_data(city_name, sensor_id, collection):
+def process_data(city_name: str, sensor_id: str, collection: str) -> None:
     try:
         dataframe = read_csv(path.join(DATA_RAW_PATH, city_name, sensor_id, f'{collection}.csv'))
     except FileNotFoundError:

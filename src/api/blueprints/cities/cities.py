@@ -1,5 +1,5 @@
 from flasgger.utils import swag_from
-from flask import Blueprint, jsonify, make_response
+from flask import Blueprint, jsonify, make_response, Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
@@ -13,7 +13,7 @@ cities_blueprint = Blueprint('cities', __name__)
 @cache.memoize(timeout=3600)
 @swag_from('cities.yml', endpoint='cities.cities', methods=['GET'])
 @swag_from('cities_name.yml', endpoint='cities.cities_name', methods=['GET'])
-def fetch_city(city_name=None):
+def fetch_city(city_name: str = None) -> Response:
     if city_name is None:
         return make_response(jsonify(cache.get('cities') or []))
 

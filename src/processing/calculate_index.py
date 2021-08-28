@@ -1,9 +1,10 @@
-def calculate_aqi(co_index, no2_index, o3_index, pm2_5_index, pm10_index, so2_index):
+def calculate_aqi(co_index: int, no2_index: int, o3_index: int, pm2_5_index: int, pm10_index: int,
+                  so2_index: int) -> int:
     parameters = [co_index, no2_index, o3_index, pm2_5_index, pm10_index, so2_index]
     return max(parameters)
 
 
-def calculate_co_index(co):
+def calculate_co_index(co: float) -> int:
     if co <= 4.4:
         return to_aqi(50, 0, 4.4, 0, co)
     elif 4.4 < co <= 9.4:
@@ -22,7 +23,7 @@ def calculate_co_index(co):
     return 0
 
 
-def calculate_no2_index(no2):
+def calculate_no2_index(no2: float) -> int:
     if no2 <= 40:
         return to_aqi(50, 0, 40, 0, no2)
     elif 40 < no2 <= 90:
@@ -39,7 +40,7 @@ def calculate_no2_index(no2):
     return 0
 
 
-def calculate_o3_index(o3):
+def calculate_o3_index(o3: float) -> int:
     if o3 <= 50:
         return to_aqi(50, 0, 50, 0, o3)
     elif 50 < o3 <= 100:
@@ -56,7 +57,7 @@ def calculate_o3_index(o3):
     return 0
 
 
-def calculate_pm2_5_index(pm2_5):
+def calculate_pm2_5_index(pm2_5: float) -> int:
     if pm2_5 <= 10:
         return to_aqi(50, 0, 10, 0, pm2_5)
     elif 10 < pm2_5 <= 20:
@@ -73,7 +74,7 @@ def calculate_pm2_5_index(pm2_5):
     return 0
 
 
-def calculate_pm10_index(pm10):
+def calculate_pm10_index(pm10: float) -> int:
     if pm10 <= 20:
         return to_aqi(50, 0, 20, 0, pm10)
     elif 20 < pm10 <= 40:
@@ -90,7 +91,7 @@ def calculate_pm10_index(pm10):
     return 0
 
 
-def calculate_so2_index(so2):
+def calculate_so2_index(so2: float) -> int:
     if so2 <= 100:
         return to_aqi(50, 0, 100, 0, so2)
     elif 100 < so2 <= 200:
@@ -107,5 +108,5 @@ def calculate_so2_index(so2):
     return 0
 
 
-def to_aqi(i_high, i_low, c_high, c_low, c):
-    return (i_high - i_low) * (c - c_low) // (c_high - c_low) + i_low
+def to_aqi(i_high: int, i_low: int, c_high: float, c_low: float, c: float) -> int:
+    return int((i_high - i_low) * (c - c_low) / (c_high - c_low) + i_low)

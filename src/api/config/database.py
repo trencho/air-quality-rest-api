@@ -1,5 +1,6 @@
 from os import environ
 
+from flask import Flask
 from flask_pymongo import PyMongo
 
 from definitions import mongo_database, mongo_password, mongo_username, mongodb_connection, mongodb_hostname
@@ -7,7 +8,7 @@ from definitions import mongo_database, mongo_password, mongo_username, mongodb_
 mongo = PyMongo()
 
 
-def configure_database(app):
+def configure_database(app: Flask) -> None:
     app.config['MONGO_URI'] = (
         f'{environ[mongodb_connection]}://{environ[mongo_username]}:{environ[mongo_password]}@'
         f'{environ[mongodb_hostname]}/{environ[mongo_database]}?authSource=admin&retryWrites=true&w=majority'
