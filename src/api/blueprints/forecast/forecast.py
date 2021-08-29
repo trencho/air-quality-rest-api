@@ -64,5 +64,5 @@ def return_forecast_results(latitude: float, longitude: float, city: dict, senso
     forecast_results['data'].extend(forecast_result.values())
     if environ.get(mongodb_connection) is not None:
         mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                            {'data': forecast_result.values()}, upsert=True)
+                                            {'data': list(forecast_result.values())}, upsert=True)
     return make_response(forecast_results)
