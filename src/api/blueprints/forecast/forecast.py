@@ -53,15 +53,16 @@ def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
 def return_forecast_results(latitude: float, longitude: float, city: dict, sensor: dict) -> Response:
     forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
     if environ.get(mongodb_connection) is not None:
-        forecast_result = mongo.db['predictions'].find({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                                       projection={'_id': False, 'cityName': False, 'sensorId': False})
+        forecast_result = mongo.db['predictions'].find_one(
+            {'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+            projection={'_id': False, 'cityName': False, 'sensorId': False})
         if len(forecast_results):
-            forecast_results['data'].extend(forecast_result.values())
+            forecast_results['data'].extend(forecast_result['data'])
             return make_response(forecast_results)
 
     forecast_result = fetch_forecast_result(city, sensor)
     forecast_results['data'].extend(forecast_result.values())
     if environ.get(mongodb_connection) is not None:
         mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                            forecast_result, upsert=True)
+                                            {'data': forecast_result.values()}, upsert=True)
     return make_response(forecast_results)
