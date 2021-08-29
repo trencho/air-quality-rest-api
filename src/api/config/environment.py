@@ -1,6 +1,5 @@
 from os import environ, makedirs, path
 
-from flask_pymongo import ASCENDING
 from pandas import DataFrame
 
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, environment_variables, \
@@ -28,7 +27,6 @@ def check_environment_variables() -> None:
 
 def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
     collection_dir = path.join(DATA_RAW_PATH, city_name, sensor_id)
-    mongo.db[collection].create_index([('sensorId', ASCENDING)])
     db_records = DataFrame(
         list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False, 'sensorId': False})))
     if not db_records.empty:
