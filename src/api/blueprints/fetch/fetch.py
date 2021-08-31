@@ -42,8 +42,7 @@ def fetch_data(city_name: str = None, sensor_id: str = None) -> Response:
         message = 'Fetched weather and pollution data from the external APIs for all cities.'
         return make_response(jsonify(success=message))
 
-    city = check_city(city_name)
-    if city is None:
+    if (city := check_city(city_name)) is None:
         message = 'Cannot fetch data because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
 
@@ -56,8 +55,7 @@ def fetch_data(city_name: str = None, sensor_id: str = None) -> Response:
                    f'{city["siteName"]} and all active sensors.')
         return make_response(jsonify(success=message))
     else:
-        sensor = check_sensor(city_name, sensor_id)
-        if sensor is None:
+        if (sensor := check_sensor(city_name, sensor_id)) is None:
             message = 'Data cannot be trained because the sensor is not found or is invalid.'
             return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 

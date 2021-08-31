@@ -151,8 +151,8 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
         results = DataFrame({'Actual': y_test, 'Predicted': y_predicted}, x_test.index)
         save_results(city_name, sensor_id, pollutant, model_name, results)
 
-        model_error = save_errors(city_name, sensor_id, pollutant, model_name, y_test, y_predicted)
-        if model_error < best_model_error:
+        if (model_error := save_errors(city_name, sensor_id, pollutant, model_name, y_test,
+                                       y_predicted)) < best_model_error:
             best_model = model
             best_model_error = model_error
 
