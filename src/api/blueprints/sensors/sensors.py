@@ -23,8 +23,7 @@ def fetch_city_sensor(city_name: str, sensor_id: str = None) -> Response:
         sensors = cache.get('sensors') or {}
         return make_response(jsonify(sensors[city_name]))
 
-    sensor = check_sensor(city_name, sensor_id)
-    if sensor is None:
+    if (sensor := check_sensor(city_name, sensor_id)) is None:
         message = 'Cannot return data because the sensor is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 

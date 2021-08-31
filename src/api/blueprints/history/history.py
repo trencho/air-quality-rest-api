@@ -24,18 +24,15 @@ def fetch_city_sensor_history(city_name: str, sensor_id: str, data_type: str) ->
         message = 'Cannot return historical data because the data type is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    timestamps = retrieve_history_timestamps()
-    if isinstance(timestamps, Response):
+    if isinstance(timestamps := retrieve_history_timestamps(), Response):
         return timestamps
     start_time, end_time = timestamps
 
-    city = check_city(city_name)
-    if city is None:
+    if (city := check_city(city_name)) is None:
         message = 'Cannot return historical data because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    sensor = check_sensor(city_name, sensor_id)
-    if sensor is None:
+    if (sensor := check_sensor(city_name, sensor_id)) is None:
         message = 'Cannot return historical data because the sensor is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
@@ -50,14 +47,12 @@ def fetch_coordinates_history(latitude: float, longitude: float, data_type: str)
         message = 'Cannot return historical data because the data type is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    timestamps = retrieve_history_timestamps()
-    if isinstance(timestamps, Response):
+    if isinstance(timestamps := retrieve_history_timestamps(), Response):
         return timestamps
     start_time, end_time = timestamps
 
     coordinates = (latitude, longitude)
-    sensor = calculate_nearest_sensor(coordinates)
-    if sensor is None:
+    if (sensor := calculate_nearest_sensor(coordinates)) is None:
         message = 'Cannot return historical data because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
@@ -81,8 +76,7 @@ def retrieve_history_timestamps() -> [Response, tuple]:
 
 @cache.memoize(timeout=3600)
 def return_historical_data(city_name: str, sensor: dict, data_type: str, start_time: int, end_time: int) -> Response:
-    dataframe = fetch_dataframe(city_name, sensor['sensorId'], data_type)
-    if isinstance(dataframe, Response):
+    if isinstance(dataframe := fetch_dataframe(city_name, sensor['sensorId'], data_type), Response):
         return dataframe
 
     dataframe = dataframe.loc[(dataframe['time'] >= start_time) & (dataframe['time'] <= end_time)]
