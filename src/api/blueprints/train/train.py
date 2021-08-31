@@ -36,8 +36,7 @@ def train_data(city_name: str = None, sensor_id: str = None) -> Response:
                 else:
                     train_city_sensors(city, sensor, pollutant_name)
 
-    city = check_city(city_name)
-    if city is None:
+    if (city := check_city(city_name)) is None:
         message = 'Data cannot be trained because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
@@ -50,8 +49,7 @@ def train_data(city_name: str = None, sensor_id: str = None) -> Response:
             else:
                 train_city_sensors(city, sensor, pollutant_name)
     else:
-        sensor = check_sensor(city_name, sensor_id)
-        if sensor is None:
+        if (sensor := check_sensor(city_name, sensor_id)) is None:
             message = 'Data cannot be trained because the sensor is not found or is invalid.'
             return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 

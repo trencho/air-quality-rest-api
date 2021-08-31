@@ -18,8 +18,7 @@ forecast_blueprint = Blueprint('forecast', __name__)
 @cache.memoize(timeout=3600)
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
 def fetch_city_sensor_forecast(city_name: str, sensor_id: str) -> Response:
-    city = check_city(city_name)
-    if city is None:
+    if (city := check_city(city_name)) is None:
         message = 'Value cannot be predicted because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
@@ -38,8 +37,7 @@ def fetch_city_sensor_forecast(city_name: str, sensor_id: str) -> Response:
 @swag_from('forecast_coordinates.yml', endpoint='forecast.coordinates', methods=['GET'])
 def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
     coordinates = (latitude, longitude)
-    sensor = calculate_nearest_sensor(coordinates)
-    if sensor is None:
+    if (sensor := calculate_nearest_sensor(coordinates)) is None:
         message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
@@ -52,13 +50,11 @@ def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
 @cache.memoize(timeout=3600)
 def return_forecast_results(latitude: float, longitude: float, city: dict, sensor: dict) -> Response:
     forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
-    if environ.get(mongodb_connection) is not None:
-        forecast_result = mongo.db['predictions'].find_one(
+    if environ.get(mongodb_connection) is not None and (forecast_result := mongo.db['predictions'].find_one(
             {'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-            projection={'_id': False, 'cityName': False, 'sensorId': False})
-        if len(forecast_results):
-            forecast_results['data'].extend(forecast_result['data'])
-            return make_response(forecast_results)
+            projection={'_id': False, 'cityName': False, 'sensorId': False})) is not None:
+        forecast_results['data'].extend(forecast_result['data'])
+        return make_response(forecast_results)
 
     forecast_result = fetch_forecast_result(city, sensor)
     forecast_results['data'].extend(forecast_result.values())
