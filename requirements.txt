@@ -20,5 +20,6 @@ starlette
 statsmodels
 tpot
 tsfresh
+urllib3
 uwsgi
 xgboost
