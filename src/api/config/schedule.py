@@ -1,4 +1,3 @@
-from base64 import b64encode
 from datetime import datetime
 from json import dump as json_dump
 from os import environ, makedirs, path, walk
@@ -15,7 +14,7 @@ from processing import merge_air_quality_data
 from processing.forecast_data import fetch_forecast_result
 from .cache import cache
 from .database import mongo
-from .git import append_commit_files, merge_csv_files, update_git_files
+from .git import append_commit_files, update_git_files
 
 scheduler = BackgroundScheduler()
 
@@ -31,11 +30,6 @@ def data_dump() -> None:
             file_path = path.join(root, file)
             if file.endswith('.csv'):
                 data = read_csv(file_path).to_csv(index=False)
-                data = merge_csv_files(repository_name, file_path, data)
-                append_commit_files(file_list, file_names, root, data, file)
-            elif file.endswith('.png'):
-                with open(file_path, 'rb') as in_file:
-                    data = b64encode(in_file.read())
                 append_commit_files(file_list, file_names, root, data, file)
 
     if file_list:
