@@ -3,8 +3,10 @@ from io import BytesIO, StringIO
 from os import environ, path
 from traceback import print_exc
 
-from github import Github, GithubException, InputGitTreeElement
+from github import Github, GithubException, GitRef, GitTree, InputGitTreeElement, Repository
 from pandas import read_csv
+from requests import ReadTimeout
+from urllib3.exceptions import ReadTimeoutError
 
 from definitions import github_token, ROOT_PATH
 
@@ -18,10 +20,9 @@ def append_commit_files(file_list: list, file_names: list, root: str, data, file
     file_names.append(rel_file)
 
 
-def merge_csv_files(repo_name: str, file_name: str, data):
+def merge_csv_files(repo: Repository, file_name: str, data):
     local_file_content = read_csv(StringIO(data))
     try:
-        repo = g.get_user().get_repo(repo_name)
         repo_file = repo.get_contents(file_name)
         repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
         local_file_content = local_file_content.append(repo_file_content, ignore_index=True, sort=True)
@@ -31,13 +32,16 @@ def merge_csv_files(repo_name: str, file_name: str, data):
     return local_file_content.to_csv(index=False)
 
 
-def commit_git_files(repo, element_list: list, base_tree, master_sha, commit_message: str, master_ref) -> None:
+def commit_git_files(repo: Repository, element_list: list, base_tree: GitTree, master_sha: str, commit_message: str,
+                     master_ref: GitRef) -> None:
     try:
         tree = repo.create_git_tree(element_list, base_tree)
         parent = repo.get_git_commit(master_sha)
         commit = repo.create_git_commit(commit_message, tree, [parent])
         master_ref.edit(commit.sha)
     except GithubException:
+        print_exc()
+    except (ReadTimeout, ReadTimeoutError):
         if len(element_list) // 2 > 0:
             commit_git_files(repo, element_list[:len(element_list) // 2], base_tree, master_sha, commit_message,
                              master_ref)
@@ -55,12 +59,7 @@ def update_git_files(file_names: list, file_list: list, repo_name: str, branch: 
     element_list = []
     for i in range(0, len(file_list)):
         if file_names[i].endswith('.csv'):
-            file_list[i] = merge_csv_files(repo_name, file_names[i], file_list[i])
             element = InputGitTreeElement(file_names[i], '100644', 'blob', file_list[i])
-            element_list.append(element)
-        elif file_names[i].endswith('.png'):
-            file_list[i] = repo.create_git_blob(file_list[i].decode(), 'base64')
-            element = InputGitTreeElement(file_names[i], '100644', 'blob', sha=file_list[i].sha)
             element_list.append(element)
 
     commit_git_files(repo, element_list, base_tree, master_sha, commit_message, master_ref)
