@@ -13,14 +13,14 @@ from definitions import github_token, ROOT_PATH
 g = Github(environ.get(github_token))
 
 
-def append_commit_files(file_list: list, file_names: list, root: str, data, file: str) -> None:
+def append_commit_files(file_list: list, file_names: list, root: str, data: [bytes, str], file: str) -> None:
     file_list.append(data)
     rel_dir = path.relpath(root, ROOT_PATH)
     rel_file = path.join(rel_dir, file).replace('\\', '/')
     file_names.append(rel_file)
 
 
-def merge_csv_files(repo: Repository, file_name: str, data):
+def merge_csv_files(repo: Repository, file_name: str, data: str):
     local_file_content = read_csv(StringIO(data))
     try:
         repo_file = repo.get_contents(file_name)
@@ -58,8 +58,13 @@ def update_git_files(file_names: list, file_list: list, repo_name: str, branch: 
     base_tree = repo.get_git_tree(master_sha)
     element_list = []
     for i in range(0, len(file_list)):
-        if file_names[i].endswith('.csv'):
-            element = InputGitTreeElement(file_names[i], '100644', 'blob', file_list[i])
+        if (file_name := file_names[i]).endswith('.csv'):
+            file = merge_csv_files(repo, file_name, file_list[i])
+            element = InputGitTreeElement(file_name, '100644', 'blob', file)
+            element_list.append(element)
+        elif file_name.endswith(('.png', '.zip')):
+            file = repo.create_git_blob(file_list[i].decode(), 'base64')
+            element = InputGitTreeElement(file_name, '100644', 'blob', sha=file.sha)
             element_list.append(element)
 
     commit_git_files(repo, element_list, base_tree, master_sha, commit_message, master_ref)
