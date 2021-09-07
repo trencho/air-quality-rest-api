@@ -1,13 +1,15 @@
+from base64 import b64encode
 from datetime import datetime
 from json import dump as json_dump
 from os import environ, makedirs, path, walk
-from shutil import rmtree
+from shutil import make_archive, rmtree
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data
-from definitions import DATA_EXTERNAL_PATH, DATA_RAW_PATH, mongodb_connection, pollutants, repo_name, ROOT_PATH
+from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, mongodb_connection, pollutants, repo_name, \
+    RESULTS_PATH, ROOT_PATH
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_sensors, save_dataframe
 from processing import merge_air_quality_data
@@ -21,21 +23,18 @@ scheduler = BackgroundScheduler()
 
 @scheduler.scheduled_job(trigger='cron', day=1)
 def data_dump() -> None:
-    repository_name = environ[repo_name]
+    files = [make_archive(DATA_PATH, 'zip', DATA_PATH), make_archive(RESULTS_PATH, 'zip', RESULTS_PATH)]
 
-    file_list = []
-    file_names = []
-    for root, directories, files in walk(ROOT_PATH):
-        for file in files:
-            file_path = path.join(root, file)
-            if file.endswith('.csv'):
-                data = read_csv(file_path).to_csv(index=False)
-                append_commit_files(file_list, file_names, root, data, file)
+    file_list, file_names = [], []
+    for file in files:
+        with open(path.join(file), 'rb') as in_file:
+            data = b64encode(in_file.read())
+        append_commit_files(file_list, file_names, ROOT_PATH, data, file)
 
     if file_list:
         branch = 'master'
         commit_message = f'Scheduled data dump - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}'
-        update_git_files(file_names, file_list, repository_name, branch, commit_message)
+        update_git_files(file_names, file_list, environ[repo_name], branch, commit_message)
 
 
 @scheduler.scheduled_job(trigger='cron', hour='*/2')
