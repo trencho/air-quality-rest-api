@@ -37,7 +37,6 @@ metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/single/docker-compose.yml
     kompose.version: 1.21.0 (992df58d8)
-  creationTimestamp: null
   labels:
     io.kompose.service: flask
   name: flask
@@ -56,7 +55,6 @@ metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/single/docker-compose.yml
     kompose.version: 1.21.0 (992df58d8)
-  creationTimestamp: null
   labels:
     io.kompose.service: flask
   name: flask
@@ -73,7 +71,6 @@ spec:
       annotations:
         kompose.cmd: kompose convert -f docker/single/docker-compose.yml
         kompose.version: 1.21.0 (992df58d8)
-      creationTimestamp: null
       labels:
         io.kompose.network/network: 'true'
         io.kompose.service: flask
@@ -96,7 +93,6 @@ spec:
         - name: flaskdata
           persistentVolumeClaim:
             claimName: flaskdata-pvc
-status: { }
 ---
 apiVersion: batch/v1
 kind: CronJob
