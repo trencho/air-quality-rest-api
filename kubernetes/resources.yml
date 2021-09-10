@@ -6,7 +6,6 @@ metadata:
 apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: mongo
   name: mongo
@@ -54,7 +53,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: flaskdata-pvc
   name: flaskdata-pvc
@@ -66,12 +64,10 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: manual
-status: { }
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: mongodata-pvc
   name: mongodata-pvc
@@ -83,12 +79,10 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: manual
-status: { }
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: mongo
   name: mongo
@@ -102,7 +96,6 @@ spec:
     type: Recreate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         io.kompose.network/network: 'true'
         io.kompose.service: mongo
@@ -125,12 +118,10 @@ spec:
         - name: mongodata
           persistentVolumeClaim:
             claimName: mongodata-pvc
-status: { }
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
-  creationTimestamp: null
   name: flask-secret
   namespace: aqra
 spec:
@@ -155,7 +146,6 @@ spec:
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
-  creationTimestamp: null
   name: mongo-secret
   namespace: aqra
 spec:
@@ -206,7 +196,6 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  creationTimestamp: null
   name: network
   namespace: aqra
 spec:
