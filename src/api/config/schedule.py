@@ -1,7 +1,7 @@
 from base64 import b64encode
 from datetime import datetime
 from json import dump as json_dump
-from os import environ, makedirs, path, walk
+from os import environ, makedirs, path, remove as os_remove, walk
 from shutil import make_archive, rmtree
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -9,7 +9,7 @@ from pandas import read_csv
 
 from api.blueprints import fetch_city_data
 from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, mongodb_connection, pollutants, repo_name, \
-    RESULTS_PATH, ROOT_PATH
+    ROOT_PATH
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_sensors, save_dataframe
 from processing import merge_air_quality_data
@@ -23,18 +23,21 @@ scheduler = BackgroundScheduler()
 
 @scheduler.scheduled_job(trigger='cron', day=1)
 def data_dump() -> None:
-    files = [make_archive(DATA_PATH, 'zip', DATA_PATH), make_archive(RESULTS_PATH, 'zip', RESULTS_PATH)]
+    make_archive(DATA_PATH, 'zip', DATA_PATH)
 
     file_list, file_names = [], []
-    for file in files:
-        with open(path.join(file), 'rb') as in_file:
-            data = b64encode(in_file.read())
-        append_commit_files(file_list, file_names, ROOT_PATH, data, file)
+    for root, directories, files in walk(ROOT_PATH):
+        for file in files:
+            if file.endswith('.zip'):
+                with open(path.join(root, file), 'rb') as in_file:
+                    data = b64encode(in_file.read())
+                append_commit_files(file_list, data, root, file, file_names)
+                os_remove(path.join(root, file))
 
     if file_list:
         branch = 'master'
         commit_message = f'Scheduled data dump - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}'
-        update_git_files(file_names, file_list, environ[repo_name], branch, commit_message)
+        update_git_files(file_list, file_names, environ[repo_name], branch, commit_message)
 
 
 @scheduler.scheduled_job(trigger='cron', hour='*/2')
@@ -54,12 +57,12 @@ def fetch_locations() -> None:
     cache.set('cities', cities)
     sensors = {}
     for city in cities:
-        if environ.get(mongodb_connection) is not None:
+        if (mongodb_env := environ.get(mongodb_connection)) is not None:
             mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
         sensors[city['cityName']] = fetch_sensors(city['cityName'])
         for sensor in sensors[city['cityName']]:
             sensor['cityName'] = city['cityName']
-            if environ.get(mongodb_connection) is not None:
+            if mongodb_env is not None:
                 mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
         makedirs(path.join(DATA_RAW_PATH, city['cityName']), exist_ok=True)
         with open(path.join(DATA_RAW_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
