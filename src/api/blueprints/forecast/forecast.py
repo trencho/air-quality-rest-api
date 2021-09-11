@@ -50,15 +50,16 @@ def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
 @cache.memoize(timeout=3600)
 def return_forecast_results(latitude: float, longitude: float, city: dict, sensor: dict) -> Response:
     forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
-    if environ.get(mongodb_connection) is not None and (forecast_result := mongo.db['predictions'].find_one(
-            {'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-            projection={'_id': False, 'cityName': False, 'sensorId': False})) is not None:
+    if (mongodb_env := environ.get(mongodb_connection)) is not None and (
+            forecast_result := mongo.db['predictions'].find_one(
+                {'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+                projection={'_id': False, 'cityName': False, 'sensorId': False})) is not None:
         forecast_results['data'].extend(forecast_result['data'])
         return make_response(forecast_results)
 
     forecast_result = fetch_forecast_result(city, sensor)
     forecast_results['data'].extend(forecast_result.values())
-    if environ.get(mongodb_connection) is not None:
+    if mongodb_env is not None:
         mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
                                             {'data': list(fetch_forecast_result(city, sensor).values()),
                                              'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, upsert=True)
