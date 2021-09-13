@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from warnings import catch_warnings, simplefilter
 
 from numpy import abs
@@ -8,7 +8,7 @@ from tsfresh import extract_features, select_features
 from tsfresh.utilities.dataframe_functions import impute
 
 
-def get_season(time) -> str:
+def get_season(time: datetime) -> str:
     dummy_leap_year = 2000  # Dummy leap year to allow input 29-02-X (leap day)
 
     dt = time.date()
@@ -31,7 +31,7 @@ def encode_categorical_data(dataframe: DataFrame) -> None:
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
-def generate_lag_features(target: Series, lags=24) -> DataFrame:
+def generate_lag_features(target: Series, lags: int = 24) -> DataFrame:
     partial = Series(data=pacf(target, nlags=lags))
     lags = list(partial[abs(partial) >= 0.2].index)
 
