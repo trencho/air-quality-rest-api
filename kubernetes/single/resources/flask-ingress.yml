@@ -21,4 +21,4 @@ spec:
   tls:
     - hosts:
         - aqra.feit.ukim.edu.mk
-      secretName: flask-tls
+      secretName: aqra-tls
