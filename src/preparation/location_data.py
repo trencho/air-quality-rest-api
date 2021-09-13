@@ -77,7 +77,7 @@ def recalculate_coordinate(val: tuple, _as: Optional[str] = None) -> [float, tup
     return degrees, minutes, seconds
 
 
-def calculate_nearest_sensor(coordinates, radius_of_effect: int = 2) -> Optional[dict]:
+def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
     sensors = [sensor for sensor_list in list(cache.get('sensors').values()) for sensor in sensor_list]
     distances = haversine_vector(coordinates, [tuple(map(float, sensor['position'].split(','))) for sensor in sensors],
                                  comb=True)
