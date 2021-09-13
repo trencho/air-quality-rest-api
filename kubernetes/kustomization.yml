@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - cluster-issuers/prod-issuer.yml
   - cluster-issuers/staging-issuer.yml
+  - cronjob/cronjob.yml
   - mongo-deployment.yml
   - mongo-service.yml
   - namespace.yml
