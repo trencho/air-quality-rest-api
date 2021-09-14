@@ -163,16 +163,16 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
 
 
 def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
-    if check_best_regression_model(city['cityName'], sensor['sensorId'], pollutant):
+    if check_best_regression_model(city['cityName'], sensor['sensorId'], pollutant) or check_pollutant_lock(
+            city['cityName'], sensor['sensorId'], pollutant):
         return
     try:
         dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
                              index_col='time')
         dataframe.index = to_datetime(dataframe.index, unit='s')
         if pollutant in dataframe.columns:
-            if not check_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant):
-                create_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
-                generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
+            create_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
+            generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
     except Exception:
