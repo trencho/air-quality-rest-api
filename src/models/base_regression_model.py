@@ -1,5 +1,5 @@
 from os import path
-from pickle import dump as pickle_dump, HIGHEST_PROTOCOL, load as pickle_load
+from pickle import dump, HIGHEST_PROTOCOL, load
 
 
 class BaseRegressionModel:
@@ -21,8 +21,8 @@ class BaseRegressionModel:
 
     def save(self, file_path: str) -> None:
         with open(path.join(file_path, type(self).__name__, f'{type(self).__name__}.pkl'), 'wb') as out_file:
-            pickle_dump(self.reg, out_file, HIGHEST_PROTOCOL)
+            dump(self.reg, out_file, HIGHEST_PROTOCOL)
 
     def load(self, file_path: str) -> None:
         with open(path.join(file_path, type(self).__name__, f'{type(self).__name__}.pkl'), 'rb') as in_file:
-            self.reg = pickle_load(in_file)
+            self.reg = load(in_file)

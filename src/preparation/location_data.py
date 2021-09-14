@@ -3,7 +3,7 @@ from typing import Optional
 
 from haversine import haversine_vector
 from numpy import where
-from requests import get as requests_get
+from requests import get
 
 from api.config.cache import cache
 from definitions import countries
@@ -30,7 +30,7 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 
 
 def fetch_cities() -> list:
-    response = requests_get('https://pulse.eco/rest/city/')
+    response = get('https://pulse.eco/rest/city/')
     try:
         cities_json = response.json()
         return [city for city in cities_json if city['countryCode'] in countries]
@@ -39,7 +39,7 @@ def fetch_cities() -> list:
 
 
 def fetch_sensors(city_name: str) -> list:
-    response = requests_get(f'https://{city_name}.pulse.eco/rest/sensor/')
+    response = get(f'https://{city_name}.pulse.eco/rest/sensor/')
     try:
         sensors_json = response.json()
         return [sensor for sensor in sensors_json if sensor['status'] == 'ACTIVE']
