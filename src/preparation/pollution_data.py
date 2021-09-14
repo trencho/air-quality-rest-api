@@ -4,7 +4,7 @@ from time import sleep
 from traceback import print_exc
 
 from pandas import DataFrame
-from requests import get as requests_get
+from requests import get
 
 from definitions import DATA_RAW_PATH, open_weather_token
 from processing import current_hour
@@ -19,7 +19,7 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
     params = f'lat={lat}&lon={lon}&appid={token}'
 
     dataframe = DataFrame()
-    pollution_response = requests_get(url=url, params=params)
+    pollution_response = get(url=url, params=params)
     try:
         pollution_json = pollution_response.json()
         pollution_data = pollution_json['list']

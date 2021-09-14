@@ -1,6 +1,6 @@
 from numbers import Number
 
-from numpy import array, asarray, fill_diagonal, isnan, ma as numpy_ma, nan
+from numpy import array, asarray, fill_diagonal, isnan, ma, nan
 from pandas import DataFrame, factorize, get_dummies, isnull
 from scipy import stats
 from scipy.spatial.distance import cdist
@@ -203,9 +203,9 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method='mean', numer
             if sum(missing_neighbors) >= missing_neighbors_threshold * k_neighbors:
                 continue
             elif aggregation_method == 'mean':
-                target.iloc[i] = numpy_ma.mean(numpy_ma.masked_array(closest_to_target, isnan(closest_to_target)))
+                target.iloc[i] = ma.mean(ma.masked_array(closest_to_target, isnan(closest_to_target)))
             elif aggregation_method == 'median':
-                target.iloc[i] = numpy_ma.median(numpy_ma.masked_array(closest_to_target, isnan(closest_to_target)))
+                target.iloc[i] = ma.median(ma.masked_array(closest_to_target, isnan(closest_to_target)))
             else:
                 target.iloc[i] = stats.mode(closest_to_target, nan_policy='omit')[0][0]
 

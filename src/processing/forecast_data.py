@@ -1,10 +1,10 @@
 from datetime import datetime
 from math import isnan, nan
 from os import path
-from pickle import load as pickle_load
+from pickle import load
 from typing import Optional
 
-from pandas import concat as pandas_concat, DataFrame, date_range, read_csv, Series, Timedelta, to_datetime
+from pandas import concat, DataFrame, date_range, read_csv, Series, Timedelta, to_datetime
 
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
@@ -72,11 +72,11 @@ def load_regression_model(city: dict, sensor: dict, pollutant: str) -> Optional[
 
     with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
               'rb') as in_file:
-        model = pickle_load(in_file)
+        model = load(in_file)
 
     with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'selected_features.pkl'),
               'rb') as in_file:
-        model_features = pickle_load(in_file)
+        model_features = load(in_file)
 
     return model, model_features
 
@@ -175,7 +175,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
         lags_features = generate_lag_features(target, lags)
         time_features = generate_time_features(target)
         features = dataframe.join(lags_features, how='inner').join(time_features, how='inner')
-        features = pandas_concat([features, DataFrame(columns=list(set(model_features) - set(list(features.columns))))])
+        features = concat([features, DataFrame(columns=list(set(model_features) - set(list(features.columns))))])
         encode_categorical_data(features)
         features = features[model_features]
         try:

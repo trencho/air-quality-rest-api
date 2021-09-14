@@ -2,7 +2,7 @@ from datetime import date, datetime
 from warnings import catch_warnings, simplefilter
 
 from numpy import abs
-from pandas import cut as pandas_cut, DataFrame, Int64Index, Series
+from pandas import cut, DataFrame, Int64Index, Series
 from statsmodels.tsa.stattools import pacf
 from tsfresh import extract_features, select_features
 from tsfresh.utilities.dataframe_functions import impute
@@ -69,7 +69,7 @@ def generate_time_features(target) -> DataFrame:
 
     bins = [0, 4, 8, 12, 16, 20, 24]
     labels = ['Late Night', 'Early Morning', 'Morning', 'Noon', 'Eve', 'Night']
-    features['session'] = pandas_cut(features['hour'], bins=bins, labels=labels)
+    features['session'] = cut(features['hour'], bins=bins, labels=labels)
 
     features.set_index(target.index, inplace=True)
 

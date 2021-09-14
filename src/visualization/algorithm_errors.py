@@ -1,8 +1,8 @@
 from os import path
 from warnings import filterwarnings
 
-import seaborn as sns
-from matplotlib import pyplot as plt
+import seaborn
+from matplotlib import pyplot
 from pandas import DataFrame, read_csv
 
 from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH
@@ -30,9 +30,9 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         'figure.titlesize': large,
         'xtick.major.pad': 8
     }
-    plt.rcParams.update(params)
-    plt.style.use('seaborn-whitegrid')
-    sns.set_style('white')
+    pyplot.rcParams.update(params)
+    pyplot.style.use('seaborn-whitegrid')
+    seaborn.set_style('white')
 
     for error_type in error_types:
         dataframe_algorithms = DataFrame(columns=['algorithm', pollutant])
@@ -52,7 +52,7 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         dataframe_algorithms.sort_values(by=pollutant, ascending=False, inplace=True)
         dataframe_algorithms.reset_index(drop=True, inplace=True)
 
-        fig, ax = plt.subplots(figsize=(16, 10), facecolor='white', dpi=80)
+        fig, ax = pyplot.subplots(figsize=(16, 10), facecolor='white', dpi=80)
         ax.vlines(x=dataframe_algorithms.index, ymin=0, ymax=dataframe_algorithms[pollutant], color='firebrick',
                   alpha=0.7, linewidth=40, label=pollutants[pollutant])
         ax.legend()
@@ -64,8 +64,8 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         ax.set_ylabel(error_type, fontsize=22)
         y_lim = dataframe_algorithms[pollutant].max() + 10 - (dataframe_algorithms[pollutant].max() % 10)
         ax.set_ylim(ymin=0, ymax=y_lim)
-        plt.xticks(dataframe_algorithms.index, dataframe_algorithms['algorithm'], horizontalalignment='center',
-                   fontsize=22, rotation=30)
+        pyplot.xticks(dataframe_algorithms.index, dataframe_algorithms['algorithm'], horizontalalignment='center',
+                      fontsize=22, rotation=30)
 
         file_path = path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant)
-        save_plot(fig, plt, file_path, error_type)
+        save_plot(fig, pyplot, file_path, error_type)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from math import inf
-from os import environ, makedirs, path, remove as os_remove
-from pickle import dump as pickle_dump, HIGHEST_PROTOCOL
+from os import environ, makedirs, path, remove
+from pickle import dump, HIGHEST_PROTOCOL
 from threading import Thread
 from traceback import print_exc
 
@@ -44,7 +44,7 @@ def split_dataframe(dataframe: DataFrame, target: str, selected_features: list =
 def save_selected_features(city_name: str, sensor_id: str, pollutant: str, selected_features: list) -> None:
     makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant), exist_ok=True)
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.pkl'), 'wb') as out_file:
-        pickle_dump(selected_features, out_file, HIGHEST_PROTOCOL)
+        dump(selected_features, out_file, HIGHEST_PROTOCOL)
 
 
 def read_model(city_name: str, sensor_id: str, pollutant: str, algorithm: str, error_type: str) -> tuple:
@@ -86,14 +86,14 @@ def hyper_parameter_tuning(model: BaseRegressionModel, x_train, y_train, city_na
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
                         'HyperparameterOptimization.pkl'), 'wb') as out_file:
-        pickle_dump(model_cv.best_params_, out_file, HIGHEST_PROTOCOL)
+        dump(model_cv.best_params_, out_file, HIGHEST_PROTOCOL)
 
     return model_cv.best_params_
 
 
 def remove_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> None:
     try:
-        os_remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, lock_file))
+        remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, lock_file))
     except OSError:
         pass
 
@@ -110,7 +110,7 @@ def check_best_regression_model(city_name: str, sensor_id: str, pollutant: str) 
 
 def save_best_regression_model(city_name: str, sensor_id: str, pollutant: str, best_model: BaseRegressionModel) -> None:
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl'), 'wb') as out_file:
-        pickle_dump(best_model, out_file, HIGHEST_PROTOCOL)
+        dump(best_model, out_file, HIGHEST_PROTOCOL)
 
 
 def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: str, pollutant: str) -> None:
