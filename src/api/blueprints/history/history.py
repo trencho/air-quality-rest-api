@@ -1,5 +1,5 @@
 from datetime import datetime
-from json import loads as json_loads
+from json import loads
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response, request
@@ -28,7 +28,7 @@ def fetch_city_sensor_history(city_name: str, sensor_id: str, data_type: str) ->
         return timestamps
     start_time, end_time = timestamps
 
-    if (city := check_city(city_name)) is None:
+    if check_city(city_name) is None:
         message = 'Cannot return historical data because the city is not found or is invalid.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
@@ -83,5 +83,5 @@ def return_historical_data(city_name: str, sensor: dict, data_type: str, start_t
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
     history_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
-    history_results['data'].extend(json_loads(dataframe.to_json(orient='records')))
+    history_results['data'].extend(loads(dataframe.to_json(orient='records')))
     return make_response(history_results)

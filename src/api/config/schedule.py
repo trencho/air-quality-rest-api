@@ -1,15 +1,15 @@
 from base64 import b64encode
 from datetime import datetime
-from json import dump as json_dump
-from os import environ, makedirs, path, remove as os_remove, walk
+from json import dump
+from os import environ, listdir, makedirs, path, remove, walk
 from shutil import make_archive, rmtree
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data
-from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, mongodb_connection, pollutants, repo_name, \
-    ROOT_PATH
+from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PATH, mongodb_connection, pollutants, \
+    repo_name, ROOT_PATH
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_sensors, save_dataframe
 from processing import merge_air_quality_data
@@ -32,7 +32,7 @@ def data_dump() -> None:
                 with open(path.join(root, file), 'rb') as in_file:
                     data = b64encode(in_file.read())
                 append_commit_files(file_list, data, root, file, file_names)
-                os_remove(path.join(root, file))
+                remove(path.join(root, file))
 
     if file_list:
         branch = 'master'
@@ -53,7 +53,7 @@ def fetch_hourly_data() -> None:
 def fetch_locations() -> None:
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
-        json_dump(cities, out_file)
+        dump(cities, out_file)
     cache.set('cities', cities)
     sensors = {}
     for city in cities:
@@ -66,7 +66,7 @@ def fetch_locations() -> None:
                 mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
         makedirs(path.join(DATA_RAW_PATH, city['cityName']), exist_ok=True)
         with open(path.join(DATA_RAW_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
-            json_dump(sensors[city['cityName']], out_file)
+            dump(sensors[city['cityName']], out_file)
 
     cache.set('sensors', sensors)
 
@@ -90,6 +90,9 @@ def import_data() -> None:
 
 @scheduler.scheduled_job(trigger='cron', day=2)
 def model_training() -> None:
+    for file in [file for file in listdir(MODELS_PATH) if file.endswith('.lock')]:
+        remove(path.join(MODELS_PATH, file))
+
     cities = cache.get('cities') or []
     for city in cities:
         sensors = cache.get('sensors') or {}
