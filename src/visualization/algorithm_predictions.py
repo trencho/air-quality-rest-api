@@ -31,7 +31,7 @@ def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
     y1 = dataframe_predictions['Actual']
     y2 = dataframe_predictions['Predicted']
 
-    fig, ax = plt.subplots(1, 1, figsize=(16, 10), dpi=80)
+    fig, ax = pyplot.subplots(1, 1, figsize=(16, 10), dpi=80)
     ax.plot(x, y1, color='tab:red', label='Actual')
     ax.plot(x, y2, color='tab:green',
             label=f'Predicted: {regression_models[dataframe_algorithms.iloc[algorithm_index]["algorithm"]]}')
