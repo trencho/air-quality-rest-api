@@ -10,7 +10,7 @@ from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
 from modeling import train_city_sensors
 from models.base_regression_model import BaseRegressionModel
-from .feature_generation import encode_categorical_data, generate_lag_features, generate_time_features
+from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import value_scaling
 from .normalize_data import next_hour
 
@@ -102,9 +102,7 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
     def one_step_features(date, step: int):
         # Features must be obtained using data lagged by the desired number of steps (the for loop index)
         tmp = y[y.index <= date]
-        lags_features = generate_lag_features(tmp, lags)
-        time_features = generate_time_features(tmp)
-        features = lags_features.join(time_features, how='inner').dropna()
+        features = generate_features(tmp, lags)
 
         # Build target to be ahead of the features built by the desired number of steps (the for loop index)
         target = y[y.index >= features.index[0] + Timedelta(hours=step)]
@@ -172,9 +170,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
             continue
 
         dataframe = DataFrame(data, index=[date])
-        lags_features = generate_lag_features(target, lags)
-        time_features = generate_time_features(target)
-        features = dataframe.join(lags_features, how='inner').join(time_features, how='inner')
+        features = dataframe.join(generate_features(target, lags), how='inner')
         features = concat([features, DataFrame(columns=list(set(model_features) - set(list(features.columns))))])
         encode_categorical_data(features)
         features = features[model_features]

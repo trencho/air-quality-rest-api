@@ -104,6 +104,8 @@ def check_best_regression_model(city_name: str, sensor_id: str, pollutant: str) 
             path.getmtime(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl')))
         if last_modified < int(datetime.timestamp(current_hour())) - week_in_seconds:
             return True
+
+        return False
     except OSError:
         return False
 
