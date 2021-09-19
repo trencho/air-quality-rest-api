@@ -183,5 +183,5 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
         remove_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
 
 
-def train_city_sensors(city: dict, sensor: dict, pollutant: str) -> None:
-    Thread(target=train_regression_model, args=(city, sensor, pollutant), daemon=True).start()
+def train_city_sensors(city: dict, sensor: dict, pollutant: str, daemon: bool = False) -> None:
+    Thread(target=train_regression_model, args=(city, sensor, pollutant), daemon=daemon).start()
