@@ -64,10 +64,10 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 
 @cache.memoize(timeout=3600)
-def load_regression_model(city: dict, sensor: dict, pollutant: str) -> Optional[tuple]:
+def load_regression_model(city: dict, sensor: dict, pollutant: str, daemon: bool = True) -> Optional[tuple]:
     if not path.exists(
             path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
-        train_city_sensors(city, sensor, pollutant)
+        train_city_sensors(city, sensor, pollutant, daemon)
         return None
 
     with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
