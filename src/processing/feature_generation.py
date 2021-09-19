@@ -31,8 +31,8 @@ def encode_categorical_data(dataframe: DataFrame) -> None:
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
-def generate_lag_features(target: Series, lags: int = 24) -> DataFrame:
-    partial = Series(data=pacf(target, nlags=lags))
+def generate_lag_features(target: Series, lags: int) -> DataFrame:
+    partial = Series(data=pacf(target, nlags=lags if lags < target.size else target.size))
     lags = list(partial[abs(partial) >= 0.2].index)
 
     if 0 in lags:
@@ -103,8 +103,8 @@ def generate_time_series_features(dataframe: DataFrame, target: str) -> DataFram
     return select_time_series_features(features, target)
 
 
-def generate_features(target: Series) -> DataFrame:
-    lag_features = generate_lag_features(target)
+def generate_features(target: Series, lags: int = 24) -> DataFrame:
+    lag_features = generate_lag_features(target, lags)
     time_features = generate_time_features(target)
     features = lag_features.join(time_features, how='inner')
 

@@ -1,7 +1,7 @@
 from base64 import b64encode
 from datetime import datetime
 from json import dump
-from os import environ, listdir, makedirs, path, remove, walk
+from os import environ, makedirs, path, remove, walk
 from shutil import make_archive, rmtree
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -90,7 +90,8 @@ def import_data() -> None:
 
 @scheduler.scheduled_job(trigger='cron', day=2)
 def model_training() -> None:
-    for file in [file for file in listdir(MODELS_PATH) if file.endswith('.lock')]:
+    for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
+                 file.endswith('.lock')]:
         remove(path.join(MODELS_PATH, file))
 
     cities = cache.get('cities') or []
