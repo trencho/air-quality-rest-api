@@ -41,13 +41,11 @@ def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
         message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    cities = cache.get('cities')
-    for city in cities:
+    for city in cache.get('cities') or []:
         if city['cityName'] == sensor['cityName']:
             return return_forecast_results(latitude, longitude, city, sensor)
 
 
-@cache.memoize(timeout=3600)
 def return_forecast_results(latitude: float, longitude: float, city: dict, sensor: dict) -> Response:
     forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
     if (mongodb_env := environ.get(mongodb_connection)) is not None and (
