@@ -42,18 +42,16 @@ def data_dump() -> None:
 
 @scheduler.scheduled_job(trigger='cron', hour='*/2')
 def fetch_hourly_data() -> None:
-    cities = cache.get('cities') or []
-    for city in cities:
-        sensors = cache.get('sensors') or {}
+    sensors = cache.get('sensors') or {}
+    for city in cache.get('cities') or []:
         for sensor in sensors[city['cityName']]:
             fetch_city_data(city['cityName'], sensor)
 
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def fetch_locations() -> None:
-    cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
-        dump(cities, out_file)
+        dump(cities := fetch_cities(), out_file)
     cache.set('cities', cities)
     sensors = {}
     for city in cities:
@@ -80,9 +78,8 @@ def import_data() -> None:
                 dataframe = read_csv(file_path)
                 save_dataframe(dataframe, path.splitext(file)[0], None, path.basename(path.dirname(file_path)))
 
-    cities = cache.get('cities') or []
-    for city in cities:
-        sensors = cache.get('sensors') or {}
+    sensors = cache.get('sensors') or {}
+    for city in cache.get('cities') or []:
         for sensor in sensors[city['cityName']]:
             merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
             rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), True)
@@ -94,9 +91,8 @@ def model_training() -> None:
                  file.endswith('.lock')]:
         remove(path.join(MODELS_PATH, file))
 
-    cities = cache.get('cities') or []
-    for city in cities:
-        sensors = cache.get('sensors') or {}
+    sensors = cache.get('sensors') or {}
+    for city in cache.get('cities') or []:
         for sensor in sensors[city['cityName']]:
             for pollutant in pollutants:
                 train_regression_model(city, sensor, pollutant)
@@ -105,9 +101,8 @@ def model_training() -> None:
 @scheduler.scheduled_job(trigger='cron', minute=0)
 def predict_locations() -> None:
     if environ.get(mongodb_connection) is not None:
-        cities = cache.get('cities') or []
-        for city in cities:
-            sensors = cache.get('sensors') or {}
+        sensors = cache.get('sensors') or {}
+        for city in cache.get('cities') or []:
             for sensor in sensors[city['cityName']]:
                 mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
                                                     {'data': list(

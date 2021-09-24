@@ -26,9 +26,8 @@ def train_data(city_name: str = None, sensor_id: str = None) -> Response:
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     if city_name is None:
-        cities = cache.get('cities') or []
         sensors = cache.get('sensors') or {}
-        for city in cities:
+        for city in cache.get('cities') or []:
             for sensor in sensors[city['cityName']]:
                 if pollutant_name is None:
                     for pollutant in pollutants:
