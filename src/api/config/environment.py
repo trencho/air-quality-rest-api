@@ -35,9 +35,8 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
 
 
 def fetch_db_data() -> None:
-    cities = cache.get('cities') or []
     sensors = cache.get('sensors') or {}
-    for city in cities:
+    for city in cache.get('cities') or []:
         for sensor in sensors[city['cityName']]:
             for collection in collections:
                 fetch_collection(collection, city['cityName'], sensor['sensorId'])

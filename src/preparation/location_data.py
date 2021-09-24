@@ -11,8 +11,7 @@ from definitions import countries
 
 @cache.memoize(timeout=3600)
 def check_city(city_name: str) -> Optional[dict]:
-    cities = cache.get('cities') or []
-    for city in cities:
+    for city in cache.get('cities') or []:
         if city['cityName'] == city_name:
             return city
 
@@ -32,8 +31,7 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 def fetch_cities() -> list:
     response = get('https://pulse.eco/rest/city/')
     try:
-        cities_json = response.json()
-        return [city for city in cities_json if city['countryCode'] in countries]
+        return [city for city in response.json() if city['countryCode'] in countries]
     except ValueError:
         return []
 
