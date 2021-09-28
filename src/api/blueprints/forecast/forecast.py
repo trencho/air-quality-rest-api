@@ -7,7 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 from api.config.cache import cache
 from api.config.database import mongo
 from definitions import mongodb_connection
-from preparation import calculate_nearest_sensor, check_city, check_sensor
+from preparation import calculate_nearest_sensor, check_city, check_sensor, read_cities
 from processing.forecast_data import fetch_forecast_result
 
 forecast_blueprint = Blueprint('forecast', __name__)
@@ -41,7 +41,7 @@ def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
         message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
-    for city in cache.get('cities') or []:
+    for city in cache.get('cities') or read_cities():
         if city['cityName'] == sensor['cityName']:
             return return_forecast_results(latitude, longitude, city, sensor)
 

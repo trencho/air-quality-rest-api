@@ -146,7 +146,6 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
         params = hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant)
         model.set_params(**params)
         model.train(x_train, y_train)
-        model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
 
         y_predicted = model.predict(x_test)
 

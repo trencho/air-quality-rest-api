@@ -7,7 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 from api.config.cache import cache
 from definitions import pollutants
 from modeling import train_city_sensors
-from preparation import check_city, check_sensor
+from preparation import check_city, check_sensor, read_cities, read_sensors
 
 train_blueprint = Blueprint('train', __name__)
 
@@ -26,9 +26,8 @@ def train_data(city_name: str = None, sensor_id: str = None) -> Response:
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     if city_name is None:
-        sensors = cache.get('sensors') or {}
-        for city in cache.get('cities') or []:
-            for sensor in sensors[city['cityName']]:
+        for city in cache.get('cities') or read_cities():
+            for sensor in read_sensors(city['cityName']):
                 if pollutant_name is None:
                     for pollutant in pollutants:
                         train_city_sensors(city, sensor, pollutant)
@@ -40,8 +39,7 @@ def train_data(city_name: str = None, sensor_id: str = None) -> Response:
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     if sensor_id is None:
-        sensors = cache.get('sensors') or {}
-        for sensor in sensors[city['cityName']]:
+        for sensor in read_sensors(city['cityName']):
             if pollutant_name is None:
                 for pollutant in pollutants:
                     train_city_sensors(city, sensor, pollutant)
