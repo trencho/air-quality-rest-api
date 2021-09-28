@@ -6,7 +6,7 @@ from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_city_data
 from api.config.cache import cache
-from preparation import check_city, check_sensor
+from preparation import check_city, check_sensor, read_cities, read_sensors
 from processing import current_hour, next_hour
 
 fetch_blueprint = Blueprint('fetch', __name__)
@@ -33,9 +33,8 @@ def fetch_data(city_name: str = None, sensor_id: str = None) -> Response:
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
 
     if city_name is None:
-        sensors = cache.get('sensors') or {}
-        for city in cache.get('cities') or []:
-            for sensor in sensors[city['cityName']]:
+        for city in cache.get('cities') or read_cities():
+            for sensor in read_sensors(city['cityName']):
                 fetch_city_data(city['cityName'], sensor)
 
         message = 'Fetched weather and pollution data from the external APIs for all cities.'
@@ -46,8 +45,7 @@ def fetch_data(city_name: str = None, sensor_id: str = None) -> Response:
         return make_response(jsonify(error_message=message), HTTP_400_BAD_REQUEST)
 
     if sensor_id is None:
-        sensors = cache.get('sensors') or {}
-        for sensor in sensors[city['cityName']]:
+        for sensor in read_sensors(city['cityName']):
             fetch_city_data(city_name, sensor)
 
         message = ('Started the operation to fetch weather and pollution data from the external APIs for '

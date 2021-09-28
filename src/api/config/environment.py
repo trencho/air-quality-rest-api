@@ -4,7 +4,7 @@ from pandas import DataFrame
 
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, environment_variables, \
     MODELS_PATH, mongodb_connection, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
-from .cache import cache
+from preparation import read_cities, read_sensors
 from .database import mongo
 from .schedule import fetch_locations
 
@@ -35,9 +35,8 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
 
 
 def fetch_db_data() -> None:
-    sensors = cache.get('sensors') or {}
-    for city in cache.get('cities') or []:
-        for sensor in sensors[city['cityName']]:
+    for city in read_cities():
+        for sensor in read_sensors(city['cityName']):
             for collection in collections:
                 fetch_collection(collection, city['cityName'], sensor['sensorId'])
 
