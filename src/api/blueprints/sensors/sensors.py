@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, make_response, Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
-from preparation import check_city, check_sensor
+from preparation import check_city, check_sensor, read_sensors
 
 sensors_blueprint = Blueprint('sensors', __name__)
 
@@ -20,8 +20,7 @@ def fetch_city_sensor(city_name: str, sensor_id: str = None) -> Response:
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
     if sensor_id is None:
-        sensors = cache.get('sensors') or {}
-        return make_response(jsonify(sensors[city_name]))
+        return make_response(jsonify(read_sensors(city_name)))
 
     if (sensor := check_sensor(city_name, sensor_id)) is None:
         message = 'Cannot return data because the sensor is not found or is invalid.'

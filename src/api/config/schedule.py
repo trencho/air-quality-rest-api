@@ -11,7 +11,7 @@ from api.blueprints import fetch_city_data
 from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PATH, mongodb_connection, pollutants, \
     repo_name, ROOT_PATH
 from modeling import train_regression_model
-from preparation import fetch_cities, fetch_sensors, save_dataframe
+from preparation import fetch_cities, fetch_sensors, read_cities, read_sensors, save_dataframe
 from processing import merge_air_quality_data
 from processing.forecast_data import fetch_forecast_result
 from .cache import cache
@@ -42,9 +42,8 @@ def data_dump() -> None:
 
 @scheduler.scheduled_job(trigger='cron', hour='*/2')
 def fetch_hourly_data() -> None:
-    sensors = cache.get('sensors') or {}
-    for city in cache.get('cities') or []:
-        for sensor in sensors[city['cityName']]:
+    for city in cache.get('cities') or read_cities():
+        for sensor in read_sensors(city['cityName']):
             fetch_city_data(city['cityName'], sensor)
 
 
@@ -66,8 +65,6 @@ def fetch_locations() -> None:
         with open(path.join(DATA_RAW_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
             dump(sensors[city['cityName']], out_file)
 
-    cache.set('sensors', sensors)
-
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def import_data() -> None:
@@ -78,9 +75,8 @@ def import_data() -> None:
                 dataframe = read_csv(file_path)
                 save_dataframe(dataframe, path.splitext(file)[0], None, path.basename(path.dirname(file_path)))
 
-    sensors = cache.get('sensors') or {}
-    for city in cache.get('cities') or []:
-        for sensor in sensors[city['cityName']]:
+    for city in cache.get('cities') or read_cities():
+        for sensor in read_sensors(city['cityName']):
             merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
             rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), True)
 
@@ -91,9 +87,8 @@ def model_training() -> None:
                  file.endswith('.lock')]:
         remove(path.join(MODELS_PATH, file))
 
-    sensors = cache.get('sensors') or {}
-    for city in cache.get('cities') or []:
-        for sensor in sensors[city['cityName']]:
+    for city in cache.get('cities') or read_cities():
+        for sensor in read_sensors(city['cityName']):
             for pollutant in pollutants:
                 train_regression_model(city, sensor, pollutant)
 
@@ -101,9 +96,8 @@ def model_training() -> None:
 @scheduler.scheduled_job(trigger='cron', minute=0)
 def predict_locations() -> None:
     if environ.get(mongodb_connection) is not None:
-        sensors = cache.get('sensors') or {}
-        for city in cache.get('cities') or []:
-            for sensor in sensors[city['cityName']]:
+        for city in cache.get('cities') or read_cities():
+            for sensor in read_sensors(city['cityName']):
                 mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
                                                     {'data': list(
                                                         fetch_forecast_result(city, sensor, daemon=False).values()),

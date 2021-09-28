@@ -1,4 +1,6 @@
+from json import load
 from math import modf
+from os import path
 from typing import Optional
 
 from haversine import haversine_vector
@@ -6,22 +8,19 @@ from numpy import where
 from requests import get
 
 from api.config.cache import cache
-from definitions import countries
+from definitions import countries, DATA_RAW_PATH
 
 
-@cache.memoize(timeout=3600)
 def check_city(city_name: str) -> Optional[dict]:
-    for city in cache.get('cities') or []:
+    for city in cache.get('cities') or read_cities():
         if city['cityName'] == city_name:
             return city
 
     return None
 
 
-@cache.memoize(timeout=3600)
 def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
-    sensors = cache.get('sensors') or {}
-    for sensor in sensors[city_name]:
+    for sensor in read_sensors(city_name):
         if sensor['sensorId'] == sensor_id:
             return sensor
 
@@ -42,6 +41,22 @@ def fetch_sensors(city_name: str) -> list:
         sensors_json = response.json()
         return [sensor for sensor in sensors_json if sensor['status'] == 'ACTIVE']
     except ValueError:
+        return []
+
+
+def read_cities() -> list:
+    try:
+        with open(path.join(DATA_RAW_PATH, 'cities.json'), 'r') as in_file:
+            return load(in_file)
+    except OSError:
+        return []
+
+
+def read_sensors(city_name) -> list:
+    try:
+        with open(path.join(DATA_RAW_PATH, city_name, 'sensors.json'), 'r') as in_file:
+            return load(in_file)
+    except OSError:
         return []
 
 
@@ -76,7 +91,8 @@ def recalculate_coordinate(val: tuple, _as: Optional[str] = None) -> [float, tup
 
 
 def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
-    sensors = [sensor for sensor_list in list(cache.get('sensors').values()) for sensor in sensor_list]
+    sensors = [sensor for sensor_list in [read_sensors(city['cityName']) for city in read_cities()] for sensor in
+               sensor_list]
     distances = haversine_vector(coordinates, [tuple(map(float, sensor['position'].split(','))) for sensor in sensors],
                                  comb=True)
     min_distance = min(distances)
