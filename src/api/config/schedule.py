@@ -78,10 +78,10 @@ def import_data() -> None:
     for city in cache.get('cities') or read_cities():
         for sensor in read_sensors(city['cityName']):
             merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
-            rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), True)
+            rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), ignore_errors=True)
 
 
-@scheduler.scheduled_job(trigger='cron', day=2)
+@scheduler.scheduled_job(trigger='cron', day=1)
 def model_training() -> None:
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith('.lock')]:

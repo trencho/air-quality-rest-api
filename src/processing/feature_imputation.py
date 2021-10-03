@@ -67,7 +67,6 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
     is_all_categorical = sum(is_numeric) == 0
     is_mixed_type = not is_all_categorical and not is_all_numeric
 
-    # Check the content of the distances parameter
     if numeric_distance not in possible_continuous_distances:
         print(f'The continuous distance {numeric_distance} is not supported.')
         return None
@@ -126,7 +125,6 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
                                        number_of_categorical_var) / number_of_variables for j in
                                 range(number_of_observations)] for i in range(number_of_observations)])
 
-    # Fill the diagonal with NaN values
     fill_diagonal(result_matrix, nan)
 
     return DataFrame(result_matrix)
@@ -162,12 +160,10 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method='mean', numer
                                               problem in the parameters, return None
     """
 
-    # Get useful variables
     possible_aggregation_method = ['mean', 'median', 'mode']
     number_observations = len(target)
     is_target_numeric = all(isinstance(n, Number) for n in target)
 
-    # Check for possible errors
     if number_observations < 3:
         print('Not enough observations.')
         return None
@@ -184,7 +180,6 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method='mean', numer
         print('The only method allowed for categorical target variable is the mode.')
         return None
 
-    # Make sure the data are in the right format
     target = DataFrame(target)
     attributes = DataFrame(attributes)
 
