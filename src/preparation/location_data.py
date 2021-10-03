@@ -67,12 +67,12 @@ def recalculate_coordinate(val: tuple, _as: Optional[str] = None) -> [float, tup
     specified as 'deg', 'min' or 'sec'; default return value is a proper coordinate tuple.
     """
     degrees, minutes, seconds = val
-    # Pass outstanding values from right to left
+
     minutes = (minutes or 0) + int(seconds) / 60
     seconds = seconds % 60
     degrees = (degrees or 0) + int(minutes) / 60
     minutes = minutes % 60
-    # Pass decimal part from left to right
+
     degrees_fraction, degrees_integer = modf(degrees)
     minutes = minutes + degrees_fraction * 60
     degrees = degrees_integer

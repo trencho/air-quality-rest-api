@@ -9,7 +9,7 @@ from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
 from definitions import app_env, app_dev, DATA_PROCESSED_PATH, MODELS_PATH, pollutants, regression_models, \
-    RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH, week_in_seconds
+    RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
 from processing import backward_elimination, encode_categorical_data, generate_features, value_scaling
@@ -102,7 +102,8 @@ def check_best_regression_model(city_name: str, sensor_id: str, pollutant: str) 
     try:
         last_modified = int(
             path.getmtime(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl')))
-        if last_modified < int(datetime.timestamp(current_hour())) - week_in_seconds:
+        month_in_seconds = 2629800
+        if last_modified < int(datetime.timestamp(current_hour())) - month_in_seconds:
             return False
 
         return True

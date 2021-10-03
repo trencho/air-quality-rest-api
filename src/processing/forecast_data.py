@@ -100,11 +100,9 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
     """
 
     def one_step_features(date, step: int):
-        # Features must be obtained using data lagged by the desired number of steps (the for loop index)
         tmp = y[y.index <= date]
         features = generate_features(tmp, lags)
 
-        # Build target to be ahead of the features built by the desired number of steps (the for loop index)
         target = y[y.index >= features.index[0] + Timedelta(hours=step)]
         assert len(features.index) == len(target.index)
 
@@ -120,7 +118,6 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
 
         model.train(features, target)
 
-        # Use the model to predict s steps ahead
         predictions = model.predict(forecast_features)
         forecast_values.append(predictions[-1])
 
@@ -149,7 +146,6 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     forecast_values: pd.Series with forecasted values indexed by forecast horizon dates
     """
 
-    # Get the hours to forecast
     upcoming_hour = next_hour(datetime.now())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
@@ -159,7 +155,6 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     target = dataframe[pollutant].copy()
 
     for date in forecast_range:
-        # Build target time series using previously forecast value
         new_point = forecasted_values[-1] if len(forecasted_values) > 0 else 0.0
         target = target.append(Series(new_point, [date]))
 
