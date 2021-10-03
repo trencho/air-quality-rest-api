@@ -23,10 +23,8 @@ def current_hour() -> datetime:
 
 
 def drop_numerical_outliers(dataframe, z_thresh=3):
-    # Constrains will contain 'True' or 'False' depending on if it is a value below the threshold.
     constrains = dataframe.select_dtypes(include=[number]).apply(lambda x: abs(zscore(x)) < z_thresh,
                                                                  result_type='reduce').all(axis=1)
-    # Drop (inplace) values set to be rejected
     dataframe.drop(index=dataframe.index[~constrains], inplace=True)
 
 

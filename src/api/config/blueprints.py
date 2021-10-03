@@ -4,6 +4,7 @@ from api.blueprints.cities import cities_blueprint
 from api.blueprints.errors import errors_blueprint
 from api.blueprints.forecast import forecast_blueprint
 from api.blueprints.history import history_blueprint
+from api.blueprints.icon import icon_blueprint
 from api.blueprints.pollutants import pollutants_blueprint
 from api.blueprints.sensors import sensors_blueprint
 
@@ -20,5 +21,6 @@ __all__ = [
 
 
 def register_blueprints(app: Flask) -> None:
+    app.register_blueprint(icon_blueprint)
     for blueprint in __all__:
         app.register_blueprint(globals()[blueprint], url_prefix='/api/v1')
