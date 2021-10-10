@@ -50,7 +50,7 @@ def fetch_hourly_data() -> None:
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def fetch_locations() -> None:
     with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
-        dump(cities := fetch_cities(), out_file)
+        dump(cities := fetch_cities(), out_file, indent=4)
     cache.set('cities', cities)
     sensors = {}
     for city in cities:
@@ -63,7 +63,7 @@ def fetch_locations() -> None:
                 mongo.db['sensors'].replace_one({'sensorId': sensor['sensorId']}, sensor, upsert=True)
         makedirs(path.join(DATA_RAW_PATH, city['cityName']), exist_ok=True)
         with open(path.join(DATA_RAW_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
-            dump(sensors[city['cityName']], out_file)
+            dump(sensors[city['cityName']], out_file, indent=4)
 
 
 @scheduler.scheduled_job(trigger='cron', hour=0)

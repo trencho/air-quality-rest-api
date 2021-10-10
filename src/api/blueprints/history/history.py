@@ -50,8 +50,7 @@ def fetch_coordinates_history(latitude: float, longitude: float, data_type: str)
         return timestamps
     start_time, end_time = timestamps
 
-    coordinates = (latitude, longitude)
-    if (sensor := calculate_nearest_sensor(coordinates)) is None:
+    if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:
         message = 'Cannot return historical data because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
@@ -82,6 +81,6 @@ def return_historical_data(city_name: str, sensor: dict, data_type: str, start_t
     dataframe = dataframe.loc[(dataframe['time'] >= start_time) & (dataframe['time'] <= end_time)]
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
-    history_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
-    history_results['data'].extend(loads(dataframe.to_json(orient='records')))
+    history_results = {'latitude': latitude, 'longitude': longitude,
+                       'data': [loads(dataframe.to_json(orient='records'))]}
     return make_response(history_results)
