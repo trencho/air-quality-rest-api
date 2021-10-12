@@ -3,7 +3,7 @@ from threading import Thread
 
 from flask import Flask
 
-from definitions import mongodb_connection
+from definitions import app_dev, app_env, app_prod, mongodb_connection
 from .blueprints import register_blueprints
 from .cache import configure_cache
 from .database import configure_database
@@ -13,10 +13,9 @@ from .swagger import configure_swagger
 
 
 def create_app() -> Flask:
-    # Comment these 2 lines to skip the environment variable check and scheduling of operations when running
-    # application in debug mode
-    check_environment_variables()
-    schedule_jobs()
+    if environ.get(app_env, app_dev) == app_prod:
+        check_environment_variables()
+        schedule_jobs()
 
     app = Flask(__name__)
 

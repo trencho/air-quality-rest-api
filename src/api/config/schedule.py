@@ -98,11 +98,9 @@ def predict_locations() -> None:
     if environ.get(mongodb_connection) is not None:
         for city in cache.get('cities') or read_cities():
             for sensor in read_sensors(city['cityName']):
-                mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                                    {'data': list(
-                                                        fetch_forecast_result(city, sensor, daemon=False).values()),
-                                                        'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                                    upsert=True)
+                mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, {
+                    'data': [fetch_forecast_result(city, sensor, daemon=False).values()], 'cityName': city['cityName'],
+                    'sensorId': sensor['sensorId']}, upsert=True)
 
 
 def schedule_jobs() -> None:

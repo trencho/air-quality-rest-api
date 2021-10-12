@@ -36,8 +36,7 @@ def fetch_city_sensor_forecast(city_name: str, sensor_id: str) -> Response:
                           methods=['GET'])
 @swag_from('forecast_coordinates.yml', endpoint='forecast.coordinates', methods=['GET'])
 def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
-    coordinates = (latitude, longitude)
-    if (sensor := calculate_nearest_sensor(coordinates)) is None:
+    if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:
         message = 'Value cannot be predicted because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
@@ -59,6 +58,6 @@ def return_forecast_results(latitude: float, longitude: float, city: dict, senso
     forecast_results['data'] = [forecast_result.values()]
     if mongodb_env is not None:
         mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                            {'data': list(forecast_result.values()),
+                                            {'data': [forecast_result.values()],
                                              'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, upsert=True)
     return make_response(forecast_results)

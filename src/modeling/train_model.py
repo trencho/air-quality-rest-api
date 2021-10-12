@@ -1,6 +1,6 @@
 from datetime import datetime
 from math import inf
-from os import environ, makedirs, path, remove
+from os import makedirs, path, remove
 from pickle import dump, HIGHEST_PROTOCOL
 from threading import Thread
 from traceback import print_exc
@@ -8,7 +8,7 @@ from traceback import print_exc
 from pandas import DataFrame, read_csv, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
-from definitions import app_env, app_dev, DATA_PROCESSED_PATH, MODELS_PATH, pollutants, regression_models, \
+from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants, regression_models, \
     RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
@@ -133,14 +133,6 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
     best_model_error = inf
     best_model = None
     for model_name in regression_models:
-        if environ.get(app_env, app_dev) == app_dev and path.exists(
-                path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, f'{model_name}.pkl')):
-            model, model_error = read_model(city_name, sensor_id, pollutant, model_name, 'Mean Absolute Error')
-            if model_error < best_model_error:
-                best_model = model
-                best_model_error = model_error
-            continue
-
         create_paths(city_name, sensor_id, pollutant, model_name)
 
         model = make_model(model_name)

@@ -34,7 +34,7 @@ def flatten_json(nested_json: dict, exclude=None) -> dict:
     """
     if exclude is None:
         exclude = ['']
-    out = dict()
+    out = {}
 
     def flatten(x: (list, dict, str), name: str = '', exclude=exclude) -> None:
         if type(x) is dict:
