@@ -12,7 +12,8 @@ config = {
         }
     ],
     'specs_route': '/api/v1/apidocs/',
-    'title': 'AQRA'}
+    'title': 'AQRA'
+}
 swagger = Swagger(config=config, merge=True)
 
 
