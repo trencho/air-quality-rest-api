@@ -11,7 +11,8 @@ config = {
             'model_filter': lambda tag: True,
         }
     ],
-    'specs_route': '/api/v1/apidocs/'}
+    'specs_route': '/api/v1/apidocs/',
+    'title': 'AQRA'}
 swagger = Swagger(config=config, merge=True)
 
 

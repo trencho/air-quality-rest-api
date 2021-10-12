@@ -41,8 +41,7 @@ def fetch_city_sensor_pollutants(city_name: str, sensor_id: str) -> Response:
                             methods=['GET'])
 @swag_from('pollutants_coordinates.yml', endpoint='pollutants.coordinates', methods=['GET'])
 def fetch_coordinates_pollutants(latitude: float, longitude: float) -> Response:
-    coordinates = (latitude, longitude)
-    if (sensor := calculate_nearest_sensor(coordinates)) is None:
+    if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:
         message = 'Cannot return available pollutants because the coordinates are far away from all available sensors.'
         return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
 
