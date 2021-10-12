@@ -8,7 +8,6 @@ class LinearRegressionModel(BaseRegressionModel):
         reg = LinearRegression()
         param_grid = {
             'fit_intercept': [True, False],
-            'normalize': [True, False],
             'copy_X': [True, False]
         }
         super().__init__(reg, param_grid)
