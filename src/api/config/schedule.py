@@ -99,7 +99,7 @@ def predict_locations() -> None:
         for city in cache.get('cities') or read_cities():
             for sensor in read_sensors(city['cityName']):
                 mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, {
-                    'data': [fetch_forecast_result(city, sensor, daemon=False).values()], 'cityName': city['cityName'],
+                    'data': [*fetch_forecast_result(city, sensor, daemon=False).values()], 'cityName': city['cityName'],
                     'sensorId': sensor['sensorId']}, upsert=True)
 
 

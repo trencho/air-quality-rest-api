@@ -55,9 +55,9 @@ def return_forecast_results(latitude: float, longitude: float, city: dict, senso
         return make_response(forecast_results)
 
     forecast_result = fetch_forecast_result(city, sensor, daemon=True)
-    forecast_results['data'] = [forecast_result.values()]
+    forecast_results['data'] = [*forecast_result.values()]
     if mongodb_env is not None:
         mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                            {'data': [forecast_result.values()],
+                                            {'data': [*forecast_result.values()],
                                              'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, upsert=True)
     return make_response(forecast_results)
