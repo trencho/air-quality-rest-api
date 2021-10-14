@@ -51,7 +51,7 @@ def return_forecast_results(latitude: float, longitude: float, city: dict, senso
             forecast_result := mongo.db['predictions'].find_one(
                 {'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
                 projection={'_id': False, 'cityName': False, 'sensorId': False})) is not None:
-        forecast_results['data'] = [forecast_result['data']]
+        forecast_results['data'] = forecast_result['data']
         return make_response(forecast_results)
 
     forecast_result = fetch_forecast_result(city, sensor, daemon=True)

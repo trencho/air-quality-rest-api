@@ -44,7 +44,6 @@ def fetch_sensors(city_name: str) -> list:
         return []
 
 
-@cache.cached(timeout=3600)
 def read_cities() -> list:
     try:
         with open(path.join(DATA_RAW_PATH, 'cities.json'), 'r') as in_file:
@@ -53,7 +52,6 @@ def read_cities() -> list:
         return []
 
 
-@cache.memoize(timeout=3600)
 def read_sensors(city_name) -> list:
     try:
         with open(path.join(DATA_RAW_PATH, city_name, 'sensors.json'), 'r') as in_file:
