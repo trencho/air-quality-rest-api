@@ -8,7 +8,7 @@ from pandas import concat, DataFrame, date_range, read_csv, Series, Timedelta, t
 
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
-from modeling import train_city_sensors
+from modeling import train_city_sensors, train_regression_model
 from models.base_regression_model import BaseRegressionModel
 from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import value_scaling
@@ -67,7 +67,11 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 def load_regression_model(city: dict, sensor: dict, pollutant: str, daemon: bool) -> Optional[tuple]:
     if not path.exists(
             path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
-        train_city_sensors(city, sensor, pollutant, daemon)
+        if daemon:
+            train_city_sensors(city, sensor, pollutant)
+        else:
+            train_regression_model(city, sensor, pollutant)
+
         return None
 
     with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
