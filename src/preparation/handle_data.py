@@ -9,7 +9,7 @@ from definitions import mongodb_connection
 
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: Optional[str], sensor_id: str) -> None:
     if (mongodb_env := environ.get(mongodb_connection)) is not None:
-        db_records = DataFrame([mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})])
+        db_records = DataFrame([*mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})])
 
         if not db_records.empty:
             dataframe = dataframe.loc[~dataframe['time'].isin(db_records['time'])].copy()
