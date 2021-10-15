@@ -39,6 +39,7 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, 'pollution', data_path, sensor['sensorId'])
     except Exception:
         print(pollution_response)
+        print(dataframe)
         print_exc()
     finally:
         sleep(1)
