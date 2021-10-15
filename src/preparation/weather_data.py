@@ -34,6 +34,7 @@ def fetch_weather_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, 'weather', data_path, sensor['sensorId'])
     except Exception:
         print(weather_response)
+        print(dataframe)
         print_exc()
     finally:
         sleep(1)

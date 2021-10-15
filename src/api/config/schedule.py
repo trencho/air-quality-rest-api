@@ -49,8 +49,9 @@ def fetch_hourly_data() -> None:
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def fetch_locations() -> None:
+    cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
-        dump(cities := fetch_cities(), out_file, indent=4)
+        dump(cities, out_file, indent=4)
     cache.set('cities', cities)
     sensors = {}
     for city in cities:
