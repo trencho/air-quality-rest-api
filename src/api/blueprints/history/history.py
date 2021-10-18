@@ -82,5 +82,5 @@ def return_historical_data(city_name: str, sensor: dict, data_type: str, start_t
     sensor_position = sensor['position'].split(',')
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
     history_results = {'latitude': latitude, 'longitude': longitude,
-                       'data': [*loads(dataframe.to_json(orient='records'))]}
+                       'data': list(loads(dataframe.to_json(orient='records')))}
     return make_response(history_results)

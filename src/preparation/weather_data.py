@@ -20,10 +20,9 @@ def fetch_weather_data(city_name: str, sensor: dict) -> None:
     params = f'lat={lat}&lon={lon}&units={units}&exclude={exclude}&appid={token}'
 
     dataframe = DataFrame()
-    weather_response = get(url=url, params=params)
+    weather_response = get(url, params)
     try:
-        weather_json = weather_response.json()
-        hourly_data = weather_json['hourly']
+        hourly_data = weather_response.json()['hourly']
         df = json_normalize([flatten_json(hourly) for hourly in hourly_data])
         df.rename(columns={'dt': 'time'}, inplace=True, errors='ignore')
         dataframe = dataframe.append(df, ignore_index=True)
@@ -34,7 +33,6 @@ def fetch_weather_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, 'weather', data_path, sensor['sensorId'])
     except Exception:
         print(weather_response)
-        print(dataframe)
         print_exc()
     finally:
         sleep(1)
