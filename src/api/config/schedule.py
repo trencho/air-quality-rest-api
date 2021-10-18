@@ -21,7 +21,7 @@ from .git import append_commit_files, update_git_files
 scheduler = BackgroundScheduler()
 
 
-@scheduler.scheduled_job(trigger='cron', day=1)
+@scheduler.scheduled_job(trigger='cron', day='*/15')
 def data_dump() -> None:
     make_archive(DATA_PATH, 'zip', DATA_PATH)
 
@@ -74,7 +74,8 @@ def import_data() -> None:
             file_path = path.join(root, file)
             if file.endswith('weather.csv') or file.endswith('pollution.csv'):
                 dataframe = read_csv(file_path)
-                save_dataframe(dataframe, path.splitext(file)[0], None, path.basename(path.dirname(file_path)))
+                save_dataframe(dataframe, path.splitext(file)[0], collection_path=None,
+                               sensor_id=path.basename(path.dirname(file_path)))
 
     for city in cache.get('cities') or read_cities():
         for sensor in read_sensors(city['cityName']):
@@ -100,8 +101,8 @@ def predict_locations() -> None:
         for city in cache.get('cities') or read_cities():
             for sensor in read_sensors(city['cityName']):
                 mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, {
-                    'data': [*fetch_forecast_result(city, sensor, daemon=False).values()], 'cityName': city['cityName'],
-                    'sensorId': sensor['sensorId']}, upsert=True)
+                    'data': list(fetch_forecast_result(city, sensor, daemon=False).values()),
+                    'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, upsert=True)
 
 
 def schedule_jobs() -> None:

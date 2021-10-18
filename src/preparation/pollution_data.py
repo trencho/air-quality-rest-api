@@ -19,10 +19,9 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
     params = f'lat={lat}&lon={lon}&appid={token}'
 
     dataframe = DataFrame()
-    pollution_response = get(url=url, params=params)
+    pollution_response = get(url, params)
     try:
-        pollution_json = pollution_response.json()
-        pollution_data = pollution_json['list']
+        pollution_data = pollution_response.json()['list']
         data = []
         for pollution in pollution_data:
             pollution_dict = {'time': pollution['dt']}
@@ -39,7 +38,6 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, 'pollution', data_path, sensor['sensorId'])
     except Exception:
         print(pollution_response)
-        print(dataframe)
         print_exc()
     finally:
         sleep(1)
