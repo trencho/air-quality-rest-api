@@ -1,5 +1,4 @@
 from os import environ, path
-from typing import Optional
 
 from pandas import DataFrame, read_csv
 
@@ -7,7 +6,7 @@ from api.config.database import mongo
 from definitions import mongodb_connection
 
 
-def save_dataframe(dataframe: DataFrame, collection: str, collection_path: Optional[str], sensor_id: str) -> None:
+def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
     if (mongodb_env := environ.get(mongodb_connection)) is not None:
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 
