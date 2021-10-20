@@ -22,7 +22,7 @@ scheduler = BackgroundScheduler()
 
 
 @scheduler.scheduled_job(trigger='cron', day='*/15')
-def data_dump() -> None:
+def dump_data() -> None:
     make_archive(DATA_PATH, 'zip', DATA_PATH)
 
     file_list, file_names = [], []
@@ -74,13 +74,16 @@ def import_data() -> None:
             file_path = path.join(root, file)
             if file.endswith('weather.csv') or file.endswith('pollution.csv'):
                 dataframe = read_csv(file_path)
-                save_dataframe(dataframe, path.splitext(file)[0], collection_path=None,
-                               sensor_id=path.basename(path.dirname(file_path)))
+                save_dataframe(dataframe, path.splitext(file)[0],
+                               path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
+                               path.basename(path.dirname(file_path)))
 
     for city in cache.get('cities') or read_cities():
         for sensor in read_sensors(city['cityName']):
             merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
-            rmtree(path.join(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId']), ignore_errors=True)
+
+    rmtree(DATA_EXTERNAL_PATH)
+    makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
 
 
 @scheduler.scheduled_job(trigger='cron', day=1)
