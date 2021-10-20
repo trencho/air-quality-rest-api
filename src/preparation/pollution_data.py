@@ -19,8 +19,8 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
     params = f'lat={lat}&lon={lon}&appid={token}'
 
     dataframe = DataFrame()
-    pollution_response = get(url, params)
     try:
+        pollution_response = get(url, params)
         pollution_data = pollution_response.json()['list']
         data = []
         for pollution in pollution_data:
@@ -37,7 +37,6 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
             data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'pollution.csv')
             save_dataframe(dataframe, 'pollution', data_path, sensor['sensorId'])
     except Exception:
-        print(pollution_response)
         print_exc()
     finally:
         sleep(1)
