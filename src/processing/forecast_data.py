@@ -12,7 +12,7 @@ from modeling import train_city_sensors, train_regression_model
 from models.base_regression_model import BaseRegressionModel
 from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import value_scaling
-from .normalize_data import next_hour
+from .normalize_data import current_hour, next_hour
 
 FORECAST_PERIOD = '1H'
 FORECAST_STEPS = 24
@@ -156,6 +156,8 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     forecasted_values = []
     dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'summary.csv'), index_col='time')
     dataframe.index = to_datetime(dataframe.index, unit='s')
+    current_timestamp = int(datetime.timestamp(current_hour()))
+    dataframe.drop(index=dataframe.loc[dataframe['time'] > current_timestamp].index, inplace=True, errors='ignore')
     target = dataframe[pollutant].copy()
 
     for date in forecast_range:
