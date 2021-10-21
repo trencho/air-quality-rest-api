@@ -28,7 +28,7 @@ def fetch_weather_data(city_name: str, sensor: dict) -> None:
         dataframe = dataframe.append(df, ignore_index=True)
         dataframe.drop(columns='weather', inplace=True, errors='ignore')
 
-        if not dataframe.empty:
+        if len(dataframe.index) > 0:
             data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'weather.csv')
             save_dataframe(dataframe, 'weather', data_path, sensor['sensorId'])
     except Exception:

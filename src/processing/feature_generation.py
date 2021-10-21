@@ -76,7 +76,7 @@ def generate_time_features(target) -> DataFrame:
 
 
 def select_time_series_features(dataframe: DataFrame, target: str) -> DataFrame:
-    validation_split = len(dataframe) * 3 // 4
+    validation_split = len(dataframe.index) * 3 // 4
 
     train_x = dataframe.iloc[:validation_split].drop(columns=target)
     train_y = dataframe.iloc[:validation_split][target]
@@ -105,6 +105,6 @@ def generate_time_series_features(dataframe: DataFrame, target: str) -> DataFram
 def generate_features(target: Series, lags: int = 24) -> DataFrame:
     lag_features = generate_lag_features(target, lags)
     time_features = generate_time_features(target)
-    features = lag_features.join(time_features, how='inner')
+    features = time_features if len(lag_features.index) == 0 else lag_features.join(time_features, how='inner')
 
     return features.dropna(axis='columns', how='all').dropna(axis='index', how='any')

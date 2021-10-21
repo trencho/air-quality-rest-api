@@ -57,7 +57,7 @@ def forecast_city_sensor(city: dict, sensor: dict, pollutant: str, daemon: bool)
 def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
     dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'weather.csv'))
     dataframe = dataframe.loc[dataframe['time'] == timestamp]
-    if not dataframe.empty:
+    if len(dataframe.index) > 0:
         return dataframe.to_dict('records')[0]
 
     return {}

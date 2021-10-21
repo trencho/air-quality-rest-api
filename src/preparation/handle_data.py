@@ -10,11 +10,11 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
     if (mongodb_env := environ.get(mongodb_connection)) is not None:
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 
-        if not db_records.empty:
+        if len(db_records.index) > 0:
             dataframe = dataframe.loc[~dataframe['time'].isin(db_records['time'])].copy()
 
     trim_dataframe(dataframe, 'time')
-    if not dataframe.empty:
+    if len(dataframe.index) > 0:
         dataframe.loc[:, 'sensorId'] = sensor_id
         if mongodb_env is not None:
             mongo.db[collection].insert_many(dataframe.to_dict('records'))

@@ -119,7 +119,7 @@ def save_best_regression_model(city_name: str, sensor_id: str, pollutant: str, b
 def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: str, pollutant: str) -> None:
     dataframe = dataframe.join(generate_features(dataframe[pollutant]), how='inner')
     encode_categorical_data(dataframe)
-    validation_split = len(dataframe) * 3 // 4
+    validation_split = len(dataframe.index) * 3 // 4
 
     train_dataframe = dataframe.iloc[:validation_split]
     x_train, y_train = split_dataframe(train_dataframe, pollutant)

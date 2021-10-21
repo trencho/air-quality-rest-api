@@ -13,7 +13,7 @@ def merge_air_quality_data(data_path: str, city_name: str, sensor_id: str) -> No
 
         dataframe = merge(weather_data.drop_duplicates(), pollution_data.drop_duplicates(), on='time')
 
-        if not dataframe.empty:
+        if len(dataframe.index) > 0:
             data_path = path.join(data_path, city_name, sensor_id, 'summary.csv')
             save_dataframe(dataframe, 'summary', data_path, sensor_id)
     except FileNotFoundError:
