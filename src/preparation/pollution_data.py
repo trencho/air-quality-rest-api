@@ -33,7 +33,7 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
         current_timestamp = int(datetime.timestamp(current_datetime))
         dataframe.drop(index=dataframe.loc[dataframe['time'] > current_timestamp].index, inplace=True, errors='ignore')
 
-        if not dataframe.empty:
+        if len(dataframe.index) > 0:
             data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'pollution.csv')
             save_dataframe(dataframe, 'pollution', data_path, sensor['sensorId'])
     except Exception:

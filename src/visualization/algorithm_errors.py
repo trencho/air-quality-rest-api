@@ -46,7 +46,7 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
                     pollutant: dataframe_errors.iloc[0][error_type]
                 }], ignore_index=True).dropna()
 
-        if dataframe_algorithms.empty:
+        if len(dataframe_algorithms.index) == 0:
             continue
 
         dataframe_algorithms.sort_values(by=pollutant, ascending=False, inplace=True)
