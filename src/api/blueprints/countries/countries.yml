@@ -1,0 +1,8 @@
+tags:
+  - countries
+#    description: Data for all countries
+summary: Returns a json object of all available countries
+description: Fetches detailed data for each available country which has sensors collecting pollution data.
+responses:
+  200:
+    description: Returned json data with details for all countries.
