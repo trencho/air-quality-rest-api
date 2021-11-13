@@ -11,7 +11,7 @@ from api.blueprints import fetch_city_data
 from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PATH, mongodb_connection, pollutants, \
     repo_name, ROOT_PATH
 from modeling import train_regression_model
-from preparation import fetch_cities, fetch_sensors, read_cities, read_sensors, save_dataframe
+from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors, save_dataframe
 from processing import merge_air_quality_data
 from processing.forecast_data import fetch_forecast_result
 from .cache import cache
@@ -53,9 +53,18 @@ def fetch_locations() -> None:
     with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
         dump(cities, out_file, indent=4)
     cache.set('cities', cities)
+    countries = fetch_countries()
+    with open(path.join(DATA_RAW_PATH, 'countries.json'), 'w') as out_file:
+        dump(countries, out_file, indent=4)
+    cache.set('countries', countries)
+    mongodb_env = environ.get(mongodb_connection)
+    for country in countries:
+        if mongodb_env is not None:
+            mongo.db['countries'].replace_one({'countryCode': country['countryCode']}, country, upsert=True)
+
     sensors = {}
     for city in cities:
-        if (mongodb_env := environ.get(mongodb_connection)) is not None:
+        if mongodb_env is not None:
             mongo.db['cities'].replace_one({'cityName': city['cityName']}, city, upsert=True)
         sensors[city['cityName']] = fetch_sensors(city['cityName'])
         for sensor in sensors[city['cityName']]:

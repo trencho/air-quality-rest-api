@@ -1,6 +1,7 @@
 from flask import Flask
 
 from api.blueprints.cities import cities_blueprint
+from api.blueprints.countries import countries_blueprint
 from api.blueprints.errors import errors_blueprint
 from api.blueprints.forecast import forecast_blueprint
 from api.blueprints.history import history_blueprint
@@ -10,6 +11,7 @@ from api.blueprints.sensors import sensors_blueprint
 
 __all__ = [
     'cities_blueprint',
+    'countries_blueprint',
     'errors_blueprint',
     # 'fetch_blueprint',
     'forecast_blueprint',

@@ -19,6 +19,14 @@ def check_city(city_name: str) -> Optional[dict]:
     return None
 
 
+def check_country(country_code: str) -> Optional[dict]:
+    for country in cache.get('countries') or read_countries():
+        if country['countryCode'] == country_code.upper():
+            return country
+
+    return None
+
+
 def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
     for sensor in read_sensors(city_name):
         if sensor['sensorId'] == sensor_id:
@@ -28,25 +36,40 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 
 
 def fetch_cities() -> list:
-    response = get('https://pulse.eco/rest/city/')
     try:
+        response = get('https://pulse.eco/rest/city/')
         return [city for city in response.json() if city['countryCode'] in countries]
-    except ValueError:
+    except Exception:
+        return []
+
+
+def fetch_countries() -> list:
+    try:
+        return get('https://pulse.eco/rest/country/').json()
+    except Exception:
         return []
 
 
 def fetch_sensors(city_name: str) -> list:
-    response = get(f'https://{city_name}.pulse.eco/rest/sensor/')
     try:
+        response = get(f'https://{city_name}.pulse.eco/rest/sensor/')
         sensors_json = response.json()
         return [sensor for sensor in sensors_json if sensor['status'] == 'ACTIVE']
-    except ValueError:
+    except Exception:
         return []
 
 
 def read_cities() -> list:
     try:
         with open(path.join(DATA_RAW_PATH, 'cities.json'), 'r') as in_file:
+            return load(in_file)
+    except OSError:
+        return []
+
+
+def read_countries() -> list:
+    try:
+        with open(path.join(DATA_RAW_PATH, 'countries.json'), 'r') as in_file:
             return load(in_file)
     except OSError:
         return []

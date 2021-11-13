@@ -20,6 +20,7 @@ def configure_database(app: Flask) -> None:
 
 def create_indexes():
     mongo.db['cities'].create_index([('cityName', ASCENDING)])
+    mongo.db['countries'].create_index([('countryCode', ASCENDING)])
     mongo.db['sensors'].create_index([('sensorId', ASCENDING)])
     mongo.db['predictions'].create_index([('cityName', ASCENDING), ('sensorId', ASCENDING)])
     for collection in collections:

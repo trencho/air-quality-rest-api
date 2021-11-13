@@ -1,5 +1,6 @@
 from os import environ, path
 
+from numpy import nan
 from pandas import DataFrame, read_csv
 
 from api.config.database import mongo
@@ -13,8 +14,8 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
         if len(db_records.index) > 0:
             dataframe = dataframe.loc[~dataframe['time'].isin(db_records['time'])].copy()
 
-    trim_dataframe(dataframe, 'time')
     if len(dataframe.index) > 0:
+        trim_dataframe(dataframe, 'time')
         dataframe.loc[:, 'sensorId'] = sensor_id
         if mongodb_env is not None:
             mongo.db[collection].insert_many(dataframe.to_dict('records'))
@@ -27,6 +28,8 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
 
 
 def trim_dataframe(dataframe: DataFrame, column: str) -> None:
+    df = dataframe.replace(0, nan)
+    dataframe.drop(columns=df.columns[df.isna().all()].tolist(), inplace=True, errors='ignore')
     dataframe.drop_duplicates(subset=column, keep='last', inplace=True)
     dataframe.reset_index(drop=True, inplace=True)
     dataframe.sort_values(by=column, inplace=True)

@@ -13,7 +13,7 @@ from processing.forecast_data import fetch_forecast_result
 forecast_blueprint = Blueprint('forecast', __name__)
 
 
-@forecast_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/forecast',
+@forecast_blueprint.route('/cities/<string:city_name>/sensors/<string:sensor_id>/forecast/',
                           endpoint='forecast_city_sensor', methods=['GET'])
 @cache.memoize(timeout=3600)
 @swag_from('forecast_city_sensor.yml', endpoint='forecast.forecast_city_sensor', methods=['GET'])
