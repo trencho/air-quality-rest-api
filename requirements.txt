@@ -5,13 +5,11 @@ flask
 flask-caching
 flask-pymongo
 haversine
-joblib
 lightgbm
 matplotlib
 numpy
 pandas
 pygithub
-pytz
 requests
 scikit-learn
 scipy
