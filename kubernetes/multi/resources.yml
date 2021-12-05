@@ -73,6 +73,14 @@ spec:
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
+          livenessProbe:
+            failureThreshold: 1
+            httpGet:
+              path: /api/v1/apidocs/
+              port: 5000
+            initialDelaySeconds: 60
+            periodSeconds: 900
+            timeoutSeconds: 60
       serviceAccountName: ''
       volumes:
         - name: flaskdata
@@ -115,6 +123,14 @@ spec:
           volumeMounts:
             - mountPath: /var/log/nginx
               name: nginxdata
+          livenessProbe:
+            failureThreshold: 1
+            httpGet:
+              path: /api/v1/apidocs/
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 900
+            timeoutSeconds: 60
       serviceAccountName: ''
 ---
 apiVersion: networking.k8s.io/v1
