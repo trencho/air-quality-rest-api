@@ -34,4 +34,12 @@ spec:
           volumeMounts:
             - mountPath: /var/log/nginx
               name: nginxdata
+          livenessProbe:
+            failureThreshold: 1
+            httpGet:
+              path: /api/v1/apidocs/
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 900
+            timeoutSeconds: 60
       serviceAccountName: ''
