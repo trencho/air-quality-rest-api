@@ -2,6 +2,7 @@ from flasgger import Swagger
 from flask import Flask
 
 config = {
+    'favicon': '/favicon.ico/',
     'openapi': '3.0.3',
     'specs': [
         {
