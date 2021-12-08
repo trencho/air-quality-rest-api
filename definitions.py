@@ -65,7 +65,7 @@ pollutants = {
 
 regression_models = {
     'DecisionTreeRegressionModel': 'Decision Tree',
-    'DummyRegressionModel': 'Dummy',
+    # 'DummyRegressionModel': 'Dummy',
     'LightGBMRegressionModel': 'LightGBM',
     'LinearRegressionModel': 'Linear',
     'MLPRegressionModel': 'Multilayer Perceptron',
