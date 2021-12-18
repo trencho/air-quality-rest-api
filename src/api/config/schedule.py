@@ -95,7 +95,7 @@ def import_data() -> None:
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
 
 
-@scheduler.scheduled_job(trigger='cron', day=1)
+@scheduler.scheduled_job(trigger='cron', minute=0)
 def model_training() -> None:
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith('.lock')]:
