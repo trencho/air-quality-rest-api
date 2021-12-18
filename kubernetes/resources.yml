@@ -139,6 +139,17 @@ spec:
                 name: mongo-secret
           image: aqra_mongo
           imagePullPolicy: Never
+          livenessProbe:
+            failureThreshold: 1
+            exec:
+              command:
+                - mongo
+                - --disableImplicitSessions
+                - --eval
+                - db.adminCommand('ping')
+            initialDelaySeconds: 60
+            periodSeconds: 300
+            timeoutSeconds: 60
           name: mongo
           ports:
             - containerPort: 27017
