@@ -43,7 +43,7 @@ spec:
               path: /api/v1/apidocs/
               port: 5000
             initialDelaySeconds: 60
-            periodSeconds: 900
+            periodSeconds: 300
             timeoutSeconds: 60
       serviceAccountName: ''
       volumes:
