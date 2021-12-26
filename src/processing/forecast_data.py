@@ -8,7 +8,6 @@ from pandas import concat, DataFrame, date_range, read_csv, Series, Timedelta, t
 
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
-from modeling import train_city_sensors, train_regression_model
 from models.base_regression_model import BaseRegressionModel
 from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import value_scaling
@@ -18,10 +17,10 @@ FORECAST_PERIOD = '1H'
 FORECAST_STEPS = 24
 
 
-def fetch_forecast_result(city: dict, sensor: dict, daemon: bool) -> dict:
+def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     forecast_result = {}
     for pollutant in pollutants:
-        if (predictions := forecast_city_sensor(city, sensor, pollutant, daemon)) is None:
+        if (predictions := forecast_city_sensor(city, sensor, pollutant)) is None:
             continue
 
         for index, value in predictions.items():
@@ -44,8 +43,8 @@ def fetch_weather_features(city_name: str, sensor_id: str, model_features: list,
 
 
 @cache.memoize(timeout=3600)
-def forecast_city_sensor(city: dict, sensor: dict, pollutant: str, daemon: bool) -> Optional[Series]:
-    if (load_model := load_regression_model(city, sensor, pollutant, daemon)) is None:
+def forecast_city_sensor(city: dict, sensor: dict, pollutant: str) -> Optional[Series]:
+    if (load_model := load_regression_model(city, sensor, pollutant)) is None:
         return load_model
 
     model, model_features = load_model
@@ -64,14 +63,9 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 
 @cache.memoize(timeout=3600)
-def load_regression_model(city: dict, sensor: dict, pollutant: str, daemon: bool) -> Optional[tuple]:
+def load_regression_model(city: dict, sensor: dict, pollutant: str) -> Optional[tuple]:
     if not path.exists(
             path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
-        if daemon:
-            train_city_sensors(city, sensor, pollutant)
-        else:
-            train_regression_model(city, sensor, pollutant)
-
         return None
 
     with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
