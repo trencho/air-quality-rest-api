@@ -82,7 +82,7 @@ def load_regression_model(city: dict, sensor: dict, pollutant: str) -> Optional[
 @cache.memoize(timeout=3600)
 def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
                     step: str = FORECAST_PERIOD) -> Series:
-    """Multi-step direct forecasting using a machine learning model to forecast each time period ahead
+    """Multistep direct forecasting using a machine learning model to forecast each time period ahead
 
     Parameters
     ----------
@@ -126,7 +126,7 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
 def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: BaseRegressionModel, model_features: list,
                        lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
                        step: str = FORECAST_PERIOD) -> Series:
-    """Multi-step recursive forecasting using the input time series data and a pre-trained machine learning model
+    """Multistep recursive forecasting using the input time series data and a pre-trained machine learning model
 
     Parameters
     ----------
