@@ -1,10 +1,10 @@
 from os import environ, makedirs, path
 
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, environment_variables, \
     MODELS_PATH, mongodb_connection, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
-from preparation import read_cities, read_sensors
+from preparation import read_cities, read_sensors, trim_dataframe
 from .database import mongo
 from .schedule import fetch_locations
 
@@ -31,7 +31,11 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False, 'sensorId': False})))
     if len(db_records.index) > 0:
         makedirs(collection_dir, exist_ok=True)
-        db_records.to_csv(path.join(collection_dir, f'{collection}.csv'), index=False)
+        collection_path = path.join(collection_dir, f'{collection}.csv')
+        if path.exists(collection_path):
+            db_records = db_records.append(read_csv(collection_path), ignore_index=True)
+            trim_dataframe(db_records, 'time')
+        db_records.to_csv(collection_path, index=False)
 
 
 def fetch_db_data() -> None:
