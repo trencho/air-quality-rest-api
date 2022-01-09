@@ -152,7 +152,7 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method='mean', numer
             - categorical_distances         = the metric to apply to binary attributes.
                                               "jaccard", "hamming", "weighted-hamming" and "euclidean" available.
                                               Default = "jaccard"
-            - missing_neighbors_threshold   = minimum of neighbors among the k ones that are not also missing to infer
+            - missing_neighbors_threshold   = minimum of neighbors among the k ones that are not also missing inferring
                                               the correct value. Default = 0.5
 
         @returns:
