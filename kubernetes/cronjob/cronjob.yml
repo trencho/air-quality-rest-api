@@ -46,3 +46,4 @@ spec:
           restartPolicy: OnFailure
           serviceAccountName: cronjob-sa
   schedule: 0 0 1 */2 *
+  successfulJobsHistoryLimit: 1
