@@ -2,7 +2,7 @@ from os import environ, path
 from time import sleep
 from traceback import print_exc
 
-from pandas import DataFrame, json_normalize
+from pandas import concat, DataFrame, json_normalize
 from requests import get
 
 from definitions import DATA_RAW_PATH, open_weather_token
@@ -25,7 +25,7 @@ def fetch_weather_data(city_name: str, sensor: dict) -> None:
         hourly_data = weather_response.json()['hourly']
         df = json_normalize([flatten_json(hourly) for hourly in hourly_data])
         df.rename(columns={'dt': 'time'}, inplace=True, errors='ignore')
-        dataframe = dataframe.append(df, ignore_index=True)
+        dataframe = concat([dataframe, df], ignore_index=True)
         dataframe.drop(columns='weather', inplace=True, errors='ignore')
 
         if len(dataframe.index) > 0:

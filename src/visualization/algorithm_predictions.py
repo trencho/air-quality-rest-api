@@ -2,7 +2,7 @@ from os import path
 from warnings import filterwarnings
 
 from matplotlib import pyplot
-from pandas import DataFrame, read_csv, to_datetime
+from pandas import concat, DataFrame, read_csv, to_datetime
 
 from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from .handle_plot import save_plot
@@ -16,11 +16,8 @@ def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
         dataframe_errors = read_csv(
             path.join(RESULTS_ERRORS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant, algorithm,
                       'error.csv'))
-        dataframe_algorithms = dataframe_algorithms.append(
-            [{
-                'algorithm': algorithm,
-                pollutant: dataframe_errors.iloc[0]['Mean Absolute Error']
-            }], ignore_index=True)
+        dataframe_algorithms = concat([dataframe_algorithms, [
+            {'algorithm': algorithm, pollutant: dataframe_errors.iloc[0]['Mean Absolute Error']}]], ignore_index=True)
 
     algorithm_index = dataframe_algorithms[pollutant].idxmin()
     dataframe_predictions = read_csv(

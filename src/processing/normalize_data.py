@@ -2,7 +2,7 @@ from datetime import datetime
 from os import path
 
 from numpy import abs, nan, number
-from pandas import read_csv, to_numeric
+from pandas import concat, read_csv, to_numeric
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
@@ -69,7 +69,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
     collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
     if path.exists(collection_path):
-        dataframe = dataframe.append(read_csv(collection_path), ignore_index=True, sort=True)
+        dataframe = concat([dataframe, read_csv(collection_path)], ignore_index=True)
 
     df_columns = dataframe.columns.copy()
     df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
@@ -94,8 +94,8 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
     drop_columns_std = dataframe[pollutants_wo_aqi].std()[dataframe[pollutants_wo_aqi].std() == 0].index.values
 
-    dataframe[pollutants_wo_aqi].replace(0, nan).bfill(inplace=True)
-    dataframe[pollutants_wo_aqi].replace(0, nan).ffill(inplace=True)
+    dataframe[list(pollutants_wo_aqi)].replace(0, nan).bfill(inplace=True)
+    dataframe[list(pollutants_wo_aqi)].replace(0, nan).ffill(inplace=True)
     dataframe.drop(columns=drop_columns_std, inplace=True)
 
     dataframe['aqi'] = dataframe.apply(

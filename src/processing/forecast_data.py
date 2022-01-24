@@ -155,7 +155,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
 
     for date in forecast_range:
         new_point = forecasted_values[-1] if len(forecasted_values) > 0 else 0.0
-        target = target.append(Series(new_point, [date]))
+        target = concat([target, Series(new_point, [date])])
 
         timestamp = int((date - Timedelta(hours=1)).timestamp())
         if not (data := fetch_weather_features(city_name, sensor_id, model_features, timestamp)):
