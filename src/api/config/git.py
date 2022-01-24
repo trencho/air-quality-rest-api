@@ -4,7 +4,7 @@ from os import environ, path
 from traceback import print_exc
 
 from github import Github, GithubException, GitRef, GitTree, InputGitTreeElement, Repository
-from pandas import read_csv
+from pandas import concat, read_csv
 from requests import ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
@@ -25,7 +25,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str):
     try:
         repo_file = repo.get_contents(file_name)
         repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
-        local_file_content = local_file_content.append(repo_file_content, ignore_index=True, sort=True)
+        local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
     except GithubException:
         print_exc()
     local_file_content.drop_duplicates(inplace=True)

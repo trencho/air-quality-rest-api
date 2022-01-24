@@ -164,6 +164,7 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
         dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
                              index_col='time')
         dataframe.index = to_datetime(dataframe.index, unit='s')
+        dataframe = dataframe.loc[dataframe.index <= current_hour()]
         if pollutant in dataframe.columns:
             create_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
             generate_regression_model(dataframe, city['cityName'], sensor['sensorId'], pollutant)
