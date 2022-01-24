@@ -2,7 +2,7 @@ from os import environ, path
 from time import sleep
 from traceback import print_exc
 
-from pandas import DataFrame
+from pandas import concat, DataFrame
 from requests import get
 
 from definitions import DATA_RAW_PATH, open_weather_token
@@ -26,7 +26,7 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
             pollution_dict.update(pollution['main'])
             pollution_dict.update(pollution['components'])
             data.append(pollution_dict)
-        dataframe = dataframe.append(DataFrame(data), ignore_index=True)
+        dataframe = concat([dataframe, DataFrame(data)], ignore_index=True)
 
         if len(dataframe.index) > 0:
             data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'pollution.csv')

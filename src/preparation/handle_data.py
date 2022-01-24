@@ -1,7 +1,7 @@
 from os import environ, path
 
 from numpy import nan
-from pandas import DataFrame, read_csv
+from pandas import concat, DataFrame, read_csv
 
 from api.config.database import mongo
 from definitions import mongodb_connection
@@ -21,7 +21,7 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
             mongo.db[collection].insert_many(dataframe.to_dict('records'))
 
         if path.exists(collection_path):
-            dataframe = dataframe.append(read_csv(collection_path), ignore_index=True)
+            dataframe = concat([dataframe, read_csv(collection_path)], ignore_index=True)
             trim_dataframe(dataframe, 'time')
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
         dataframe.to_csv(collection_path, index=False)
