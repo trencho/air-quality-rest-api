@@ -92,7 +92,8 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         if column not in dataframe.columns:
             pollutants_wo_aqi.pop(column)
 
-    drop_columns_std = dataframe[pollutants_wo_aqi].std()[dataframe[pollutants_wo_aqi].std() == 0].index.values
+    drop_columns_std = dataframe[list(pollutants_wo_aqi)].std()[
+        dataframe[list(pollutants_wo_aqi)].std() == 0].index.values
 
     dataframe[list(pollutants_wo_aqi)].replace(0, nan).bfill(inplace=True)
     dataframe[list(pollutants_wo_aqi)].replace(0, nan).ffill(inplace=True)
