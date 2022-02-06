@@ -9,6 +9,7 @@ from tsfresh.utilities.dataframe_functions import impute
 
 
 def get_season(time: datetime) -> str:
+    # Dummy leap year to allow input 29-02-X (leap day)
     dummy_leap_year = 2000
 
     dt = time.date()
@@ -36,6 +37,7 @@ def generate_lag_features(target: Series, lags: int) -> DataFrame:
     lags = list(partial[abs(partial) >= 0.2].index)
 
     if 0 in lags:
+        # Do not consider itself as lag feature
         lags.remove(0)
 
     features = DataFrame()

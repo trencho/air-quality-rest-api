@@ -17,8 +17,9 @@ def mean_absolute_percentage_error(y_true: Series, y_predicted: Series) -> Optio
 
 def save_errors(city_name: str, sensor_id: str, pollutant: str, model_name: str, y_true: Series,
                 y_predicted: Series) -> [float, ndarray]:
+    mae = mean_absolute_error(y_true, y_predicted)
     dataframe = DataFrame({
-        'Mean Absolute Error': [mean_absolute_error(y_true, y_predicted)],
+        'Mean Absolute Error': [mae],
         'Mean Absolute Percentage Error': [mean_absolute_percentage_error(y_true, y_predicted)],
         'Mean Squared Error': [mean_squared_error(y_true, y_predicted)],
         'Root Mean Squared Error': [sqrt(mean_squared_error(y_true, y_predicted))]
@@ -27,7 +28,7 @@ def save_errors(city_name: str, sensor_id: str, pollutant: str, model_name: str,
     dataframe.to_csv(path.join(RESULTS_ERRORS_PATH, 'data', city_name, sensor_id, pollutant, model_name, 'error.csv'),
                      index=False)
 
-    return mean_absolute_error(y_true, y_predicted)
+    return mae
 
 
 def save_results(city_name: str, sensor_id: str, pollutant: str, model_name: str, dataframe: DataFrame) -> None:
