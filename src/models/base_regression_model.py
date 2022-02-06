@@ -10,10 +10,10 @@ class BaseRegressionModel:
     def get_params(self):
         return self.reg.get_params()
 
-    def set_params(self, **params):
+    def set_params(self, **params) -> None:
         self.reg.set_params(**params)
 
-    def train(self, x, y):
+    def train(self, x, y) -> None:
         self.reg.fit(x, y)
 
     def predict(self, x):
