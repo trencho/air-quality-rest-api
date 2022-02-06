@@ -28,8 +28,8 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
 
 
 def trim_dataframe(dataframe: DataFrame, column: str) -> None:
-    df = dataframe.replace(0, nan)
-    dataframe.drop(columns=df.columns[df.isna().all()].tolist(), inplace=True, errors='ignore')
+    dataframe.replace(to_replace=0, value=nan, inplace=True)
+    dataframe.drop(columns=dataframe.columns[dataframe.isna().all()].tolist(), inplace=True, errors='ignore')
     dataframe.drop_duplicates(subset=column, keep='last', inplace=True)
     dataframe.reset_index(drop=True, inplace=True)
     dataframe.sort_values(by=column, inplace=True)
