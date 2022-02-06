@@ -20,7 +20,7 @@ def append_commit_files(file_list: list, data: [bytes, str], root: str, file: st
     file_names.append(rel_file)
 
 
-def merge_csv_files(repo: Repository, file_name: str, data: str):
+def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
     local_file_content = read_csv(StringIO(data))
     try:
         repo_file = repo.get_contents(file_name)
