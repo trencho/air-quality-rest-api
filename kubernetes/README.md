@@ -20,7 +20,7 @@ kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/downlo
 
 ###### Apply ingress-nginx resources with values from a custom yml file
 
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace --values
+helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace --values \
 kubernetes/ingress-nginx.yml
 
 ###### Apply MetalLB resources for deploying a load balancer
@@ -32,7 +32,7 @@ kubectl apply -f kubernetes/metallb-configmap.yml
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
 
 kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml
-kubeseal < kubernetes/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml kubeseal <
+kubeseal < kubernetes/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml kubeseal < \
 kubernetes/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
 
 ###### Apply all system resources
@@ -62,9 +62,9 @@ kubectl apply -f kubernetes/single/resources/flask-deployment.yml
 ###### Retrieve sealed secrets from the cluster
 
 kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml > kubernetes/master.key  
-kubeseal --recovery-unseal < kubernetes/flask-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml >
+kubeseal --recovery-unseal < kubernetes/flask-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
 kubernetes/flask-secret.yml  
-kubeseal --recovery-unseal < kubernetes/mongo-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml >
+kubeseal --recovery-unseal < kubernetes/mongo-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
 kubernetes/mongo-secret.yml
 
 ###### Cleanup resources by deleting persistent volumes and used namespaces
