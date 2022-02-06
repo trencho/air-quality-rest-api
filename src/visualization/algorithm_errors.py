@@ -3,7 +3,7 @@ from warnings import filterwarnings
 
 import seaborn
 from matplotlib import pyplot
-from pandas import concat, DataFrame, read_csv
+from pandas import DataFrame, read_csv
 
 from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH
 from .handle_plot import save_plot
@@ -35,15 +35,14 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
     seaborn.set_style('white')
 
     for error_type in error_types:
-        dataframe_algorithms = DataFrame(columns=['algorithm', pollutant])
-        for algorithm in regression_models:
+        data = []
+        for model_name in regression_models:
             dataframe_errors = read_csv(
-                path.join(RESULTS_ERRORS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant, algorithm,
+                path.join(RESULTS_ERRORS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant, model_name,
                           'error.csv'))
-            dataframe_algorithms = concat([dataframe_algorithms, [
-                {'algorithm': regression_models[algorithm], pollutant: dataframe_errors.iloc[0][error_type]}]],
-                                          ignore_index=True).dropna()
+            data.append([regression_models[model_name], dataframe_errors.iloc[0][error_type]])
 
+        dataframe_algorithms = DataFrame(data, columns=['algorithm', pollutant]).dropna()
         if len(dataframe_algorithms.index) == 0:
             continue
 
