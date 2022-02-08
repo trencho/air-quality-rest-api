@@ -1,13 +1,10 @@
 from os import path
-from warnings import filterwarnings
 
 from matplotlib import pyplot
 from pandas import DataFrame, read_csv, to_datetime
 
 from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from .handle_plot import save_plot
-
-filterwarnings(action='once')
 
 
 def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
@@ -43,5 +40,6 @@ def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
 
     pyplot.gcf().autofmt_xdate()
 
-    file_path = path.join(RESULTS_PREDICTIONS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant)
-    save_plot(fig, pyplot, file_path, 'prediction')
+    save_plot(fig, pyplot,
+              path.join(RESULTS_PREDICTIONS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant),
+              'prediction')

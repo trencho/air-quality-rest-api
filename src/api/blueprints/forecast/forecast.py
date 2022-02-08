@@ -8,7 +8,7 @@ from api.config.cache import cache
 from api.config.database import mongo
 from definitions import mongodb_connection
 from preparation import calculate_nearest_sensor, check_city, check_sensor, read_cities
-from processing.forecast_data import fetch_forecast_result
+from processing import fetch_forecast_result
 
 forecast_blueprint = Blueprint('forecast', __name__)
 

@@ -1,8 +1,9 @@
 from datetime import datetime
 from os import path
+from traceback import print_exc
 
-from numpy import abs, nan, number
-from pandas import concat, read_csv, to_numeric
+from numpy import abs, nan
+from pandas import concat, DataFrame, read_csv, to_numeric
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
@@ -22,9 +23,8 @@ def current_hour() -> datetime:
     return t.replace(hour=t.hour, minute=0, second=0, microsecond=0)
 
 
-def drop_numerical_outliers(dataframe, z_thresh=3):
-    constrains = dataframe.select_dtypes(include=[number]).apply(lambda x: abs(zscore(x)) < z_thresh,
-                                                                 result_type='reduce').all(axis=1)
+def drop_numerical_outliers(dataframe: DataFrame, z_thresh: int = 3):
+    constrains = (abs(zscore(dataframe)) < z_thresh).all(axis=1)
     dataframe.drop(index=dataframe.index[~constrains], inplace=True)
 
 
@@ -64,53 +64,54 @@ def next_hour(t: datetime) -> datetime:
 def process_data(city_name: str, sensor_id: str, collection: str) -> None:
     try:
         dataframe = read_csv(path.join(DATA_RAW_PATH, city_name, sensor_id, f'{collection}.csv'))
-    except FileNotFoundError:
-        return
 
-    collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
-    if path.exists(collection_path):
-        dataframe = concat([dataframe, read_csv(collection_path)], ignore_index=True)
+        collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
+        if path.exists(collection_path):
+            dataframe = concat([dataframe, read_csv(collection_path)], ignore_index=True)
 
-    df_columns = dataframe.columns.copy()
-    df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
+        df_columns = dataframe.columns.copy()
+        df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
 
-    imp = KNNImputer()
-    for column in df_columns:
-        dataframe[column] = to_numeric(dataframe[column], errors='coerce')
-        if not dataframe[column].isna().any():
-            continue
-        if not dataframe[column].isna().all():
-            dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
-            dataframe[column].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
-        else:
-            dataframe.drop(columns=column, inplace=True, errors='ignore')
+        imp = KNNImputer()
+        for column in df_columns:
+            dataframe[column] = to_numeric(dataframe[column], errors='coerce')
+            if not dataframe[column].isna().any():
+                continue
+            if not dataframe[column].isna().all():
+                dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
+                dataframe[column].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
+            else:
+                dataframe.drop(columns=column, inplace=True, errors='ignore')
 
-    pollutants_wo_aqi = pollutants.copy()
-    pollutants_wo_aqi.pop('aqi')
-    columns = pollutants_wo_aqi.copy()
-    for column in columns:
-        if column not in dataframe.columns:
-            pollutants_wo_aqi.pop(column)
+        pollutants_wo_aqi = pollutants.copy()
+        pollutants_wo_aqi.pop('aqi')
+        columns = pollutants_wo_aqi.copy()
+        for column in columns:
+            if column not in dataframe.columns:
+                pollutants_wo_aqi.pop(column)
 
-    drop_columns_std = dataframe[list(pollutants_wo_aqi)].std()[
-        dataframe[list(pollutants_wo_aqi)].std() == 0].index.values
+        drop_columns_std = dataframe[list(pollutants_wo_aqi)].std()[
+            dataframe[list(pollutants_wo_aqi)].std() == 0].index.values
 
-    dataframe[list(pollutants_wo_aqi)].replace(0, nan).bfill(inplace=True)
-    dataframe[list(pollutants_wo_aqi)].replace(0, nan).ffill(inplace=True)
-    dataframe.drop(columns=drop_columns_std, inplace=True)
+        dataframe[list(pollutants_wo_aqi)].replace(0, nan).bfill(inplace=True)
+        dataframe[list(pollutants_wo_aqi)].replace(0, nan).ffill(inplace=True)
+        dataframe.drop(columns=drop_columns_std, inplace=True)
 
-    dataframe['aqi'] = dataframe.apply(
-        lambda row: calculate_aqi(calculate_co_index(row['co']) if 'co' in dataframe.columns else 0,
-                                  calculate_no2_index(row['no2']) if 'no2' in dataframe.columns else 0,
-                                  calculate_o3_index(row['o3']) if 'o3' in dataframe.columns else 0,
-                                  calculate_pm2_5_index(row['pm2_5']) if 'pm2_5' in dataframe.columns else 0,
-                                  calculate_pm10_index(row['pm10']) if 'pm10' in dataframe.columns else 0,
-                                  calculate_so2_index(row['so2']) if 'so2' in dataframe.columns else 0)
-        if row.get('aqi') is None else row['aqi'], axis=1)
+        dataframe['aqi'] = dataframe.apply(
+            lambda row: calculate_aqi(calculate_co_index(row['co']) if 'co' in dataframe.columns else 0,
+                                      calculate_no2_index(row['no2']) if 'no2' in dataframe.columns else 0,
+                                      calculate_o3_index(row['o3']) if 'o3' in dataframe.columns else 0,
+                                      calculate_pm2_5_index(row['pm2_5']) if 'pm2_5' in dataframe.columns else 0,
+                                      calculate_pm10_index(row['pm10']) if 'pm10' in dataframe.columns else 0,
+                                      calculate_so2_index(row['so2']) if 'so2' in dataframe.columns else 0)
+            if row.get('aqi') is None else row['aqi'], axis=1)
 
-    # drop_numerical_outliers(dataframe)
+        drop_numerical_outliers(dataframe)
 
-    dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
-    trim_dataframe(dataframe, 'time')
-    if len(dataframe.index) > 0:
-        dataframe.to_csv(collection_path, index=False)
+        dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
+        trim_dataframe(dataframe, 'time')
+        if len(dataframe.index) > 0:
+            dataframe.to_csv(collection_path, index=False)
+
+    except Exception:
+        print_exc()

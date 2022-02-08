@@ -45,7 +45,7 @@ def fetch_weather_features(city_name: str, sensor_id: str, model_features: list,
 @cache.memoize(timeout=3600)
 def forecast_city_sensor(city: dict, sensor: dict, pollutant: str) -> Optional[Series]:
     if (load_model := load_regression_model(city, sensor, pollutant)) is None:
-        return load_model
+        return None
 
     model, model_features = load_model
 
@@ -144,6 +144,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     forecast_values: pd.Series with forecasted values indexed by forecast horizon dates
     """
 
+    # Get the dates to forecast
     upcoming_hour = next_hour(datetime.now())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
@@ -154,6 +155,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     target = dataframe[pollutant].copy()
 
     for date in forecast_range:
+        # Build target time series using previously forecast value
         new_point = forecasted_values[-1] if len(forecasted_values) > 0 else 0.0
         target = concat([target, Series(new_point, [date])])
 
