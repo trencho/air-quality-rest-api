@@ -1,5 +1,4 @@
 from os import path
-from warnings import filterwarnings
 
 import seaborn
 from matplotlib import pyplot
@@ -7,8 +6,6 @@ from pandas import DataFrame, read_csv
 
 from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH
 from .handle_plot import save_plot
-
-filterwarnings(action='once')
 
 
 def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
@@ -64,5 +61,5 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         pyplot.xticks(dataframe_algorithms.index, dataframe_algorithms['algorithm'], horizontalalignment='center',
                       fontsize=22, rotation=30)
 
-        file_path = path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant)
-        save_plot(fig, pyplot, file_path, error_type)
+        save_plot(fig, pyplot, path.join(RESULTS_ERRORS_PATH, 'plots', city['cityName'], sensor['sensorId'], pollutant),
+                  error_type)

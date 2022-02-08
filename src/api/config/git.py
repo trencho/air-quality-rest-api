@@ -39,9 +39,7 @@ def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base
         parent = repo.get_git_commit(master_sha)
         commit = repo.create_git_commit(commit_message, tree, [parent])
         master_ref.edit(commit.sha)
-    except GithubException:
-        print_exc()
-    except (ReadTimeout, ReadTimeoutError):
+    except (GithubException, ReadTimeout, ReadTimeoutError):
         if len(element_list) // 2 > 0:
             commit_git_files(repo, master_ref, master_sha, base_tree, commit_message,
                              element_list[:len(element_list) // 2])
