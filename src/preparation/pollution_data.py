@@ -28,8 +28,8 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
         dataframe = DataFrame(data)
 
         if len(dataframe.index) > 0:
-            data_path = path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'pollution.csv')
-            save_dataframe(dataframe, 'pollution', data_path, sensor['sensorId'])
+            save_dataframe(dataframe, 'pollution',
+                           path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'pollution.csv'), sensor['sensorId'])
     except Exception:
         print_exc()
     finally:
