@@ -95,7 +95,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
         dataframe[list(pollutants_wo_aqi)].replace(0, nan).bfill(inplace=True)
         dataframe[list(pollutants_wo_aqi)].replace(0, nan).ffill(inplace=True)
-        dataframe.drop(columns=drop_columns_std, inplace=True)
+        dataframe.drop(columns=drop_columns_std, inplace=True, errors='ignore')
 
         dataframe['aqi'] = dataframe.apply(
             lambda row: calculate_aqi(calculate_co_index(row['co']) if 'co' in dataframe.columns else 0,
@@ -106,7 +106,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
                                       calculate_so2_index(row['so2']) if 'so2' in dataframe.columns else 0)
             if row.get('aqi') is None else row['aqi'], axis=1)
 
-        drop_numerical_outliers(dataframe)
+        # drop_numerical_outliers(dataframe)
 
         dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
         trim_dataframe(dataframe, 'time')
