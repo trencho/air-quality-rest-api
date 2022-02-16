@@ -9,8 +9,6 @@ services:
       - flask
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
     image: aqra_nginx:latest
     networks:
       network:
@@ -18,8 +16,6 @@ services:
           - aqra
     ports:
       - '80:80'
-    volumes:
-      - nginxdata:/var/log/nginx
 
   flask:
     build:
@@ -30,8 +26,6 @@ services:
       - mongo
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
     env_file:
       - .env
     environment:
@@ -68,11 +62,11 @@ services:
     env_file:
       - .env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
-      MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
       MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
     expose:
       - 27017
     image: aqra_mongo:latest
@@ -83,11 +77,10 @@ services:
 
 networks:
   network:
+    attachable: true
     driver: overlay
 
 volumes:
-  nginxdata:
-    driver: local
   flaskdata:
     driver: local
   mongodata:
