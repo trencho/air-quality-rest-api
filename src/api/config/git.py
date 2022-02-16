@@ -1,6 +1,7 @@
 from datetime import datetime
 from io import BytesIO, StringIO
-from os import environ, path
+from os import environ, path, sep
+from shutil import make_archive, move
 from traceback import print_exc
 
 from github import Github, GithubException, GitRef, GitTree, InputGitTreeElement, Repository
@@ -20,18 +21,6 @@ def append_commit_files(file_list: list, data: [bytes, str], root: str, file: st
     file_names.append(rel_file)
 
 
-def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
-    local_file_content = read_csv(StringIO(data))
-    try:
-        repo_file = repo.get_contents(file_name)
-        repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
-        local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
-    except GithubException:
-        print_exc()
-    local_file_content.drop_duplicates(inplace=True)
-    return local_file_content.to_csv(index=False)
-
-
 def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base_tree: GitTree, commit_message: str,
                      element_list: list) -> None:
     try:
@@ -46,6 +35,28 @@ def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base
             commit_git_files(repo, master_ref, master_sha, base_tree, commit_message,
                              element_list[len(element_list) // 2:])
         print_exc()
+
+
+def create_archive(source, destination):
+    base = path.basename(destination)
+    name = base.split('.')[0]
+    fmt = base.split('.')[1]
+    archive_from = path.dirname(source)
+    archive_to = path.basename(source.strip(sep))
+    make_archive(base_name=name, format=fmt, root_dir=archive_from, base_dir=archive_to)
+    move(f'{name}.{fmt}', destination)
+
+
+def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
+    local_file_content = read_csv(StringIO(data))
+    try:
+        repo_file = repo.get_contents(file_name)
+        repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
+        local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
+    except GithubException:
+        print_exc()
+    local_file_content.drop_duplicates(inplace=True)
+    return local_file_content.to_csv(index=False)
 
 
 def update_git_files(file_list: list, file_names: list, repo_name: str, branch: str,
