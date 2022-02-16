@@ -9,8 +9,6 @@ services:
       - mongo
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
     env_file:
       - .env
     environment:
@@ -42,16 +40,14 @@ services:
     container_name: mongo
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
     env_file:
       - .env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
-      MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
       MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
     expose:
       - 27017
     image: aqra_mongo:latest
@@ -62,6 +58,7 @@ services:
 
 networks:
   network:
+    attachable: true
     driver: overlay
 
 volumes:

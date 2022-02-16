@@ -12,7 +12,11 @@ docker swarm init
 
 docker-compose -f docker/single/docker-compose.yml up -d
 
-###### Enter deployed docker container by id
+###### Follow logs of deployed docker container by id
+
+docker logs -f [container-id]
+
+###### Enter bash of deployed docker container by id
 
 docker exec -it [container-id] bash
 
