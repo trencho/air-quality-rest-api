@@ -5,7 +5,7 @@ from pickle import dump, HIGHEST_PROTOCOL
 from threading import Thread
 from traceback import print_exc
 
-from pandas import DataFrame, read_csv, to_datetime
+from pandas import DataFrame, read_csv, Series, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
 from definitions import app_dev, app_env, DATA_PROCESSED_PATH, MODELS_PATH, pollutants, regression_models, \
@@ -79,8 +79,8 @@ def create_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> Non
         pass
 
 
-def hyper_parameter_tuning(model: BaseRegressionModel, x_train, y_train, city_name: str, sensor_id: str,
-                           pollutant: str):
+def hyper_parameter_tuning(model: BaseRegressionModel, x_train: DataFrame, y_train: Series, city_name: str,
+                           sensor_id: str, pollutant: str):
     model_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
     model_cv.fit(x_train, y_train)
 
