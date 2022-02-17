@@ -28,7 +28,7 @@ def dump_data() -> None:
 
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
-        if not directories:
+        if not directories and files:
             file_path = f'{root}.zip'
             create_archive(source=root, destination=file_path)
             with open(file_path, 'rb') as in_file:
