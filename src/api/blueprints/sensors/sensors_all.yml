@@ -1,7 +1,7 @@
 tags:
   - sensors
 #    description: Data for all sensors
-summary: Returns json data of all available sensors for a specific city
+summary: Returns data of all available sensors for a specific city
 description: Searches for available sensors in a city and returns a detailed list of all the sensors.
 parameters:
   - in: path
@@ -12,6 +12,6 @@ parameters:
       type: string
 responses:
   200:
-    description: Returned json data of all available sensors for the specified city.
+    description: Returned data of all available sensors for the specified city.
   404:
     description: Cannot return sensor data because the city is not found or is invalid.
