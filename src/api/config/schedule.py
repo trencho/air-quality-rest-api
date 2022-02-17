@@ -98,6 +98,15 @@ def import_data() -> None:
             if file.endswith('weather.csv') or file.endswith('pollution.csv'):
                 try:
                     dataframe = read_csv(file_path)
+                    dataframe.rename(
+                        columns={'temperature': 'temp', 'apparentTemperature': 'feels_like', 'dewPoint': 'dew_point',
+                                 'cloudCover': 'clouds', 'windSpeed': 'wind_speed', 'windGust': 'wind_gust',
+                                 'windBearing': 'wind_deg', 'summary': 'weather.description', 'icon': 'weather.icon',
+                                 'uvIndex': 'uvi', 'precipIntensity': 'precipitation', 'AQI': 'aqi', 'CO': 'co',
+                                 'CO2': 'co2', 'NH3': 'nh3', 'NO': 'no', 'NO2': 'no2', 'O3': 'o3', 'PM25': 'pm2_5',
+                                 'PM10': 'pm10', 'SO2': 'so2'}, inplace=True, errors='ignore')
+                    dataframe.drop(columns=['precipProbability', 'precipType', 'ozone', 'co2'], inplace=True,
+                                   errors='ignore')
                     save_dataframe(dataframe, path.splitext(file)[0],
                                    path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
                                    path.basename(path.dirname(file_path)))
