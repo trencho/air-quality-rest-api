@@ -13,6 +13,7 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
 
         if len(db_records.index) > 0:
             dataframe = dataframe.loc[~dataframe['time'].isin(db_records['time'])].copy()
+            dataframe = dataframe[dataframe.columns.intersection(db_records.columns.values.tolist())]
 
     if len(dataframe.index) > 0:
         trim_dataframe(dataframe, 'time')
