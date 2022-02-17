@@ -1,7 +1,7 @@
 tags:
   - forecast
 #    description: Forecast values for a specified pollutant
-summary: Returns a json object containing forecasts of all pollutants for the specified coordinates
+summary: Returns data containing forecasts of all pollutants for the specified coordinates
 description: 'Fetches forecast data for all available pollutants for specific latitude and longitude coordinates
 converted to degrees. The forecast is based upon 24 hours from the moment the request is sent.'
 parameters:
@@ -19,7 +19,7 @@ parameters:
       type: number
 responses:
   200:
-    description: Returned json data of the predicted pollutant for a specific timestamp.
+    description: Returned data of the predicted pollutant for specific coordinates.
   400:
     description: Value cannot be predicted because some of the parameters are invalid.
   404:
