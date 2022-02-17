@@ -1,7 +1,7 @@
 tags:
   - countries
 #    description: Data for a specific country
-summary: Returns a json object of the queried country
+summary: Returns data of the queried country
 description: Fetches detailed data for the country from the passed path parameter.
 parameters:
   - in: path
@@ -12,6 +12,6 @@ parameters:
       type: string
 responses:
   200:
-    description: Returned json data with details for the specified country.
+    description: Returned data with details for the specified country.
   404:
     description: Cannot return data because the country is not found or is invalid.

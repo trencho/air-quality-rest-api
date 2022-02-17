@@ -1,7 +1,7 @@
 tags:
   - pollutants
 #    description: Available pollutants
-summary: Returns json data of all available pollutants for specific coordinates
+summary: Returns data of all available pollutants for specific coordinates
 description: Searches for available pollutants by coordinates and returns the list of pollutant names.
 parameters:
   - in: path
@@ -18,6 +18,6 @@ parameters:
       type: string
 responses:
   200:
-    description: Returned json data of the available pollutants for a specific location.
+    description: Returned data of the available pollutants for a specific location.
   404:
     description: Cannot return available pollutants because the coordinates are far away from all available sensors.
