@@ -40,7 +40,7 @@ spec:
           livenessProbe:
             failureThreshold: 1
             httpGet:
-              path: /api/v1/apidocs/
+              path: /healthz/live
               port: 80
             initialDelaySeconds: 60
             periodSeconds: 300
