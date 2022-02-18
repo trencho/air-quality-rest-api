@@ -26,4 +26,6 @@ docker-compose -f docker/single/docker-compose.yml down
 
 ###### Cleanup all docker data and volumes
 
+docker system prune -a  
+docker system prune --volumes  
 docker system prune -a --volumes
