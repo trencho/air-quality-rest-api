@@ -3,6 +3,7 @@ dnspython
 flasgger
 flask
 flask-caching
+flask-healthz
 flask-pymongo
 haversine
 lightgbm
