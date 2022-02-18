@@ -7,6 +7,7 @@ from .blueprints import register_blueprints
 from .cache import configure_cache
 from .database import configure_database
 from .environment import check_environment_variables, fetch_data
+from .health import configure_healthcheck
 from .schedule import model_training, schedule_jobs
 from .swagger import configure_swagger
 
@@ -24,6 +25,8 @@ def create_app() -> Flask:
 
     if environ.get(mongodb_connection) is not None:
         configure_database(app)
+
+    configure_healthcheck(app)
 
     configure_swagger(app)
 
