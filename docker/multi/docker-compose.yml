@@ -16,6 +16,8 @@ services:
           - aqra
     ports:
       - '80:80'
+    volumes:
+      - nginxdata:/var/log/nginx
 
   flask:
     build:
@@ -81,6 +83,8 @@ networks:
     driver: overlay
 
 volumes:
+  nginxdata:
+    driver: local
   flaskdata:
     driver: local
   mongodata:
