@@ -43,3 +43,7 @@ spec:
             periodSeconds: 900
             timeoutSeconds: 60
       serviceAccountName: ''
+      volumes:
+        - name: nginxdata
+          persistentVolumeClaim:
+            claimName: nginxdata-pvc
