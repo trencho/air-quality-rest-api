@@ -3,7 +3,7 @@ from flask_healthz import Healthz
 from starlette.status import HTTP_200_OK
 
 HEALTHZ = {
-    'live': 'config.health.liveness'
+    'live': 'api.config.health.liveness'
 }
 
 
