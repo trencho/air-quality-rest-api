@@ -160,21 +160,21 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
         target = concat([target, Series(new_point, [date])])
 
         timestamp = int((date - Timedelta(hours=1)).timestamp())
-        if not (data := fetch_weather_features(city_name, sensor_id, model_features, timestamp)):
-            forecasted_values.append(nan)
-            target.update(Series(forecasted_values[-1], [target.index[-1]]))
-            continue
-
-        dataframe = DataFrame(data, index=[date])
-        features = dataframe.join(generate_features(target, lags), how='inner')
-        features = concat([features, DataFrame(columns=list(set(model_features) - set(list(features.columns))))])
-        encode_categorical_data(features)
-        features = features[model_features]
         try:
+            if not (data := fetch_weather_features(city_name, sensor_id, model_features, timestamp)):
+                forecasted_values.append(nan)
+                target.update(Series(forecasted_values[-1], [target.index[-1]]))
+                continue
+
+            dataframe = DataFrame(data, index=[date])
+            features = dataframe.join(generate_features(target, lags), how='inner')
+            features = concat([features, DataFrame(columns=list(set(model_features) - set(list(features.columns))))])
+            encode_categorical_data(features)
+            features = features[model_features]
             features = value_scaling(features)
             predictions = model.predict(features)
             forecasted_values.append(predictions[-1])
-        except ValueError:
+        except Exception:
             forecasted_values.append(nan)
         target.update(Series(forecasted_values[-1], [target.index[-1]]))
 
