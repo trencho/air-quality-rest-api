@@ -13,7 +13,6 @@ from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PAT
     repo_name
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors, save_dataframe
-from processing import merge_air_quality_data
 from processing.forecast_data import fetch_forecast_result
 from .cache import cache
 from .database import mongo
@@ -95,7 +94,7 @@ def import_data() -> None:
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
             file_path = path.join(root, file)
-            if file.endswith('weather.csv') or file.endswith('pollution.csv'):
+            if file.endswith('.csv'):
                 try:
                     dataframe = read_csv(file_path)
                     dataframe.rename(
@@ -112,10 +111,6 @@ def import_data() -> None:
                                    path.basename(path.dirname(file_path)))
                 except Exception:
                     print_exc()
-
-    for city in cache.get('cities') or read_cities():
-        for sensor in read_sensors(city['cityName']):
-            merge_air_quality_data(DATA_EXTERNAL_PATH, city['cityName'], sensor['sensorId'])
 
     rmtree(DATA_EXTERNAL_PATH)
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
