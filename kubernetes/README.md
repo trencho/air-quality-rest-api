@@ -25,8 +25,8 @@ kubernetes/ingress-nginx.yml
 
 ###### Apply MetalLB resources for deploying a load balancer
 
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.11.0/manifests/namespace.yaml
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.11.0/manifests/metallb.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml  
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml  
 kubectl apply -f kubernetes/metallb-configmap.yml
 
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
