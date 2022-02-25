@@ -35,7 +35,7 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         makedirs(collection_dir, exist_ok=True)
         collection_path = path.join(collection_dir, f'{collection}.csv')
         if path.exists(collection_path):
-            db_records = concat([db_records, read_csv(collection_path)], ignore_index=True)
+            db_records = concat([db_records, read_csv(collection_path, engine='python')], ignore_index=True)
             trim_dataframe(db_records, 'time')
         db_records.to_csv(collection_path, index=False)
 
