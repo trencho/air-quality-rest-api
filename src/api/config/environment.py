@@ -3,15 +3,17 @@ from os import environ, makedirs, path
 from pandas import concat, DataFrame, read_csv
 
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, environment_variables, \
-    MODELS_PATH, mongodb_connection, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
+    LOG_PATH, MODELS_PATH, mongodb_connection, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from preparation import read_cities, read_sensors, trim_dataframe
 from .database import mongo
+from .logger import log
 from .schedule import fetch_locations
 
 system_paths = [
     DATA_EXTERNAL_PATH,
     DATA_PROCESSED_PATH,
     DATA_RAW_PATH,
+    LOG_PATH,
     MODELS_PATH,
     RESULTS_ERRORS_PATH,
     RESULTS_PREDICTIONS_PATH
@@ -21,7 +23,7 @@ system_paths = [
 def check_environment_variables() -> None:
     for environment_variable in environment_variables:
         if environ.get(environment_variable) is None:
-            print(f'The environment variable "{environment_variable}" is missing')
+            log.error(f'The environment variable "{environment_variable}" is missing')
             exit(-1)
 
 
@@ -46,7 +48,6 @@ def fetch_db_data() -> None:
 
 
 def fetch_data() -> None:
-    init_system_paths()
     fetch_locations()
     if environ.get(mongodb_connection) is not None:
         fetch_db_data()

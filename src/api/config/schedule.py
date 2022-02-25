@@ -2,8 +2,6 @@ from base64 import b64encode
 from datetime import datetime
 from json import dump
 from os import environ, makedirs, path, remove, walk
-from shutil import rmtree
-from traceback import print_exc
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import read_csv
@@ -17,13 +15,14 @@ from processing.forecast_data import fetch_forecast_result
 from .cache import cache
 from .database import mongo
 from .git import append_commit_files, create_archive, update_git_files
+from .logger import log
 
 scheduler = BackgroundScheduler()
 
 
 @scheduler.scheduled_job(trigger='cron', day='*/15')
 def dump_data() -> None:
-    print('Started dumping data...')
+    log.info('Started dumping data...')
 
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
@@ -40,23 +39,23 @@ def dump_data() -> None:
         commit_message = f'Scheduled data dump - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}'
         update_git_files(file_list, file_names, environ[repo_name], branch, commit_message)
 
-    print('Finished dumping data!')
+    log.info('Finished dumping data!')
 
 
 @scheduler.scheduled_job(trigger='cron', hour='*/2')
 def fetch_hourly_data() -> None:
-    print('Started fetching hourly data...')
+    log.info('Started fetching hourly data...')
 
     for city in cache.get('cities') or read_cities():
         for sensor in read_sensors(city['cityName']):
             fetch_city_data(city['cityName'], sensor)
 
-    print('Finished fetching hourly data!')
+    log.info('Finished fetching hourly data!')
 
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def fetch_locations() -> None:
-    print('Started fetching locations...')
+    log.info('Started fetching locations...')
 
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
@@ -84,12 +83,12 @@ def fetch_locations() -> None:
         with open(path.join(DATA_RAW_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
             dump(sensors[city['cityName']], out_file, indent=4)
 
-    print('Finished fetching locations!')
+    log.info('Finished fetching locations!')
 
 
 @scheduler.scheduled_job(trigger='cron', hour=0)
 def import_data() -> None:
-    print('Started importing data...')
+    log.info('Started importing data...')
 
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
@@ -109,18 +108,22 @@ def import_data() -> None:
                     save_dataframe(dataframe, path.splitext(file)[0],
                                    path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
                                    path.basename(path.dirname(file_path)))
+                    remove(file_path)
                 except Exception:
-                    print_exc()
+                    log.error(f'Error occurred while importing data from {file_path}', exc_info=1)
 
-    rmtree(DATA_EXTERNAL_PATH)
-    makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
+        if not directories and not files:
+            try:
+                remove(root)
+            except Exception:
+                log.error(f'Error occurred while deleting {root}', exc_info=1)
 
-    print('Finished importing data!')
+    log.info('Finished importing data!')
 
 
 @scheduler.scheduled_job(trigger='cron', minute=0)
 def model_training() -> None:
-    print('Started training regression models...')
+    log.info('Started training regression models...')
 
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith('.lock')]:
@@ -131,12 +134,12 @@ def model_training() -> None:
             for pollutant in pollutants:
                 train_regression_model(city, sensor, pollutant)
 
-    print('Finished training regression models!')
+    log.info('Finished training regression models!')
 
 
 @scheduler.scheduled_job(trigger='cron', minute=0)
 def predict_locations() -> None:
-    print('Started predicting values for locations...')
+    log.info('Started predicting values for locations...')
 
     if environ.get(mongodb_connection) is not None:
         for city in cache.get('cities') or read_cities():
@@ -145,7 +148,7 @@ def predict_locations() -> None:
                     'data': list(fetch_forecast_result(city, sensor).values()),
                     'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, upsert=True)
 
-    print('Finished predicting values for locations!')
+    log.info('Finished predicting values for locations!')
 
 
 def schedule_jobs() -> None:
