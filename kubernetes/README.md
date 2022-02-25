@@ -7,7 +7,6 @@ kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=[cluster-
 ###### Generate single yml files for applying all necessary kubernetes resources
 
 kubectl kustomize kubernetes > kubernetes/resources.yml  
-kubectl kustomize kubernetes/multi/resources > kubernetes/multi/resources.yml  
 kubectl kustomize kubernetes/single/resources > kubernetes/single/resources.yml
 
 ###### Apply flannel network for kubernetes pods
@@ -31,9 +30,9 @@ kubectl apply -f kubernetes/metallb-configmap.yml
 
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
 
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml
-kubeseal < kubernetes/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml kubeseal < \
-kubernetes/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml  
+kubeseal < kubernetes/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml  
+kubeseal < kubernetes/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
 
 ###### Apply all system resources
 
