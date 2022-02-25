@@ -1,10 +1,10 @@
 from os import environ, path
 from time import sleep
-from traceback import print_exc
 
 from pandas import json_normalize
 from requests import get
 
+from api.config.logger import log
 from definitions import DATA_RAW_PATH, open_weather_token
 from processing import flatten_json
 from .handle_data import save_dataframe
@@ -30,6 +30,6 @@ def fetch_weather_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, 'weather', path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'weather.csv'),
                            sensor['sensorId'])
     except Exception:
-        print_exc()
+        log.error(f'Error occurred while fetching weather data for {city_name} - {sensor["sensorId"]}', exc_info=1)
     finally:
         sleep(1)

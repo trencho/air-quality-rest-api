@@ -1,12 +1,12 @@
 from datetime import datetime
 from os import path
-from traceback import print_exc
 
 from numpy import abs, nan
 from pandas import concat, DataFrame, read_csv, to_numeric
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
+from api.config.logger import log
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, pollutants
 from preparation import trim_dataframe
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
@@ -67,7 +67,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
         collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
         if path.exists(collection_path):
-            dataframe = concat([dataframe, read_csv(collection_path)], ignore_index=True)
+            dataframe = concat([dataframe, read_csv(collection_path, engine='python')], ignore_index=True)
 
         df_columns = dataframe.columns.copy()
         df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
@@ -114,4 +114,4 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             dataframe.to_csv(collection_path, index=False)
 
     except Exception:
-        print_exc()
+        log.error(f'Error occurred while processing data for {city_name} - {sensor_id}', exc_info=1)

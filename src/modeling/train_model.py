@@ -3,11 +3,11 @@ from math import inf
 from os import environ, makedirs, path, remove
 from pickle import dump, HIGHEST_PROTOCOL
 from threading import Thread
-from traceback import print_exc
 
 from pandas import DataFrame, read_csv, Series, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
 
+from api.config.logger import log
 from definitions import app_dev, app_env, DATA_PROCESSED_PATH, MODELS_PATH, pollutants, regression_models, \
     RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
@@ -182,7 +182,8 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
     except Exception:
-        print_exc()
+        log.error(f'Error occurred while fetching pollution data for {city["cityName"]} - {sensor["sensorId"]}',
+                  exc_info=1)
     finally:
         remove_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
 
