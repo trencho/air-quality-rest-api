@@ -2,7 +2,6 @@ from datetime import datetime
 from io import BytesIO, StringIO
 from os import environ, path, sep
 from shutil import make_archive, move
-from traceback import print_exc
 
 from github import Github, GithubException, GitRef, GitTree, InputGitTreeElement, Repository
 from pandas import concat, read_csv
@@ -10,6 +9,7 @@ from requests import ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
 from definitions import github_token, ROOT_PATH
+from .logger import log
 
 g = Github(environ.get(github_token))
 
@@ -34,7 +34,7 @@ def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base
                              element_list[:len(element_list) // 2])
             commit_git_files(repo, master_ref, master_sha, base_tree, commit_message,
                              element_list[len(element_list) // 2:])
-        print_exc()
+        log.error('Error occurred while committing files to GitHub', exc_info=1)
 
 
 def create_archive(source, destination):
@@ -54,7 +54,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
         repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
         local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
     except GithubException:
-        print_exc()
+        log.error('Error occurred while merging local files with files from GitHub repository', exc_info=1)
     local_file_content.drop_duplicates(inplace=True)
     return local_file_content.to_csv(index=False)
 
