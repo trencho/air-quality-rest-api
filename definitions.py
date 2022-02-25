@@ -36,6 +36,8 @@ DATA_EXTERNAL_PATH = path.join(DATA_PATH, 'external')
 DATA_PROCESSED_PATH = path.join(DATA_PATH, 'processed')
 DATA_RAW_PATH = path.join(DATA_PATH, 'raw')
 
+LOG_PATH = path.join(ROOT_PATH, 'logs')
+
 MODELS_PATH = path.join(ROOT_PATH, 'models')
 
 RESULTS_PATH = path.join(ROOT_PATH, 'results')

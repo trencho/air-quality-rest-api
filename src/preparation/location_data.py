@@ -37,24 +37,23 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 
 def fetch_cities() -> list:
     try:
-        response = get('https://pulse.eco/rest/city/')
-        return [city for city in response.json() if city['countryCode'] in countries]
+        return sorted([city for city in get('https://pulse.eco/rest/city/').json() if city['countryCode'] in countries],
+                      key=lambda i: i['cityName'])
     except Exception:
         return []
 
 
 def fetch_countries() -> list:
     try:
-        return get('https://pulse.eco/rest/country/').json()
+        return sorted(get('https://pulse.eco/rest/country/').json(), key=lambda i: i['countryCode'])
     except Exception:
         return []
 
 
 def fetch_sensors(city_name: str) -> list:
     try:
-        response = get(f'https://{city_name}.pulse.eco/rest/sensor/')
-        sensors_json = response.json()
-        return [sensor for sensor in sensors_json if sensor['status'] == 'ACTIVE']
+        return sorted([sensor for sensor in get(f'https://{city_name}.pulse.eco/rest/sensor/').json() if
+                       sensor['status'] == 'ACTIVE'], key=lambda i: i['sensorId'])
     except Exception:
         return []
 
