@@ -63,7 +63,7 @@ def next_hour(t: datetime) -> datetime:
 
 def process_data(city_name: str, sensor_id: str, collection: str) -> None:
     try:
-        dataframe = read_csv(path.join(DATA_RAW_PATH, city_name, sensor_id, f'{collection}.csv'))
+        dataframe = read_csv(path.join(DATA_RAW_PATH, city_name, sensor_id, f'{collection}.csv'), engine='python')
 
         collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
         if path.exists(collection_path):
