@@ -42,7 +42,7 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
             mongo.db[collection].insert_many(dataframe.to_dict('records'))
 
         if path.exists(collection_path):
-            dataframe = concat([dataframe, read_csv(collection_path)], ignore_index=True)
+            dataframe = concat([dataframe, read_csv(collection_path, engine='python')], ignore_index=True)
             trim_dataframe(dataframe, 'time')
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
         dataframe.to_csv(collection_path, index=False)
