@@ -1,7 +1,7 @@
 from base64 import b64encode
 from datetime import datetime
 from json import dump
-from os import environ, makedirs, path, remove, walk
+from os import environ, makedirs, path, remove, rmdir, walk
 
 from flask import Flask
 from flask_apscheduler import APScheduler
@@ -115,7 +115,7 @@ def import_data() -> None:
 
         if not directories and not files:
             try:
-                remove(root)
+                rmdir(root)
             except Exception:
                 log.error(f'Error occurred while deleting {root}', exc_info=1)
 
