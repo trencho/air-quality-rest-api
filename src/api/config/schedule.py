@@ -3,7 +3,8 @@ from datetime import datetime
 from json import dump
 from os import environ, makedirs, path, remove, walk
 
-from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask
+from flask_apscheduler import APScheduler
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data
@@ -17,10 +18,10 @@ from .database import mongo
 from .git import append_commit_files, create_archive, update_git_files
 from .logger import log
 
-scheduler = BackgroundScheduler()
+scheduler = APScheduler()
 
 
-@scheduler.scheduled_job(trigger='cron', day='*/15')
+@scheduler.task(trigger='cron', day='*/15')
 def dump_data() -> None:
     log.info('Started dumping data...')
 
@@ -42,7 +43,7 @@ def dump_data() -> None:
     log.info('Finished dumping data!')
 
 
-@scheduler.scheduled_job(trigger='cron', hour='*/2')
+@scheduler.task(trigger='cron', hour='*/2')
 def fetch_hourly_data() -> None:
     log.info('Started fetching hourly data...')
 
@@ -53,7 +54,7 @@ def fetch_hourly_data() -> None:
     log.info('Finished fetching hourly data!')
 
 
-@scheduler.scheduled_job(trigger='cron', hour=0)
+@scheduler.task(trigger='cron', hour=0)
 def fetch_locations() -> None:
     log.info('Started fetching locations...')
 
@@ -86,7 +87,7 @@ def fetch_locations() -> None:
     log.info('Finished fetching locations!')
 
 
-@scheduler.scheduled_job(trigger='cron', hour=0)
+@scheduler.task(trigger='cron', hour=0)
 def import_data() -> None:
     log.info('Started importing data...')
 
@@ -121,7 +122,7 @@ def import_data() -> None:
     log.info('Finished importing data!')
 
 
-@scheduler.scheduled_job(trigger='cron', minute=0)
+@scheduler.task(trigger='cron', minute=0)
 def model_training() -> None:
     log.info('Started training regression models...')
 
@@ -137,7 +138,7 @@ def model_training() -> None:
     log.info('Finished training regression models!')
 
 
-@scheduler.scheduled_job(trigger='cron', minute=0)
+@scheduler.task(trigger='cron', minute=0)
 def predict_locations() -> None:
     log.info('Started predicting values for locations...')
 
@@ -151,5 +152,7 @@ def predict_locations() -> None:
     log.info('Finished predicting values for locations!')
 
 
-def schedule_jobs() -> None:
+def schedule_jobs(app: Flask) -> None:
+    scheduler.api_enabled = True
+    scheduler.init_app(app)
     scheduler.start()

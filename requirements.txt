@@ -1,7 +1,7 @@
-apscheduler
 dnspython
 flasgger
 flask
+flask-apscheduler
 flask-caching
 flask-healthz
 flask-pymongo

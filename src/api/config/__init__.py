@@ -14,13 +14,13 @@ from .swagger import configure_swagger
 
 
 def create_app() -> Flask:
-    if environ.get(app_env, app_dev) == app_prod:
-        check_environment_variables()
-        schedule_jobs()
+    init_system_paths()
 
     app = Flask(__name__)
 
-    init_system_paths()
+    if environ.get(app_env, app_dev) == app_prod:
+        check_environment_variables()
+        schedule_jobs(app)
 
     register_blueprints(app)
 
