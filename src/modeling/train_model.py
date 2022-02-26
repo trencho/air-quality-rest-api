@@ -182,8 +182,8 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
     except Exception:
-        log.error(f'Error occurred while fetching pollution data for {city["cityName"]} - {sensor["sensorId"]}',
-                  exc_info=1)
+        log.error(f'Error occurred while training regression model for {city["cityName"]} - {sensor["sensorId"]} - '
+                  f'{pollutant}', exc_info=1)
     finally:
         remove_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
 
