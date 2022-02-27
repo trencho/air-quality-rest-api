@@ -33,7 +33,7 @@ def split_dataframe(dataframe: DataFrame, target: str, selected_features: list =
     y = dataframe[target]
 
     x = previous_value_overwrite(x)
-    y.drop(y.tail(1).index, inplace=True)
+    y = y.drop(y.tail(1).index)
 
     selected_features = backward_elimination(x, y) if selected_features is None else selected_features
     x = x[selected_features]
@@ -173,7 +173,7 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
         return
     try:
         dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
-                             index_col='time')
+                             index_col='time', engine='python')
         dataframe.index = to_datetime(dataframe.index, unit='s')
         dataframe = dataframe.loc[dataframe.index <= current_hour()]
         if pollutant in dataframe.columns:
