@@ -31,8 +31,11 @@ kubectl apply -f kubernetes/metallb-configmap.yml
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
 
 kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml  
-kubeseal < kubernetes/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml  
-kubeseal < kubernetes/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
+kubeseal < kubernetes/secrets/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml  
+kubeseal < kubernetes/secrets/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
+
+kubectl apply -f kubernetes/sealed-secrets/flask-sealed-secret.yml  
+kubectl apply -f kubernetes/sealed-secrets/mongo-sealed-secret.yml
 
 ###### Apply all system resources
 
