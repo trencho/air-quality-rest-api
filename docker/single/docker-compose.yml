@@ -23,6 +23,7 @@ services:
       OPEN_WEATHER_TOKEN: ${OPEN_WEATHER_TOKEN}
       PYTHONPATH: ${PYTHONPATH}
       REPO_NAME: ${REPO_NAME}
+      TZ: ${TZ}
       VOLUME_PATH: ${VOLUME_PATH}
     image: aqra_flask:latest
     networks:
