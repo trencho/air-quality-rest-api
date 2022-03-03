@@ -3,6 +3,7 @@ from math import isnan, nan
 from os import path
 from pickle import load
 from typing import Optional
+from warnings import catch_warnings, simplefilter
 
 from pandas import concat, DataFrame, date_range, read_csv, Series, Timedelta, to_datetime
 
@@ -173,7 +174,9 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
             encode_categorical_data(features)
             features = features[model_features]
             features = value_scaling(features)
-            predictions = model.predict(features)
+            with catch_warnings():
+                simplefilter('ignore')
+                predictions = model.predict(features)
             forecasted_values.append(predictions[-1])
         except Exception:
             forecasted_values.append(nan)

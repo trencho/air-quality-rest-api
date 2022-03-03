@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from os import path
 
 from numpy import abs, nan
@@ -14,18 +14,22 @@ from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_in
 
 
 def closest_hour(t: datetime) -> datetime:
-    return t.replace(hour=t.hour if t.minute <= 30 else 0 if t.hour == 23 else t.hour + 1, minute=0, second=0,
-                     microsecond=0)
+    t = t if t.minute < 30 else t + timedelta(hours=1)
+    return t.replace(minute=0, second=0, microsecond=0)
 
 
 def current_hour() -> datetime:
-    t = datetime.now()
-    return t.replace(hour=t.hour, minute=0, second=0, microsecond=0)
+    return datetime.now().replace(minute=0, second=0, microsecond=0)
 
 
-def drop_numerical_outliers(dataframe: DataFrame, z_thresh: int = 3):
+def drop_numerical_outliers(dataframe: DataFrame, z_thresh: int = 3) -> None:
     constrains = (abs(zscore(dataframe)) < z_thresh).all(axis=1)
     dataframe.drop(index=dataframe.index[~constrains], inplace=True)
+
+
+def drop_unnecessary_features(dataframe: DataFrame) -> None:
+    dataframe = dataframe.loc[:, ~dataframe.columns.str.contains('weather', case=False)]
+    dataframe.drop(columns=['precipProbability', 'precipType', 'ozone', 'co2'], inplace=True, errors='ignore')
 
 
 def flatten_json(nested_json: dict, exclude=None) -> dict:
@@ -57,8 +61,7 @@ def flatten_json(nested_json: dict, exclude=None) -> dict:
 
 
 def next_hour(t: datetime) -> datetime:
-    return t.replace(day=t.day + 1 if t.hour == 23 else t.day, hour=0 if t.hour == 23 else t.hour + 1, minute=0,
-                     second=0, microsecond=0)
+    return t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
 
 def process_data(city_name: str, sensor_id: str, collection: str) -> None:
@@ -115,3 +118,13 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
     except Exception:
         log.error(f'Error occurred while processing data for {city_name} - {sensor_id}', exc_info=1)
+
+
+def rename_features(dataframe: DataFrame) -> None:
+    dataframe.rename(
+        columns={'dt': 'time', 'temperature': 'temp', 'apparentTemperature': 'feels_like', 'dewPoint': 'dew_point',
+                 'cloudCover': 'clouds', 'windSpeed': 'wind_speed', 'windGust': 'wind_gust', 'windBearing': 'wind_deg',
+                 'summary': 'weather.description', 'icon': 'weather.icon', 'uvIndex': 'uvi',
+                 'precipIntensity': 'precipitation', 'AQI': 'aqi', 'CO': 'co', 'CO2': 'co2', 'NH3': 'nh3', 'NO': 'no',
+                 'NO2': 'no2', 'O3': 'o3', 'PM25': 'pm2_5', 'PM10': 'pm10', 'SO2': 'so2'}, inplace=True,
+        errors='ignore')
