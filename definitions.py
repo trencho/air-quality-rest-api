@@ -2,6 +2,8 @@ from os import environ, path
 
 app_env = 'APP_ENV'
 
+dark_sky_token = 'DARK_SKY_TOKEN'
+
 github_token = 'GITHUB_TOKEN'
 
 mongo_database = 'MONGO_DATABASE'
@@ -18,6 +20,7 @@ volume_path = 'VOLUME_PATH'
 
 environment_variables = [
     app_env,
+    dark_sky_token,
     github_token,
     mongo_database,
     mongo_password,
