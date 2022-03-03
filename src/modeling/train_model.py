@@ -3,6 +3,7 @@ from math import inf
 from os import environ, makedirs, path, remove
 from pickle import dump, HIGHEST_PROTOCOL
 from threading import Thread
+from warnings import catch_warnings, simplefilter
 
 from pandas import DataFrame, read_csv, Series, to_datetime
 from sklearn.model_selection import RandomizedSearchCV
@@ -151,7 +152,9 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
         if env_var == app_dev:
             model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
 
-        y_predicted = model.predict(x_test)
+        with catch_warnings():
+            simplefilter('ignore')
+            y_predicted = model.predict(x_test)
 
         results = DataFrame({'Actual': y_test, 'Predicted': y_predicted}, x_test.index)
         save_results(city_name, sensor_id, pollutant, model_name, results)
