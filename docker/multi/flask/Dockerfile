@@ -23,8 +23,8 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copy the current directory contents into the container
 COPY . /
 
-RUN chmod 777 /run/ -R && \
-    chmod 777 /root/ -R
+RUN chmod 777 /run -R && \
+    chmod 777 /root -R
 
 # Run the command to start uWSGI
 ENTRYPOINT ["uwsgi", "--ini", "/docker/multi/flask/uwsgi.ini"]
