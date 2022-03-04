@@ -6,7 +6,7 @@ from requests import get
 
 from api.config.logger import log
 from definitions import dark_sky_token, DATA_RAW_PATH, open_weather_token
-from processing import rename_features, flatten_json
+from processing import flatten_json
 from .handle_data import save_dataframe
 
 
@@ -24,7 +24,6 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
         dataframe = json_normalize(hourly['data'])
 
         if len(dataframe.index) > 0:
-            rename_features(dataframe)
             save_dataframe(dataframe, 'weather', path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'weather.csv'),
                            sensor['sensorId'])
     except Exception:
@@ -48,7 +47,6 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
         dataframe = json_normalize([flatten_json(hourly) for hourly in hourly_data])
 
         if len(dataframe.index) > 0:
-            rename_features(dataframe)
             save_dataframe(dataframe, 'weather', path.join(DATA_RAW_PATH, city_name, sensor['sensorId'], 'weather.csv'),
                            sensor['sensorId'])
     except Exception:

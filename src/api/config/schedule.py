@@ -12,8 +12,7 @@ from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PAT
     repo_name
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors, save_dataframe
-from processing import rename_features
-from processing.forecast_data import fetch_forecast_result
+from processing import fetch_forecast_result
 from .cache import cache
 from .database import mongo
 from .git import append_commit_files, create_archive, update_git_files
@@ -98,7 +97,6 @@ def import_data() -> None:
             if file.endswith('.csv'):
                 try:
                     dataframe = read_csv(file_path)
-                    rename_features(dataframe)
                     save_dataframe(dataframe, path.splitext(file)[0],
                                    path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
                                    path.basename(path.dirname(file_path)))
