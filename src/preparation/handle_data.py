@@ -7,6 +7,7 @@ from pandas import concat, DataFrame, read_csv
 
 from api.config.database import mongo
 from definitions import mongodb_connection
+from processing import drop_unnecessary_features, rename_features
 
 
 def convert_dtype(x):
@@ -28,6 +29,9 @@ def find_dtypes(file_path: str, collection: str) -> Optional[dict]:
 
 
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
+    rename_features(dataframe)
+    drop_unnecessary_features(dataframe)
+
     if (mongodb_env := environ.get(mongodb_connection)) is not None:
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 

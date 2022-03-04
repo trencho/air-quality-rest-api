@@ -13,8 +13,7 @@ from definitions import app_dev, app_env, DATA_PROCESSED_PATH, MODELS_PATH, poll
     RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
-from processing import backward_elimination, encode_categorical_data, generate_features, value_scaling
-from processing.normalize_data import current_hour
+from processing import backward_elimination, current_hour, encode_categorical_data, generate_features, value_scaling
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 

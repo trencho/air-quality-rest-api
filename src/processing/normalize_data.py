@@ -8,7 +8,6 @@ from sklearn.impute import KNNImputer
 
 from api.config.logger import log
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, pollutants
-from preparation import trim_dataframe
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
     calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
 
@@ -28,7 +27,7 @@ def drop_numerical_outliers(dataframe: DataFrame, z_thresh: int = 3) -> None:
 
 
 def drop_unnecessary_features(dataframe: DataFrame) -> None:
-    dataframe = dataframe.loc[:, ~dataframe.columns.str.contains('weather', case=False)]
+    dataframe.drop(columns=dataframe.filter(regex='weather').columns, axis=1, inplace=True)
     dataframe.drop(columns=['precipProbability', 'precipType', 'ozone', 'co2'], inplace=True, errors='ignore')
 
 
@@ -112,8 +111,9 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         # drop_numerical_outliers(dataframe)
 
         dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
-        trim_dataframe(dataframe, 'time')
         if len(dataframe.index) > 0:
+            rename_features(dataframe)
+            drop_unnecessary_features(dataframe)
             dataframe.to_csv(collection_path, index=False)
 
     except Exception:
