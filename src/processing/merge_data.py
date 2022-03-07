@@ -3,7 +3,7 @@ from os import path
 from pandas import merge, read_csv
 
 from api.config.logger import log
-from preparation.handle_data import save_dataframe
+from processing import save_dataframe
 
 
 def merge_air_quality_data(data_path: str, city_name: str, sensor_id: str) -> None:

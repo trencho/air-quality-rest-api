@@ -11,8 +11,8 @@ from api.blueprints import fetch_city_data
 from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PATH, mongodb_connection, pollutants, \
     repo_name
 from modeling import train_regression_model
-from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors, save_dataframe
-from processing import fetch_forecast_result
+from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
+from processing import fetch_forecast_result, save_dataframe
 from .cache import cache
 from .database import mongo
 from .git import append_commit_files, create_archive, update_git_files
