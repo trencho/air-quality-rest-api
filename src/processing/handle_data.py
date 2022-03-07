@@ -2,15 +2,14 @@ from os import environ, path
 from pickle import dump, HIGHEST_PROTOCOL, load
 from typing import Optional
 
-from numpy import nan
-from pandas import concat, DataFrame, read_csv
+from pandas import DataFrame, read_csv
 
 from api.config.database import mongo
 from definitions import mongodb_connection
-from processing import drop_unnecessary_features, rename_features
+from .normalize_data import drop_unnecessary_features, trim_dataframe, rename_features
 
 
-def convert_dtype(x):
+def convert_dtype(x: object) -> str:
     if not x:
         return ''
     try:
@@ -28,6 +27,11 @@ def find_dtypes(file_path: str, collection: str) -> Optional[dict]:
     return None
 
 
+def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column: str) -> DataFrame:
+    dataframe = new_dataframe.loc[~new_dataframe['time'].isin(old_dataframe[column])].copy()
+    return dataframe[dataframe.columns.intersection(old_dataframe.columns.values.tolist())]
+
+
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
     rename_features(dataframe)
     drop_unnecessary_features(dataframe)
@@ -36,8 +40,7 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
         db_records = DataFrame(list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False})))
 
         if len(db_records.index) > 0:
-            dataframe = dataframe.loc[~dataframe['time'].isin(db_records['time'])].copy()
-            dataframe = dataframe[dataframe.columns.intersection(db_records.columns.values.tolist())]
+            dataframe = find_missing_data(dataframe, db_records, 'time')
 
     if len(dataframe.index) > 0:
         trim_dataframe(dataframe, 'time')
@@ -46,20 +49,11 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
             mongo.db[collection].insert_many(dataframe.to_dict('records'))
 
         if path.exists(collection_path):
-            dataframe = concat([dataframe, read_csv(collection_path, engine='python')], ignore_index=True)
-            trim_dataframe(dataframe, 'time')
+            dataframe = find_missing_data(dataframe, read_csv(collection_path, engine='python'), 'time')
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
-        dataframe.to_csv(collection_path, index=False)
+        dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
 
 
 def store_dtypes(file_path: str, collection: str, dtypes: dict) -> None:
     with open(path.join(file_path, f'{collection}_dtypes.pkl'), 'wb') as out_file:
         dump(dtypes, out_file, HIGHEST_PROTOCOL)
-
-
-def trim_dataframe(dataframe: DataFrame, column: str) -> None:
-    dataframe.replace(to_replace=0, value=nan, inplace=True)
-    dataframe.dropna(axis='columns', how='all', inplace=True)
-    dataframe.drop_duplicates(subset=column, keep='last', inplace=True)
-    dataframe.reset_index(drop=True, inplace=True)
-    dataframe.sort_values(by=column, inplace=True)

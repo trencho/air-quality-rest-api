@@ -1,7 +1,6 @@
 def calculate_aqi(co_index: int, no2_index: int, o3_index: int, pm2_5_index: int, pm10_index: int,
                   so2_index: int) -> int:
-    parameters = [co_index, no2_index, o3_index, pm2_5_index, pm10_index, so2_index]
-    return max(parameters)
+    return max([co_index, no2_index, o3_index, pm2_5_index, pm10_index, so2_index])
 
 
 def calculate_co_index(co: float) -> int:
