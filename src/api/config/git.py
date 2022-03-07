@@ -9,6 +9,7 @@ from requests import ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
 from definitions import github_token, ROOT_PATH
+from processing import trim_dataframe
 from .logger import log
 
 g = Github(environ.get(github_token))
@@ -55,7 +56,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
         local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
     except GithubException:
         log.error('Error occurred while merging local files with files from GitHub repository', exc_info=1)
-    local_file_content.drop_duplicates(inplace=True)
+    trim_dataframe(local_file_content, 'time')
     return local_file_content.to_csv(index=False)
 
 

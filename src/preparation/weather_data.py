@@ -6,8 +6,7 @@ from requests import get
 
 from api.config.logger import log
 from definitions import dark_sky_token, DATA_RAW_PATH, open_weather_token
-from processing import flatten_json
-from .handle_data import save_dataframe
+from processing import flatten_json, save_dataframe
 
 
 def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
@@ -28,6 +27,7 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
                            sensor['sensorId'])
     except Exception:
         log.error(f'Error occurred while fetching DarkSky data for {city_name} - {sensor["sensorId"]}', exc_info=1)
+        fetch_open_weather_data(city_name, sensor)
     finally:
         sleep(1)
 

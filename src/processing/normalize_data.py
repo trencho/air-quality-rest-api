@@ -111,6 +111,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         # drop_numerical_outliers(dataframe)
 
         dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
+        trim_dataframe(dataframe, 'time')
         if len(dataframe.index) > 0:
             rename_features(dataframe)
             drop_unnecessary_features(dataframe)
@@ -128,3 +129,11 @@ def rename_features(dataframe: DataFrame) -> None:
                  'precipIntensity': 'precipitation', 'AQI': 'aqi', 'CO': 'co', 'CO2': 'co2', 'NH3': 'nh3', 'NO': 'no',
                  'NO2': 'no2', 'O3': 'o3', 'PM25': 'pm2_5', 'PM10': 'pm10', 'SO2': 'so2'}, inplace=True,
         errors='ignore')
+
+
+def trim_dataframe(dataframe: DataFrame, column: str) -> None:
+    dataframe.replace(to_replace=0, value=nan, inplace=True)
+    dataframe.dropna(axis='columns', how='all', inplace=True)
+    dataframe.drop_duplicates(subset=column, keep='last', inplace=True)
+    dataframe.reset_index(drop=True, inplace=True)
+    dataframe.sort_values(by=column, inplace=True)

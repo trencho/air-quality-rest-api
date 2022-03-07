@@ -1,10 +1,11 @@
 from os import environ, makedirs, path
 
-from pandas import concat, DataFrame, read_csv
+from pandas import DataFrame, read_csv
 
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, environment_variables, \
     LOG_PATH, MODELS_PATH, mongodb_connection, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
-from preparation import read_cities, read_sensors, trim_dataframe
+from preparation import read_cities, read_sensors
+from processing import find_missing_data
 from .database import mongo
 from .logger import log
 from .schedule import fetch_locations
@@ -35,9 +36,8 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         makedirs(collection_dir, exist_ok=True)
         collection_path = path.join(collection_dir, f'{collection}.csv')
         if path.exists(collection_path):
-            db_records = concat([db_records, read_csv(collection_path, engine='python')], ignore_index=True)
-            trim_dataframe(db_records, 'time')
-        db_records.to_csv(collection_path, index=False)
+            db_records = find_missing_data(db_records, read_csv(collection_path, engine='python'), 'time')
+        db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
 
 
 def fetch_db_data() -> None:
