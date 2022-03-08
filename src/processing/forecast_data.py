@@ -21,7 +21,7 @@ FORECAST_STEPS = 24
 def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     forecast_result = {}
     for pollutant in pollutants:
-        if (predictions := forecast_city_sensor(city, sensor, pollutant)) is None:
+        if (predictions := forecast_city_sensor(city['cityName'], sensor['sensorId'], pollutant)) is None:
             continue
 
         for index, value in predictions.items():
@@ -44,13 +44,13 @@ def fetch_weather_features(city_name: str, sensor_id: str, model_features: list,
 
 
 @cache.memoize(timeout=3600)
-def forecast_city_sensor(city: dict, sensor: dict, pollutant: str) -> Optional[Series]:
-    if (load_model := load_regression_model(city, sensor, pollutant)) is None:
+def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Optional[Series]:
+    if (load_model := load_regression_model(city_name, sensor_id, pollutant)) is None:
         return None
 
     model, model_features = load_model
 
-    return recursive_forecast(city['cityName'], sensor['sensorId'], pollutant, model, model_features)
+    return recursive_forecast(city_name, sensor_id, pollutant, model, model_features)
 
 
 @cache.memoize(timeout=3600)
@@ -64,17 +64,14 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 
 @cache.memoize(timeout=3600)
-def load_regression_model(city: dict, sensor: dict, pollutant: str) -> Optional[tuple]:
-    if not path.exists(
-            path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl')):
+def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
+    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl')):
         return None
 
-    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'best_regression_model.pkl'),
-              'rb') as in_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl'), 'rb') as in_file:
         model = load(in_file)
 
-    with open(path.join(MODELS_PATH, city['cityName'], sensor['sensorId'], pollutant, 'selected_features.pkl'),
-              'rb') as in_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.pkl'), 'rb') as in_file:
         model_features = load(in_file)
 
     return model, model_features
@@ -149,13 +146,13 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     upcoming_hour = next_hour(datetime.now())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
-    forecasted_values = []
     dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'summary.csv'), index_col='time',
                          engine='python')
     dataframe.index = to_datetime(dataframe.index, unit='s')
     dataframe.drop(index=dataframe.loc[dataframe.index > current_hour()].index, inplace=True, errors='ignore')
     target = dataframe[pollutant].copy()
 
+    forecasted_values = []
     for date in forecast_range:
         # Build target time series using previously forecast value
         new_point = forecasted_values[-1] if len(forecasted_values) > 0 else 0.0
