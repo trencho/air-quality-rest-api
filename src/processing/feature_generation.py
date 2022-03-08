@@ -70,7 +70,7 @@ def generate_time_features(target) -> DataFrame:
 
     bins = [0, 4, 8, 12, 16, 20, 24]
     labels = ['Late Night', 'Early Morning', 'Morning', 'Noon', 'Eve', 'Night']
-    features['session'] = cut(features['hour'], bins=bins, labels=labels)
+    features['session'] = cut(features['hour'], bins=bins, labels=labels, include_lowest=True)
 
     features.set_index(target.index, inplace=True)
 
