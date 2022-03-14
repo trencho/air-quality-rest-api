@@ -87,13 +87,13 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         df_columns = dataframe.columns.copy()
         df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
 
+        imp = KNNImputer()
         for column in df_columns:
             dataframe[column] = to_numeric(dataframe[column], errors='coerce')
             if dataframe[column].isna().all():
                 dataframe.drop(columns=column, inplace=True, errors='ignore')
-
-        imp = KNNImputer()
-        dataframe[df_columns] = imp.fit_transform(dataframe[df_columns].values.reshape(-1, 1))
+            if dataframe[column].isna().any():
+                dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
 
         pollutants_wo_aqi = pollutants.copy()
         pollutants_wo_aqi.pop('aqi')
@@ -123,7 +123,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             # dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
 
     except Exception:
-        log.error(f'Error occurred while processing data for {city_name} - {sensor_id}', exc_info=1)
+        log.error(f'Error occurred while processing {collection} data for {city_name} - {sensor_id}', exc_info=1)
 
 
 def rename_features(dataframe: DataFrame) -> None:
