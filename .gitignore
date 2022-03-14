@@ -213,6 +213,6 @@ cython_debug/
 
 # Project
 data/
-!./data/*/.gitkeep
 models/
 results/
+!.gitkeep
