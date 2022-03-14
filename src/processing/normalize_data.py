@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from os import path
 
-from numpy import abs, nan
+from numpy import abs
 from pandas import concat, DataFrame, read_csv, to_numeric
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
@@ -29,6 +29,11 @@ def drop_numerical_outliers(dataframe: DataFrame, z_thresh: int = 3) -> None:
 def drop_unnecessary_features(dataframe: DataFrame) -> None:
     dataframe.drop(columns=dataframe.filter(regex='weather').columns, axis=1, inplace=True)
     dataframe.drop(columns=['precipProbability', 'precipType', 'ozone', 'co2'], inplace=True, errors='ignore')
+
+
+def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column: str) -> DataFrame:
+    dataframe = new_dataframe.loc[~new_dataframe['time'].isin(old_dataframe[column])].copy()
+    return dataframe[dataframe.columns.intersection(old_dataframe.columns.values.tolist())]
 
 
 def flatten_json(nested_json: dict, exclude=None) -> dict:
@@ -70,20 +75,25 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
         if path.exists(collection_path):
             dataframe = concat([dataframe, read_csv(collection_path, engine='python')], ignore_index=True)
+            # dataframe = find_missing_data(dataframe, read_csv(collection_path, engine='python'), 'time')
+
+        trim_dataframe(dataframe, 'time')
+        if len(dataframe.index) == 0:
+            return
+
+        rename_features(dataframe)
+        drop_unnecessary_features(dataframe)
 
         df_columns = dataframe.columns.copy()
         df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
 
-        imp = KNNImputer()
         for column in df_columns:
             dataframe[column] = to_numeric(dataframe[column], errors='coerce')
-            if not dataframe[column].isna().any():
-                continue
-            if not dataframe[column].isna().all():
-                dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
-                dataframe[column].interpolate(method='nearest', fill_value='extrapolate', inplace=True)
-            else:
+            if dataframe[column].isna().all():
                 dataframe.drop(columns=column, inplace=True, errors='ignore')
+
+        imp = KNNImputer()
+        dataframe[df_columns] = imp.fit_transform(dataframe[df_columns].values.reshape(-1, 1))
 
         pollutants_wo_aqi = pollutants.copy()
         pollutants_wo_aqi.pop('aqi')
@@ -94,9 +104,6 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
         drop_columns_std = dataframe[list(pollutants_wo_aqi)].std()[
             dataframe[list(pollutants_wo_aqi)].std() == 0].index.values
-
-        dataframe[list(pollutants_wo_aqi)].replace(0, nan).bfill(inplace=True)
-        dataframe[list(pollutants_wo_aqi)].replace(0, nan).ffill(inplace=True)
         dataframe.drop(columns=drop_columns_std, inplace=True, errors='ignore')
 
         dataframe['aqi'] = dataframe.apply(
@@ -110,12 +117,10 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
         # drop_numerical_outliers(dataframe)
 
-        dataframe = dataframe.dropna(axis='columns', how='all').dropna(axis='index', how='all')
         trim_dataframe(dataframe, 'time')
         if len(dataframe.index) > 0:
-            rename_features(dataframe)
-            drop_unnecessary_features(dataframe)
             dataframe.to_csv(collection_path, index=False)
+            # dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
 
     except Exception:
         log.error(f'Error occurred while processing data for {city_name} - {sensor_id}', exc_info=1)
@@ -132,8 +137,8 @@ def rename_features(dataframe: DataFrame) -> None:
 
 
 def trim_dataframe(dataframe: DataFrame, column: str) -> None:
-    dataframe.replace(to_replace=0, value=nan, inplace=True)
+    dataframe.sort_values(by=column, inplace=True)
     dataframe.dropna(axis='columns', how='all', inplace=True)
+    dataframe.dropna(axis='index', how='all', inplace=True)
     dataframe.drop_duplicates(subset=column, keep='last', inplace=True)
     dataframe.reset_index(drop=True, inplace=True)
-    dataframe.sort_values(by=column, inplace=True)

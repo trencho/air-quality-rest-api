@@ -8,11 +8,11 @@ from flask_apscheduler import APScheduler
 from pandas import read_csv
 
 from api.blueprints import fetch_city_data
-from definitions import DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PATH, mongodb_connection, pollutants, \
-    repo_name
+from definitions import collections, DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PATH, mongodb_connection, \
+    pollutants, repo_name
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
-from processing import fetch_forecast_result, save_dataframe
+from processing import fetch_forecast_result, process_data, save_dataframe
 from .cache import cache
 from .database import mongo
 from .git import append_commit_files, create_archive, update_git_files
@@ -141,6 +141,18 @@ def predict_locations() -> None:
                     'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, upsert=True)
 
     log.info('Finished predicting values for locations!')
+
+
+@scheduler.task(trigger='cron', minute='0')
+def process_fetched_data() -> None:
+    log.info('Started processing hourly data...')
+
+    for city in cache.get('cities') or read_cities():
+        for sensor in read_sensors(city['cityName']):
+            for collection in collections:
+                process_data(city['cityName'], sensor['sensorId'], collection)
+
+    log.info('Finished processing hourly data!')
 
 
 def schedule_jobs(app: Flask) -> None:
