@@ -6,7 +6,7 @@ from pandas import DataFrame, read_csv
 
 from api.config.database import mongo
 from definitions import mongodb_connection
-from .normalize_data import drop_unnecessary_features, trim_dataframe, rename_features
+from .normalize_data import drop_unnecessary_features, find_missing_data, trim_dataframe, rename_features
 
 
 def convert_dtype(x: object) -> str:
@@ -27,11 +27,6 @@ def find_dtypes(file_path: str, collection: str) -> Optional[dict]:
     return None
 
 
-def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column: str) -> DataFrame:
-    dataframe = new_dataframe.loc[~new_dataframe['time'].isin(old_dataframe[column])].copy()
-    return dataframe[dataframe.columns.intersection(old_dataframe.columns.values.tolist())]
-
-
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
     rename_features(dataframe)
     drop_unnecessary_features(dataframe)
@@ -42,8 +37,8 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
         if len(db_records.index) > 0:
             dataframe = find_missing_data(dataframe, db_records, 'time')
 
+    trim_dataframe(dataframe, 'time')
     if len(dataframe.index) > 0:
-        trim_dataframe(dataframe, 'time')
         dataframe.loc[:, 'sensorId'] = sensor_id
         if mongodb_env is not None:
             mongo.db[collection].insert_many(dataframe.to_dict('records'))
