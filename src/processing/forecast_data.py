@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import isnan, nan
 from os import path
 from pickle import load
@@ -149,7 +149,8 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'summary.csv'), index_col='time',
                          engine='python')
     dataframe.index = to_datetime(dataframe.index, unit='s')
-    dataframe.drop(index=dataframe.loc[dataframe.index > current_hour()].index, inplace=True, errors='ignore')
+    dataframe.drop(index=dataframe.loc[dataframe.index < current_hour() - timedelta(weeks=1)
+                                       & dataframe.index > current_hour()].index, inplace=True, errors='ignore')
     target = dataframe[pollutant].copy()
 
     forecasted_values = []
@@ -174,7 +175,8 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
             with catch_warnings():
                 simplefilter('ignore')
                 predictions = model.predict(features)
-            forecasted_values.append(predictions[-1])
+            prediction = predictions[-1]
+            forecasted_values.append(prediction if prediction >= 0 else nan)
         except Exception:
             forecasted_values.append(nan)
         target.update(Series(forecasted_values[-1], [target.index[-1]]))
