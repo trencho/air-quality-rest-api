@@ -165,11 +165,12 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
                 target.update(Series(forecasted_values[-1], [target.index[-1]]))
                 continue
 
-            dataframe = DataFrame(data, index=[date])
-            features = dataframe.join(generate_features(target, lags), how='inner')
-            features = concat([features, DataFrame(columns=list(set(model_features) - set(list(features.columns))))])
+            features = DataFrame(data, index=[date])
+            features = features.join(generate_features(target, lags), how='inner')
+            features = concat([dataframe, features])[model_features]
             encode_categorical_data(features)
-            features = value_scaling(features[model_features])
+            features = value_scaling(features)
+            features = features.tail(1)
             with catch_warnings():
                 simplefilter('ignore')
                 predictions = model.predict(features)
