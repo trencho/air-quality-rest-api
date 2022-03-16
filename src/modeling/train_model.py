@@ -84,9 +84,10 @@ def hyper_parameter_tuning(model: BaseRegressionModel, x_train: DataFrame, y_tra
     model_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
     model_cv.fit(x_train, y_train)
 
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
-                        'HyperparameterOptimization.pkl'), 'wb') as out_file:
-        dump(model_cv.best_params_, out_file, HIGHEST_PROTOCOL)
+    if environ.get(app_env, app_dev) == app_dev:
+        with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
+                            'HyperparameterOptimization.pkl'), 'wb') as out_file:
+            dump(model_cv.best_params_, out_file, HIGHEST_PROTOCOL)
 
     return model_cv.best_params_
 
