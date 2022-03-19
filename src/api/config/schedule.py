@@ -23,8 +23,6 @@ scheduler = APScheduler()
 
 @scheduler.task(trigger='cron', day='*/15')
 def dump_data() -> None:
-    log.info('Started dumping data...')
-
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
         if not directories and files:
@@ -40,24 +38,16 @@ def dump_data() -> None:
         commit_message = f'Scheduled data dump - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}'
         update_git_files(file_list, file_names, environ[repo_name], branch, commit_message)
 
-    log.info('Finished dumping data!')
-
 
 @scheduler.task(trigger='cron', hour='*/2')
 def fetch_hourly_data() -> None:
-    log.info('Started fetching hourly data...')
-
     for city in cache.get('cities') or read_cities():
         for sensor in read_sensors(city['cityName']):
             fetch_city_data(city['cityName'], sensor)
 
-    log.info('Finished fetching hourly data!')
-
 
 @scheduler.task(trigger='cron', hour=0)
 def fetch_locations() -> None:
-    log.info('Started fetching locations...')
-
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, 'cities.json'), 'w') as out_file:
         dump(cities, out_file, indent=4)
@@ -84,13 +74,9 @@ def fetch_locations() -> None:
         with open(path.join(DATA_RAW_PATH, city['cityName'], 'sensors.json'), 'w') as out_file:
             dump(sensors[city['cityName']], out_file, indent=4)
 
-    log.info('Finished fetching locations!')
-
 
 @scheduler.task(trigger='cron', hour=0)
 def import_data() -> None:
-    log.info('Started importing data...')
-
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
             file_path = path.join(root, file)
@@ -110,13 +96,9 @@ def import_data() -> None:
             except Exception:
                 log.error(f'Error occurred while deleting {root}', exc_info=1)
 
-    log.info('Finished importing data!')
-
 
 @scheduler.task(trigger='cron', minute=0)
 def model_training() -> None:
-    log.info('Started training regression models...')
-
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith('.lock')]:
         remove(path.join(MODELS_PATH, file))
@@ -126,13 +108,9 @@ def model_training() -> None:
             for pollutant in pollutants:
                 train_regression_model(city, sensor, pollutant)
 
-    log.info('Finished training regression models!')
-
 
 @scheduler.task(trigger='cron', minute=0)
 def predict_locations() -> None:
-    log.info('Started predicting values for locations...')
-
     if environ.get(mongodb_connection) is not None:
         for city in cache.get('cities') or read_cities():
             for sensor in read_sensors(city['cityName']):
@@ -140,19 +118,13 @@ def predict_locations() -> None:
                     'data': list(fetch_forecast_result(city, sensor).values()),
                     'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, upsert=True)
 
-    log.info('Finished predicting values for locations!')
-
 
 @scheduler.task(trigger='cron', minute='0')
 def process_fetched_data() -> None:
-    log.info('Started processing hourly data...')
-
     for city in cache.get('cities') or read_cities():
         for sensor in read_sensors(city['cityName']):
             for collection in collections:
                 process_data(city['cityName'], sensor['sensorId'], collection)
-
-    log.info('Finished processing hourly data!')
 
 
 def schedule_jobs(app: Flask) -> None:
