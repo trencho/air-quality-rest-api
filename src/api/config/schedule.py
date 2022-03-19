@@ -2,6 +2,7 @@ from base64 import b64encode
 from datetime import datetime
 from json import dump
 from os import environ, makedirs, path, remove, rmdir, walk
+from shutil import unpack_archive
 
 from flask import Flask
 from flask_apscheduler import APScheduler
@@ -80,6 +81,14 @@ def import_data() -> None:
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
             file_path = path.join(root, file)
+            if file.endswith('.zip'):
+                fmt = str(path.basename(file_path).split('.')[1])
+                unpack_archive(filename=file_path, extract_dir=root, format=fmt)
+                remove(file_path)
+
+    for root, directories, files in walk(DATA_EXTERNAL_PATH):
+        for file in files:
+            file_path = path.join(root, file)
             if file.endswith('.csv'):
                 try:
                     dataframe = read_csv(file_path)
@@ -91,10 +100,7 @@ def import_data() -> None:
                     log.error(f'Error occurred while importing data from {file_path}', exc_info=1)
 
         if not directories and not files:
-            try:
-                rmdir(root)
-            except Exception:
-                log.error(f'Error occurred while deleting {root}', exc_info=1)
+            rmdir(root)
 
 
 @scheduler.task(trigger='cron', minute=0)
