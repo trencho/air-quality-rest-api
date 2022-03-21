@@ -48,13 +48,6 @@ spec:
                 name: flask-secret
           image: aqra_flask
           imagePullPolicy: Never
-          name: flask
-          ports:
-            - containerPort: 80
-          resources: { }
-          volumeMounts:
-            - mountPath: /var/api
-              name: flaskdata
           livenessProbe:
             failureThreshold: 1
             httpGet:
@@ -63,6 +56,13 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 300
             timeoutSeconds: 60
+          name: flask
+          ports:
+            - containerPort: 80
+          resources: { }
+          volumeMounts:
+            - mountPath: /var/api
+              name: flaskdata
       serviceAccountName: ''
       volumes:
         - name: flaskdata
