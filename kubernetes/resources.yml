@@ -140,13 +140,13 @@ spec:
           image: aqra_mongo
           imagePullPolicy: Never
           livenessProbe:
-            failureThreshold: 1
             exec:
               command:
                 - mongo
                 - --disableImplicitSessions
                 - --eval
                 - db.adminCommand('ping')
+            failureThreshold: 1
             initialDelaySeconds: 60
             periodSeconds: 300
             timeoutSeconds: 60
