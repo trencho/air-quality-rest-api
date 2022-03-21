@@ -10,6 +10,6 @@ spec:
   capacity:
     storage: 1Gi
   hostPath:
-    path: '/mnt/data/api/nginx'
+    path: /mnt/aqra/api/nginx'
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual

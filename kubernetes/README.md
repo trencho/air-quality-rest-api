@@ -4,6 +4,10 @@
 
 kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=[cluster-endpoint]
 
+###### Taint master node with control plane in order to deploy pods
+
+kubectl taint nodes --all node-role.kubernetes.io/master-
+
 ###### Generate single yml files for applying all necessary kubernetes resources
 
 kubectl kustomize kubernetes > kubernetes/resources.yml  
@@ -72,11 +76,15 @@ kubernetes/mongo-secret.yml
 ###### Cleanup resources by deleting persistent volumes and used namespaces
 
 kubectl delete namespace aqra  
-kubectl delete pv mongodata-pv flaskdata-pv  
 kubectl delete namespace cert-manager  
 kubectl delete namespace ingress-nginx  
-kubectl delete namespace metallb-system
+kubectl delete namespace metallb-system kubectl delete pv flaskdata-pv mongodata-pv
 
 ###### Reset kubernetes cluster
 
 kubeadm reset
+
+###### Upgrade the kubernetes cluster
+
+kubeadm upgrade plan  
+kubeadm upgrade apply latest

@@ -10,6 +10,6 @@ spec:
   capacity:
     storage: 10Gi
   hostPath:
-    path: '/mnt/data'
+    path: /mnt/aqra/api/
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
