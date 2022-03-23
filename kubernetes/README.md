@@ -78,7 +78,8 @@ kubernetes/mongo-secret.yml
 kubectl delete namespace aqra  
 kubectl delete namespace cert-manager  
 kubectl delete namespace ingress-nginx  
-kubectl delete namespace metallb-system kubectl delete pv flaskdata-pv mongodata-pv
+kubectl delete namespace metallb-system  
+kubectl delete pv flaskdata-pv mongodata-pv
 
 ###### Reset kubernetes cluster
 
