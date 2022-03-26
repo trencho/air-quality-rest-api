@@ -102,6 +102,8 @@ def import_data() -> None:
         if not directories and not files:
             rmdir(root)
 
+    makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
+
 
 @scheduler.task(trigger='cron', minute=0)
 def model_training() -> None:
