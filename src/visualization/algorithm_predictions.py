@@ -1,7 +1,7 @@
 from os import path
 
 from matplotlib import pyplot
-from pandas import DataFrame, read_csv, to_datetime
+from pandas import DataFrame, DatetimeIndex, read_csv
 
 from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from .handle_plot import save_plot
@@ -21,7 +21,7 @@ def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
         path.join(RESULTS_PREDICTIONS_PATH, 'data', city['cityName'], sensor['sensorId'], pollutant,
                   dataframe_algorithms.iloc[algorithm_index]['algorithm'], 'prediction.csv'), index_col='time')
 
-    x = to_datetime(dataframe_predictions.index).normalize()
+    x = DatetimeIndex(dataframe_predictions.index)
     y1 = dataframe_predictions['Actual']
     y2 = dataframe_predictions['Predicted']
 
