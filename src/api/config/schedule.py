@@ -122,9 +122,11 @@ def predict_locations() -> None:
     if environ.get(mongodb_connection) is not None:
         for city in cache.get('cities') or read_cities():
             for sensor in read_sensors(city['cityName']):
-                mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, {
-                    'data': list(fetch_forecast_result(city, sensor).values()),
-                    'cityName': city['cityName'], 'sensorId': sensor['sensorId']}, upsert=True)
+                if forecast_result := fetch_forecast_result(city, sensor):
+                    mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+                                                        {'data': list(forecast_result.values()),
+                                                         'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+                                                        upsert=True)
 
 
 @scheduler.task(trigger='cron', minute='0')
