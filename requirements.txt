@@ -3,6 +3,7 @@ flasgger
 flask
 flask-apscheduler
 flask-caching
+flask-cors
 flask-healthz
 flask-pymongo
 haversine
