@@ -3,7 +3,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.21.0 (992df58d8)
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: flask
   name: flask
@@ -21,7 +21,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.21.0 (992df58d8)
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: nginx
   name: nginx
@@ -39,7 +39,7 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.21.0 (992df58d8)
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: flask
   name: flask
@@ -55,7 +55,7 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-        kompose.version: 1.21.0 (992df58d8)
+        kompose.version: 1.26.1 (a9d05d509)
       labels:
         io.kompose.network/network: 'true'
         io.kompose.service: flask
@@ -92,7 +92,7 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.21.0 (992df58d8)
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: nginx
   name: nginx
@@ -108,7 +108,7 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-        kompose.version: 1.21.0 (992df58d8)
+        kompose.version: 1.26.1 (a9d05d509)
       labels:
         io.kompose.network/network: 'true'
         io.kompose.service: nginx

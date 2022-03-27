@@ -39,6 +39,9 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: mongo
   name: mongo
@@ -116,6 +119,9 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: mongo
   name: mongo
@@ -129,6 +135,9 @@ spec:
     type: Recreate
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker/single/docker-compose.yml
+        kompose.version: 1.26.1 (a9d05d509)
       labels:
         io.kompose.network/network: 'true'
         io.kompose.service: mongo

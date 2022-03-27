@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-    kompose.version: 1.21.0 (992df58d8)
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: flask
   name: flask
@@ -19,24 +19,17 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-        kompose.version: 1.21.0 (992df58d8)
+        kompose.version: 1.26.1 (a9d05d509)
       labels:
         io.kompose.network/network: 'true'
         io.kompose.service: flask
     spec:
       containers:
-        - name: flask
-          image: aqra_flask
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 80
-          envFrom:
+        - envFrom:
             - secretRef:
                 name: flask-secret
-          resources: { }
-          volumeMounts:
-            - mountPath: /var/api
-              name: flaskdata
+          image: aqra_flask
+          imagePullPolicy: Never
           livenessProbe:
             failureThreshold: 1
             httpGet:
@@ -45,6 +38,13 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 300
             timeoutSeconds: 60
+          name: flask
+          ports:
+            - containerPort: 80
+          resources: { }
+          volumeMounts:
+            - mountPath: /var/api
+              name: flaskdata
       serviceAccountName: ''
       volumes:
         - name: flaskdata
