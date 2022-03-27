@@ -3,7 +3,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.21.0 (992df58d8)
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: flask
   name: flask
