@@ -5,6 +5,7 @@ from flask import Flask
 from definitions import app_dev, app_env, app_prod, mongodb_connection
 from .blueprints import register_blueprints
 from .cache import configure_cache
+from .cors import configure_cors
 from .database import configure_database
 from .environment import check_environment_variables, fetch_data, init_system_paths
 from .health import configure_healthcheck
@@ -25,14 +26,13 @@ def create_app() -> Flask:
     register_blueprints(app)
 
     configure_cache(app)
+    configure_cors(app)
 
     if environ.get(mongodb_connection) is not None:
         configure_database(app)
 
     configure_healthcheck(app)
-
     configure_logger()
-
     configure_swagger(app)
 
     fetch_data()
