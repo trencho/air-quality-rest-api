@@ -32,6 +32,11 @@ def encode_categorical_data(dataframe: DataFrame) -> None:
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
+def encode_cyclic_data(features: DataFrame, col: str, data: [DataFrame, Series], max_value: int) -> None:
+    features[f'{col}_cos'] = cos(2 * pi * data / max_value)
+    features[f'{col}_sin'] = sin(2 * pi * data / max_value)
+
+
 def generate_lag_features(target: Series, lags: int) -> DataFrame:
     partial = Series(data=pacf(target, nlags=lags if lags < target.size // 2 else target.size // 2 - 1))
     lags = list(partial[abs(partial) >= 0.2].index)
@@ -49,28 +54,14 @@ def generate_lag_features(target: Series, lags: int) -> DataFrame:
 
 def generate_time_features(target) -> DataFrame:
     features = DataFrame()
-    features['month_cos'] = cos(target.index.month * (2. * pi / 24))
-    features['month_sin'] = sin(target.index.month * (2. * pi / 24))
-    features['day_cos'] = cos(target.index.day * (2. * pi / 24))
-    features['day_sin'] = sin(target.index.day * (2. * pi / 24))
-    features['hour_cos'] = cos(target.index.hour * (2. * pi / 24))
-    features['hour_sin'] = sin(target.index.hour * (2. * pi / 24))
-    features['week_of_year_cos'] = cos(Index(target.index.isocalendar().week, dtype='int64') * (2. * pi / 24))
-    features['week_of_year_sin'] = sin(Index(target.index.isocalendar().week, dtype='int64') * (2. * pi / 24))
-    features['day_of_week_cos'] = cos(target.index.dayofweek * (2. * pi / 24))
-    features['day_of_week_sin'] = sin(target.index.dayofweek * (2. * pi / 24))
-    features['day_of_year_cos'] = cos(target.index.dayofyear * (2. * pi / 24))
-    features['day_of_year_sin'] = sin(target.index.dayofyear * (2. * pi / 24))
-
-    weekday_name = DataFrame(target.index.day_name())
-    encode_categorical_data(weekday_name)
-    features['weekday_name_cos'] = cos(weekday_name * (2. * pi / 24))
-    features['weekday_name_sin'] = sin(weekday_name * (2. * pi / 24))
-
-    features['quarter_cos'] = cos(target.index.quarter * (2. * pi / 24))
-    features['quarter_sin'] = sin(target.index.quarter * (2. * pi / 24))
-    features['days_in_month_cos'] = cos(target.index.days_in_month * (2. * pi / 24))
-    features['days_in_month_sin'] = sin(target.index.days_in_month * (2. * pi / 24))
+    encode_cyclic_data(features, 'month', target.index.month, 12)
+    encode_cyclic_data(features, 'day', target.index.day, 30)
+    encode_cyclic_data(features, 'hour', target.index.hour, 24)
+    encode_cyclic_data(features, 'week_of_year', Index(target.index.isocalendar().week, dtype='int64'), 52)
+    encode_cyclic_data(features, 'day_of_week', target.index.dayofweek, 7)
+    encode_cyclic_data(features, 'day_of_year', target.index.dayofyear, 365)
+    encode_cyclic_data(features, 'quarter', target.index.quarter, 4)
+    encode_cyclic_data(features, 'days_in_month', target.index.days_in_month, 30)
     features['isMonthStart'] = target.index.is_month_start
     features['isMonthEnd'] = target.index.is_month_end
     features['isQuarterStart'] = target.index.is_quarter_start
@@ -82,15 +73,13 @@ def generate_time_features(target) -> DataFrame:
 
     season = DataFrame(target.index.to_series().apply(get_season).values)
     encode_categorical_data(season)
-    features['season_cos'] = cos(season * (2. * pi / 24))
-    features['season_sin'] = sin(season * (2. * pi / 24))
+    encode_cyclic_data(features, 'season', season, 4)
 
     bins = [0, 4, 8, 12, 16, 20, 24]
     labels = ['Late Night', 'Early Morning', 'Morning', 'Noon', 'Eve', 'Night']
     session = DataFrame(cut(target.index.hour, bins=bins, labels=labels, include_lowest=True))
     encode_categorical_data(session)
-    features['session_cos'] = cos(session * (2. * pi / 24))
-    features['session_sin'] = sin(session * (2. * pi / 24))
+    encode_cyclic_data(features, 'session', session, len(labels))
 
     features.set_index(target.index, inplace=True)
 
