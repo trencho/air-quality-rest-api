@@ -1,3 +1,5 @@
+from os import cpu_count
+
 from numpy import linspace
 from sklearn.ensemble import RandomForestRegressor
 
@@ -15,6 +17,7 @@ class RandomForestRegressionModel(BaseRegressionModel):
             'min_samples_split': [2, 5, 10],
             'min_samples_leaf': [1, 2, 4],
             'max_features': ['auto', 'sqrt'],
-            'bootstrap': [True, False]
+            'bootstrap': [True, False],
+            'n_jobs': [cpu_count() // 2]
         }
         super().__init__(reg, param_grid)
