@@ -80,7 +80,7 @@ def create_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> Non
 
 
 def hyper_parameter_tuning(model: BaseRegressionModel, x_train: DataFrame, y_train: Series, city_name: str,
-                           sensor_id: str, pollutant: str):
+                           sensor_id: str, pollutant: str) -> dict:
     model_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
     model_cv.fit(x_train, y_train)
 
