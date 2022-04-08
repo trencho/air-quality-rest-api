@@ -4,12 +4,12 @@ from os import environ, path, sep
 from shutil import make_archive, move
 
 from github import Github, GithubException, GitRef, GitTree, InputGitTreeElement, Repository
-from pandas import concat, read_csv
+from pandas import concat
 from requests import ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
 from definitions import github_token, ROOT_PATH
-from processing import trim_dataframe
+from processing import read_csv_in_chunks, trim_dataframe
 from .logger import log
 
 g = Github(environ.get(github_token))
@@ -49,10 +49,10 @@ def create_archive(source, destination):
 
 
 def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
-    local_file_content = read_csv(StringIO(data))
+    local_file_content = read_csv_in_chunks(StringIO(data))
     try:
         repo_file = repo.get_contents(file_name)
-        repo_file_content = read_csv(BytesIO(repo_file.decoded_content))
+        repo_file_content = read_csv_in_chunks(BytesIO(repo_file.decoded_content))
         local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
     except GithubException:
         log.error('Error occurred while merging local files with files from GitHub repository', exc_info=1)

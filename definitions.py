@@ -52,6 +52,8 @@ app_prod = 'production'
 
 collections = ['weather', 'pollution', 'summary']
 
+chunk_size = 10 ** 4
+
 countries = {
     'MK': 'Macedonia'
 }
