@@ -6,14 +6,13 @@ from shutil import unpack_archive
 
 from flask import Flask
 from flask_apscheduler import APScheduler
-from pandas import read_csv
 
 from api.blueprints import fetch_city_data
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PATH, mongodb_connection, \
     pollutants, repo_name
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
-from processing import fetch_forecast_result, process_data, save_dataframe
+from processing import fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
 from .cache import cache
 from .database import mongo
 from .git import append_commit_files, create_archive, update_git_files
@@ -91,7 +90,7 @@ def import_data() -> None:
             file_path = path.join(root, file)
             if file.endswith('.csv'):
                 try:
-                    dataframe = read_csv(file_path)
+                    dataframe = read_csv_in_chunks(file_path)
                     save_dataframe(dataframe, path.splitext(file)[0],
                                    path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
                                    path.basename(path.dirname(file_path)))

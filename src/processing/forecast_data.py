@@ -5,13 +5,14 @@ from pickle import load
 from typing import Optional
 from warnings import catch_warnings, simplefilter
 
-from pandas import concat, DataFrame, date_range, read_csv, Series, Timedelta, to_datetime
+from pandas import concat, DataFrame, date_range, Series, Timedelta
 
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
 from models.base_regression_model import BaseRegressionModel
 from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import value_scaling
+from .handle_data import read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
 
 FORECAST_PERIOD = '1H'
@@ -55,7 +56,7 @@ def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Opti
 
 @cache.memoize(timeout=3600)
 def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
-    dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'weather.csv'))
+    dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'weather.csv'))
     dataframe = dataframe.loc[dataframe['time'] == timestamp]
     if len(dataframe.index) > 0:
         return dataframe.to_dict('records')[0]
@@ -146,9 +147,8 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     upcoming_hour = next_hour(datetime.now())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
-    dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'summary.csv'), index_col='time',
-                         engine='python')
-    dataframe.index = to_datetime(dataframe.index, unit='s')
+    dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'summary.csv'),
+                                   index_col='time')
     dataframe = dataframe.loc[current_hour() - timedelta(weeks=52): current_hour()]
     target = dataframe[pollutant].copy()
 
