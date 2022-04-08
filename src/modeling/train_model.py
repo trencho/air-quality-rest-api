@@ -5,7 +5,7 @@ from pickle import dump, HIGHEST_PROTOCOL
 from threading import Thread
 from warnings import catch_warnings, simplefilter
 
-from pandas import DataFrame, read_csv, Series, to_datetime
+from pandas import DataFrame, read_csv, Series
 from sklearn.model_selection import RandomizedSearchCV
 
 from api.config.logger import log
@@ -13,7 +13,8 @@ from definitions import app_dev, app_env, DATA_PROCESSED_PATH, MODELS_PATH, poll
     RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
-from processing import backward_elimination, current_hour, encode_categorical_data, generate_features, value_scaling
+from processing import backward_elimination, current_hour, encode_categorical_data, generate_features, \
+    read_csv_in_chunks, value_scaling
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
@@ -175,9 +176,8 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             city['cityName'], sensor['sensorId'], pollutant):
         return
     try:
-        dataframe = read_csv(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'),
-                             index_col='time', engine='python')
-        dataframe.index = to_datetime(dataframe.index, unit='s')
+        dataframe = read_csv_in_chunks(
+            path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'summary.csv'), index_col='time')
         dataframe = dataframe.loc[dataframe.index <= current_hour()]
         if pollutant in dataframe.columns:
             create_pollutant_lock(city['cityName'], sensor['sensorId'], pollutant)
