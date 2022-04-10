@@ -1,4 +1,3 @@
-from datetime import timedelta
 from os import environ, path
 from pickle import dump, HIGHEST_PROTOCOL, load
 from typing import Optional
@@ -7,7 +6,7 @@ from pandas import concat, DataFrame, read_csv, to_datetime
 
 from api.config.database import mongo
 from definitions import chunk_size, mongodb_connection
-from .normalize_data import current_hour, drop_unnecessary_features, find_missing_data, trim_dataframe, rename_features
+from .normalize_data import drop_unnecessary_features, find_missing_data, trim_dataframe, rename_features
 
 
 def convert_dtype(x: object) -> str:
@@ -28,16 +27,14 @@ def find_dtypes(file_path: str, collection: str) -> Optional[dict]:
     return None
 
 
-def read_csv_in_chunks(data_path: str, index_col: str = None) -> DataFrame:
+def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFrame]:
     chunks = []
-    current_timestamp = current_hour()
     for chunk in read_csv(data_path, index_col=index_col, chunksize=chunk_size):
         chunk.index = to_datetime(chunk.index, unit='s')
-        chunk = chunk.loc[current_timestamp - timedelta(weeks=260): current_timestamp]
         if len(chunk.index) > 0:
             chunks.append(chunk)
 
-    return concat(chunks)
+    return concat(chunks) if len(chunks) > 0 else None
 
 
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
@@ -56,8 +53,8 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
         if mongodb_env is not None:
             mongo.db[collection].insert_many(dataframe.to_dict('records'))
 
-        if path.exists(collection_path):
-            dataframe = find_missing_data(dataframe, read_csv_in_chunks(collection_path), 'time')
+        if (df := read_csv_in_chunks(collection_path)) is not None:
+            dataframe = find_missing_data(dataframe, df, 'time')
         dataframe.drop(columns='sensorId', inplace=True, errors='ignore')
         dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
 
