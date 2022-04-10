@@ -35,8 +35,8 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
     if len(db_records.index) > 0:
         makedirs(collection_dir, exist_ok=True)
         collection_path = path.join(collection_dir, f'{collection}.csv')
-        if path.exists(collection_path):
-            db_records = find_missing_data(db_records, read_csv_in_chunks(collection_path), 'time')
+        if (dataframe := read_csv_in_chunks(collection_path)) is not None:
+            db_records = find_missing_data(db_records, dataframe, 'time')
         db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
 
 

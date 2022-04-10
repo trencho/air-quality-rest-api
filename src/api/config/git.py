@@ -49,15 +49,15 @@ def create_archive(source, destination):
 
 
 def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
-    local_file_content = read_csv_in_chunks(StringIO(data))
     try:
+        local_file_content = read_csv_in_chunks(StringIO(data))
         repo_file = repo.get_contents(file_name)
         repo_file_content = read_csv_in_chunks(BytesIO(repo_file.decoded_content))
         local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
-    except GithubException:
+        trim_dataframe(local_file_content, 'time')
+        return local_file_content.to_csv(index=False)
+    except Exception:
         log.error('Error occurred while merging local files with files from GitHub repository', exc_info=1)
-    trim_dataframe(local_file_content, 'time')
-    return local_file_content.to_csv(index=False)
 
 
 def update_git_files(file_list: list, file_names: list, repo_name: str, branch: str,
