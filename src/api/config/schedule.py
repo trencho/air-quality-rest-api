@@ -90,10 +90,10 @@ def import_data() -> None:
             file_path = path.join(root, file)
             if file.endswith('.csv'):
                 try:
-                    dataframe = read_csv_in_chunks(file_path)
-                    save_dataframe(dataframe, path.splitext(file)[0],
-                                   path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
-                                   path.basename(path.dirname(file_path)))
+                    if (dataframe := read_csv_in_chunks(file_path)) is not None:
+                        save_dataframe(dataframe, path.splitext(file)[0],
+                                       path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
+                                       path.basename(path.dirname(file_path)))
                     remove(file_path)
                 except Exception:
                     log.error(f'Error occurred while importing data from {file_path}', exc_info=1)
