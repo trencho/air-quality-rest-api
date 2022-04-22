@@ -52,7 +52,7 @@ app_prod = 'production'
 
 collections = ['weather', 'pollution', 'summary']
 
-chunk_size = 10 ** 4
+chunk_size = 15 * (10 ** 3)
 
 countries = {
     'MK': 'Macedonia'
@@ -72,12 +72,10 @@ pollutants = {
 
 regression_models = {
     'DecisionTreeRegressionModel': 'Decision Tree',
-    # 'DummyRegressionModel': 'Dummy',
     'LightGBMRegressionModel': 'LightGBM',
     'LinearRegressionModel': 'Linear',
     'MLPRegressionModel': 'Multilayer Perceptron',
     # 'RandomForestRegressionModel': 'Random Forest',
     'SupportVectorRegressionModel': 'Support Vector',
-    # 'TPOTRegressionModel': 'TPOT',
     'XGBoostRegressionModel': 'XGBoost'
 }

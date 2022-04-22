@@ -21,9 +21,20 @@ def current_hour() -> datetime:
     return datetime.now().replace(minute=0, second=0, microsecond=0)
 
 
-def drop_numerical_outliers(dataframe: DataFrame, z_thresh: int = 3) -> None:
-    constrains = (abs(zscore(dataframe)) < z_thresh).all(axis=1)
-    dataframe.drop(index=dataframe.index[~constrains], inplace=True)
+def drop_numerical_outliers_with_iqr_score(dataframe: DataFrame, low: float = .05, high: float = .95) -> DataFrame:
+    df = dataframe.loc[:, dataframe.columns != 'time']
+    quant_df = df.quantile([low, high])
+    df = df.apply(lambda x: x[(x > quant_df.loc[low, x.name]) & (x < quant_df.loc[high, x.name])], axis=0)
+    df = concat([dataframe.loc[:, 'time'], df], axis=1)
+    return df.dropna()
+
+
+def drop_numerical_outliers_with_z_score(dataframe: DataFrame, z_thresh: int = 3) -> DataFrame:
+    df = dataframe.loc[:, dataframe.columns != 'time']
+    constrains = (abs(zscore(df)) < z_thresh).all(axis=1)
+    df.drop(index=df.index[~constrains], inplace=True)
+    df = concat([dataframe.loc[:, 'time'], df], axis=1)
+    return df.dropna()
 
 
 def drop_unnecessary_features(dataframe: DataFrame) -> None:
@@ -32,7 +43,7 @@ def drop_unnecessary_features(dataframe: DataFrame) -> None:
 
 
 def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column: str) -> DataFrame:
-    dataframe = new_dataframe.loc[~new_dataframe['time'].isin(old_dataframe[column])].copy()
+    dataframe = new_dataframe.loc[~new_dataframe[column].isin(old_dataframe[column])].copy()
     return dataframe[dataframe.columns.intersection(old_dataframe.columns.values.tolist())]
 
 
@@ -115,7 +126,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
                                       calculate_so2_index(row['so2']) if 'so2' in dataframe.columns else 0)
             if row.get('aqi') is None else row['aqi'], axis=1)
 
-        # drop_numerical_outliers(dataframe)
+        # dataframe = drop_numerical_outliers_with_z_score(dataframe)
 
         trim_dataframe(dataframe, 'time')
         if len(dataframe.index) > 0:

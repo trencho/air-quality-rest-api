@@ -5,7 +5,7 @@ from pandas import DataFrame
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, environment_variables, \
     LOG_PATH, MODELS_PATH, mongodb_connection, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from preparation import read_cities, read_sensors
-from processing import find_missing_data, read_csv_in_chunks
+from processing import find_missing_data, read_csv_in_chunks, save_dataframe
 from .database import mongo
 from .logger import log
 from .schedule import fetch_locations
@@ -36,8 +36,12 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         makedirs(collection_dir, exist_ok=True)
         collection_path = path.join(collection_dir, f'{collection}.csv')
         if (dataframe := read_csv_in_chunks(collection_path)) is not None:
-            db_records = find_missing_data(db_records, dataframe, 'time')
-        db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
+            new_db_records = find_missing_data(db_records, dataframe, 'time')
+            new_db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
+
+            save_dataframe(dataframe, collection, collection_path, sensor_id)
+        else:
+            db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
 
 
 def fetch_db_data() -> None:

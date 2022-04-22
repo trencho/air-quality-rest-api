@@ -1,11 +1,8 @@
 from datetime import date, datetime
-from warnings import catch_warnings, simplefilter
 
 from numpy import abs, cos, pi, sin
 from pandas import cut, DataFrame, Index, Series
 from statsmodels.tsa.stattools import pacf
-from tsfresh import extract_features, select_features
-from tsfresh.utilities.dataframe_functions import impute
 
 
 def get_season(time: datetime) -> str:
@@ -84,33 +81,6 @@ def generate_time_features(target) -> DataFrame:
     features.set_index(target.index, inplace=True)
 
     return features
-
-
-def select_time_series_features(dataframe: DataFrame, target: str) -> DataFrame:
-    validation_split = len(dataframe.index) * 3 // 4
-
-    train_x = dataframe.iloc[:validation_split].drop(columns=target)
-    train_y = dataframe.iloc[:validation_split][target]
-
-    return select_features(train_x, train_y)
-
-
-def generate_time_series_features(dataframe: DataFrame, target: str) -> DataFrame:
-    y = dataframe[target]
-    features = dataframe.drop(columns=target)
-
-    features = features.stack()
-    features.index.rename(['id', 'time'], inplace=True)
-    features.reset_index(inplace=True)
-
-    with catch_warnings():
-        simplefilter('ignore')
-        features = extract_features(features, column_id='id', column_sort='time')
-
-    features = impute(features)
-    features[target] = y
-
-    return select_time_series_features(features, target)
 
 
 def generate_features(target: Series, lags: int = 24) -> DataFrame:
