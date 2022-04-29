@@ -4,13 +4,9 @@ from starlette.status import HTTP_200_OK
 
 from .cache import cache
 
-HEALTHZ = {
-    'live': 'api.config.health.liveness'
-}
-
 
 def configure_healthcheck(app: Flask) -> None:
-    app.config['HEALTHZ'] = HEALTHZ
+    app.config['HEALTHZ'] = {'live': 'api.config.health.liveness'}
     Healthz(app, no_log=True)
 
 
