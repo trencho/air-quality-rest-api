@@ -60,9 +60,9 @@ http {
 
     # Define the location of the proxy server to send the request to
     location @app {
-      include uwsgi_params;
+      include proxy_params;
       more_set_headers 'X-Request-Id: $http_x_request_id';
-      uwsgi_pass unix:/tmp/uwsgi.socket;
+      proxy_pass http://unix:/run/gunicorn.socket;
     }
   }
 }
