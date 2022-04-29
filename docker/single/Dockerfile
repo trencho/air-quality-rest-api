@@ -7,9 +7,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get dist-upgrade -y && \
-    apt-get install -y python3-pip python3-dev && \
-    apt-get install -y nginx uwsgi uwsgi-plugin-python3 && \
-    apt-get install -y tzdata && \
+    apt-get install -y python3-pip python3-dev nginx tzdata && \
     apt-get autoclean clean && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -21,7 +19,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container
-COPY ./docker/single/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 COPY . /
 
 RUN adduser --disabled-password --gecos '' nginx && \
@@ -29,5 +27,5 @@ RUN adduser --disabled-password --gecos '' nginx && \
     chmod 777 /run -R && \
     chmod 777 /root -R
 
-# Run the command to start nginx + uWSGI
+# Run the command to start nginx + gunicorn
 ENTRYPOINT ["/bin/bash", "/docker/single/launch.sh"]
