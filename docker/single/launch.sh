@@ -15,7 +15,7 @@ if [ ! -f /debug0 ]; then
     h)
       echo "options:"
       echo "-h  show brief help"
-      echo "-d  debug mode, no nginx or uwsgi, direct start with 'python3 app/app.py'"
+      echo "-d  debug mode, no nginx or gunicorn, direct start with 'python3 app/app.py'"
       exit 0
       ;;
     d)
@@ -32,5 +32,5 @@ if [ -e /debug1 ]; then
   python3 /src/api/app.py
 else
   echo "Running app in production mode!"
-  nginx && uwsgi --ini /docker/single/uwsgi.ini
+  nginx && gunicorn -c /docker/gunicorn.conf.py
 fi
