@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from os import path
 
 from numpy import abs
-from pandas import concat, DataFrame, read_csv, to_numeric
+from pandas import concat, DataFrame, to_numeric
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
@@ -10,6 +10,8 @@ from api.config.logger import log
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, pollutants
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
     calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
+from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_in_chunks, rename_features, \
+    trim_dataframe
 
 
 def closest_hour(t: datetime) -> datetime:
@@ -35,16 +37,6 @@ def drop_numerical_outliers_with_z_score(dataframe: DataFrame, z_thresh: int = 3
     df.drop(index=df.index[~constrains], inplace=True)
     df = concat([dataframe.loc[:, 'time'], df], axis=1)
     return df.dropna()
-
-
-def drop_unnecessary_features(dataframe: DataFrame) -> None:
-    dataframe.drop(columns=dataframe.filter(regex='weather').columns, axis=1, inplace=True)
-    dataframe.drop(columns=['precipProbability', 'precipType', 'ozone', 'co2'], inplace=True, errors='ignore')
-
-
-def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column: str) -> DataFrame:
-    dataframe = new_dataframe.loc[~new_dataframe[column].isin(old_dataframe[column])].copy()
-    return dataframe[dataframe.columns.intersection(old_dataframe.columns.values.tolist())]
 
 
 def flatten_json(nested_json: dict, exclude=None) -> dict:
@@ -81,19 +73,17 @@ def next_hour(t: datetime) -> datetime:
 
 def process_data(city_name: str, sensor_id: str, collection: str) -> None:
     try:
-        dataframe = read_csv(path.join(DATA_RAW_PATH, city_name, sensor_id, f'{collection}.csv'), engine='python')
+        dataframe = read_csv_in_chunks(path.join(DATA_RAW_PATH, city_name, sensor_id, f'{collection}.csv'))
 
         collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f'{collection}.csv')
         if path.exists(collection_path):
-            dataframe = concat([dataframe, read_csv(collection_path, engine='python')], ignore_index=True)
-            # dataframe = find_missing_data(dataframe, read_csv(collection_path, engine='python'), 'time')
-
-        trim_dataframe(dataframe, 'time')
-        if len(dataframe.index) == 0:
-            return
+            dataframe = find_missing_data(dataframe, read_csv_in_chunks(collection_path), 'time')
 
         rename_features(dataframe)
         drop_unnecessary_features(dataframe)
+        trim_dataframe(dataframe, 'time')
+        if len(dataframe.index) == 0:
+            return
 
         df_columns = dataframe.columns.copy()
         df_columns = df_columns.drop(['aqi', 'icon', 'precipType', 'summary'], errors='ignore')
@@ -128,28 +118,8 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
         # dataframe = drop_numerical_outliers_with_z_score(dataframe)
 
-        trim_dataframe(dataframe, 'time')
         if len(dataframe.index) > 0:
-            dataframe.to_csv(collection_path, index=False)
-            # dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
+            dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
 
     except Exception:
         log.error(f'Error occurred while processing {collection} data for {city_name} - {sensor_id}', exc_info=1)
-
-
-def rename_features(dataframe: DataFrame) -> None:
-    dataframe.rename(
-        columns={'dt': 'time', 'temperature': 'temp', 'apparentTemperature': 'feels_like', 'dewPoint': 'dew_point',
-                 'cloudCover': 'clouds', 'windSpeed': 'wind_speed', 'windGust': 'wind_gust', 'windBearing': 'wind_deg',
-                 'summary': 'weather.description', 'icon': 'weather.icon', 'uvIndex': 'uvi',
-                 'precipIntensity': 'precipitation', 'AQI': 'aqi', 'CO': 'co', 'CO2': 'co2', 'NH3': 'nh3', 'NO': 'no',
-                 'NO2': 'no2', 'O3': 'o3', 'PM25': 'pm2_5', 'PM10': 'pm10', 'SO2': 'so2'}, inplace=True,
-        errors='ignore')
-
-
-def trim_dataframe(dataframe: DataFrame, column: str) -> None:
-    dataframe.sort_values(by=column, inplace=True)
-    dataframe.dropna(axis='columns', how='all', inplace=True)
-    dataframe.dropna(axis='index', how='all', inplace=True)
-    dataframe.drop_duplicates(subset=column, keep='last', inplace=True)
-    dataframe.reset_index(drop=True, inplace=True)
