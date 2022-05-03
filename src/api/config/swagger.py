@@ -1,21 +1,22 @@
 from flasgger import Swagger
 from flask import Flask
 
-config = Swagger.DEFAULT_CONFIG
-config['favicon'] = '/api/v1/favicon.ico/'
-config['openapi'] = '3.0.3'
-config['specs'] = [
-    {
-        'endpoint': 'apispec_1',
-        'route': '/api/v1/apispec_1.json',
-        'rule_filter': lambda rule: True,
-        'model_filter': lambda tag: True,
-    }
-]
-config['static_url_path'] = '/api/v1/flasgger_static'
-config['specs_route'] = '/api/v1/apidocs/'
-config['title'] = 'AQRA'
-swagger = Swagger(config=config)
+config = {
+    'favicon': '/favicon.ico/',
+    'openapi': '3.0.3',
+    'specs': [
+        {
+            'endpoint': 'apispec_1',
+            'route': '/api/v1/apispec_1.json',
+            'rule_filter': lambda rule: True,
+            'model_filter': lambda tag: True,
+        }
+    ],
+    'static_url_path': '/api/v1/flasgger_static',
+    'specs_route': '/api/v1/apidocs/',
+    'title': 'AQRA'
+}
+swagger = Swagger(config=config, merge=True)
 
 
 def configure_swagger(app: Flask) -> None:

@@ -139,4 +139,3 @@ def process_fetched_data() -> None:
 def schedule_jobs(app: Flask) -> None:
     scheduler.api_enabled = True
     scheduler.init_app(app)
-    scheduler.start()

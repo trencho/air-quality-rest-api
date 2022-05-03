@@ -6,7 +6,6 @@ from pandas import concat, DataFrame, read_csv, to_datetime
 
 from api.config.database import mongo
 from definitions import chunk_size, mongodb_connection
-from .normalize_data import drop_unnecessary_features, find_missing_data, trim_dataframe, rename_features
 
 
 def convert_dtype(x: object) -> str:
@@ -18,6 +17,11 @@ def convert_dtype(x: object) -> str:
         return ''
 
 
+def drop_unnecessary_features(dataframe: DataFrame) -> None:
+    dataframe.drop(columns=dataframe.filter(regex='weather').columns, axis=1, inplace=True, errors='ignore')
+    dataframe.drop(columns=['precipProbability', 'precipType', 'ozone', 'co2'], inplace=True, errors='ignore')
+
+
 def find_dtypes(file_path: str, collection: str) -> Optional[dict]:
     dtypes_path = path.join(file_path, f'{collection}_dtypes.pkl')
     if path.exists(dtypes_path):
@@ -25,6 +29,11 @@ def find_dtypes(file_path: str, collection: str) -> Optional[dict]:
             return load(in_file)
 
     return None
+
+
+def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column: str) -> DataFrame:
+    dataframe = new_dataframe.loc[~new_dataframe[column].isin(old_dataframe[column])].copy()
+    return dataframe[dataframe.columns.intersection(old_dataframe.columns.values.tolist())]
 
 
 def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFrame]:
@@ -35,6 +44,16 @@ def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFr
             chunks.append(chunk)
 
     return concat(chunks) if len(chunks) > 0 else None
+
+
+def rename_features(dataframe: DataFrame) -> None:
+    dataframe.rename(
+        columns={'dt': 'time', 'temperature': 'temp', 'apparentTemperature': 'feels_like', 'dewPoint': 'dew_point',
+                 'cloudCover': 'clouds', 'windSpeed': 'wind_speed', 'windGust': 'wind_gust', 'windBearing': 'wind_deg',
+                 'summary': 'weather.description', 'icon': 'weather.icon', 'uvIndex': 'uvi',
+                 'precipIntensity': 'precipitation', 'AQI': 'aqi', 'CO': 'co', 'CO2': 'co2', 'NH3': 'nh3', 'NO': 'no',
+                 'NO2': 'no2', 'O3': 'o3', 'PM25': 'pm2_5', 'PM10': 'pm10', 'SO2': 'so2'}, inplace=True,
+        errors='ignore')
 
 
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
@@ -62,3 +81,11 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
 def store_dtypes(file_path: str, collection: str, dtypes: dict) -> None:
     with open(path.join(file_path, f'{collection}_dtypes.pkl'), 'wb') as out_file:
         dump(dtypes, out_file, HIGHEST_PROTOCOL)
+
+
+def trim_dataframe(dataframe: DataFrame, column: str) -> None:
+    dataframe.sort_values(by=column, inplace=True)
+    dataframe.dropna(axis='columns', how='all', inplace=True)
+    dataframe.dropna(axis='index', how='all', inplace=True)
+    dataframe.drop_duplicates(subset=column, keep='last', inplace=True)
+    dataframe.reset_index(drop=True, inplace=True)
