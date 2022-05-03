@@ -13,13 +13,11 @@ __all__ = [
     'cities_blueprint',
     'countries_blueprint',
     'errors_blueprint',
-    # 'fetch_blueprint',
     'forecast_blueprint',
     'history_blueprint',
     'icon_blueprint',
     'pollutants_blueprint',
     'sensors_blueprint'
-    # 'train_blueprint'
 ]
 
 
