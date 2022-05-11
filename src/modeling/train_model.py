@@ -129,8 +129,6 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
     test_dataframe = dataframe.iloc[validation_split:]
     x_test, y_test = split_dataframe(test_dataframe, pollutant, selected_features)
 
-    save_selected_features(city_name, sensor_id, pollutant, selected_features)
-
     best_model_error = inf
     best_model = None
     for model_name in regression_models:
@@ -163,6 +161,7 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
             best_model_error = model_error
 
     if best_model is not None:
+        save_selected_features(city_name, sensor_id, pollutant, selected_features)
         x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
         best_model.train(x_train, y_train)
         save_best_regression_model(city_name, sensor_id, pollutant, best_model.reg)
