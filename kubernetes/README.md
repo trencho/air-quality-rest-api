@@ -53,7 +53,9 @@ kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/
 
 kubeseal < kubernetes/secrets/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml
 kubeseal < kubernetes/secrets/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
+```
 
+```
 kubectl apply -f kubernetes/sealed-secrets/flask-sealed-secret.yml
 kubectl apply -f kubernetes/sealed-secrets/mongo-sealed-secret.yml
 ```

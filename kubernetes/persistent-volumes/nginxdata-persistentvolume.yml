@@ -3,13 +3,16 @@ kind: PersistentVolume
 metadata:
   labels:
     type: local
-  name: flaskdata-pv
+  name: nginxdata-pv
 spec:
   accessModes:
     - ReadWriteOnce
   capacity:
     storage: 1Gi
+  claimRef:
+    name: nginxdata-pvc
+    namespace: aqra
   hostPath:
-    path: /mnt/aqra/api/nginx'
+    path: /mnt/aqra/api/nginx
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual

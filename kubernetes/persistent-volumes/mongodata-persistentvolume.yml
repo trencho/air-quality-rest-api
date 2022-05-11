@@ -9,6 +9,9 @@ spec:
     - ReadWriteOnce
   capacity:
     storage: 10Gi
+  claimRef:
+    name: mongodata-pvc
+    namespace: aqra
   hostPath:
     path: /mnt/aqra/db
   persistentVolumeReclaimPolicy: Retain
