@@ -25,15 +25,8 @@ spec:
         io.kompose.service: nginx
     spec:
       containers:
-        - name: nginx
-          image: aqra_nginx
+        - image: aqra_nginx
           imagePullPolicy: Never
-          ports:
-            - containerPort: 80
-          resources: { }
-          volumeMounts:
-            - mountPath: /var/log/nginx
-              name: nginxdata
           livenessProbe:
             failureThreshold: 1
             httpGet:
@@ -42,6 +35,13 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 900
             timeoutSeconds: 60
+          name: nginx
+          ports:
+            - containerPort: 80
+          resources: { }
+          volumeMounts:
+            - mountPath: /var/log/nginx
+              name: nginxdata
       serviceAccountName: ''
       volumes:
         - name: nginxdata

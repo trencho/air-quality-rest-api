@@ -9,7 +9,10 @@ spec:
     - ReadWriteOnce
   capacity:
     storage: 10Gi
+  claimRef:
+    name: flaskdata-pvc
+    namespace: aqra
   hostPath:
-    path: /mnt/aqra/api/
+    path: /mnt/aqra/api
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual

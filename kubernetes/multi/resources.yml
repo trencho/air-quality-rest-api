@@ -63,9 +63,18 @@ spec:
       containers:
         - envFrom:
             - secretRef:
-                name: flask-secret
+                name:
+                  flask-secret
           image: aqra_flask
           imagePullPolicy: Never
+          livenessProbe:
+            failureThreshold: 1
+            httpGet:
+              path: /healthz/live
+              port: 5000
+            initialDelaySeconds: 60
+            periodSeconds: 300
+            timeoutSeconds: 60
           name: flask
           ports:
             - containerPort: 5000
@@ -73,14 +82,6 @@ spec:
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
-          livenessProbe:
-            failureThreshold: 1
-            httpGet:
-              path: /healthz/live
-              port: 5000
-            initialDelaySeconds: 60
-            periodSeconds: 900
-            timeoutSeconds: 60
       serviceAccountName: ''
       volumes:
         - name: flaskdata
@@ -116,6 +117,14 @@ spec:
       containers:
         - image: aqra_nginx
           imagePullPolicy: Never
+          livenessProbe:
+            failureThreshold: 1
+            httpGet:
+              path: /healthz/live
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 900
+            timeoutSeconds: 60
           name: nginx
           ports:
             - containerPort: 80
@@ -123,14 +132,6 @@ spec:
           volumeMounts:
             - mountPath: /var/log/nginx
               name: nginxdata
-          livenessProbe:
-            failureThreshold: 1
-            httpGet:
-              path: /healthz/live
-              port: 80
-            initialDelaySeconds: 60
-            periodSeconds: 300
-            timeoutSeconds: 60
       serviceAccountName: ''
       volumes:
         - name: nginxdata
