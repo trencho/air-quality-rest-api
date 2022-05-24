@@ -2,14 +2,15 @@ from base64 import b64encode
 from datetime import datetime
 from json import dump
 from os import environ, makedirs, path, remove, rmdir, walk
+from pickle import load
 from shutil import unpack_archive
 
 from flask import Flask
 from flask_apscheduler import APScheduler
 
 from api.blueprints import fetch_city_data
-from definitions import collections, DATA_EXTERNAL_PATH, DATA_PATH, DATA_RAW_PATH, MODELS_PATH, mongodb_connection, \
-    pollutants, repo_name
+from definitions import collections, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, MODELS_PATH, \
+    mongodb_connection, pollutants, repo_name
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
 from processing import fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
@@ -121,11 +122,19 @@ def predict_locations() -> None:
     if environ.get(mongodb_connection) is not None:
         for city in cache.get('cities') or read_cities():
             for sensor in read_sensors(city['cityName']):
+                try:
+                    with open(file_path := path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'],
+                                                     'predictions.json'), 'r') as in_file:
+                        mongo.db['predictions'].replace_one(
+                            {'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+                            {'data': load(in_file), 'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
+                            upsert=True)
+                except OSError:
+                    log.error(f'Error occurred while updating forecast values from {file_path}', exc_info=1)
                 if forecast_result := fetch_forecast_result(city, sensor):
-                    mongo.db['predictions'].replace_one({'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                                        {'data': list(forecast_result.values()),
-                                                         'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
-                                                        upsert=True)
+                    with open(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'],
+                                        'predictions.json'), 'w') as out_file:
+                        dump(list(forecast_result.values()), out_file, indent=4)
 
 
 @scheduler.task(trigger='cron', minute='0')
