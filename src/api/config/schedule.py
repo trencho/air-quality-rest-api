@@ -1,8 +1,7 @@
 from base64 import b64encode
 from datetime import datetime
-from json import dump
+from json import dump, load
 from os import environ, makedirs, path, remove, rmdir, walk
-from pickle import load
 from shutil import unpack_archive
 
 from flask import Flask
@@ -129,12 +128,17 @@ def predict_locations() -> None:
                             {'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
                             {'data': load(in_file), 'cityName': city['cityName'], 'sensorId': sensor['sensorId']},
                             upsert=True)
-                except OSError:
+                except Exception:
                     log.error(f'Error occurred while updating forecast values from {file_path}', exc_info=1)
-                if forecast_result := fetch_forecast_result(city, sensor):
-                    with open(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'],
-                                        'predictions.json'), 'w') as out_file:
-                        dump(list(forecast_result.values()), out_file, indent=4)
+
+    log.info('Finished updating predictions for all locations!')
+
+    for city in cache.get('cities') or read_cities():
+        for sensor in read_sensors(city['cityName']):
+            if forecast_result := fetch_forecast_result(city, sensor):
+                with open(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'predictions.json'),
+                          'w') as out_file:
+                    dump(list(forecast_result.values()), out_file, indent=4)
 
 
 @scheduler.task(trigger='cron', minute='0')

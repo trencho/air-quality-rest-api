@@ -1,4 +1,5 @@
-from os import environ
+from json import load
+from os import environ, path
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, make_response, Response
@@ -6,8 +7,9 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
 from api.config.database import mongo
-from definitions import mongodb_connection
+from definitions import DATA_PROCESSED_PATH, mongodb_connection
 from preparation import calculate_nearest_sensor, check_city, check_sensor, read_cities
+from processing import current_hour, next_hour
 
 forecast_blueprint = Blueprint('forecast', __name__)
 
@@ -46,11 +48,20 @@ def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
 
 def return_forecast_results(latitude: float, longitude: float, city: dict, sensor: dict) -> Response:
     forecast_results = {'latitude': latitude, 'longitude': longitude, 'data': []}
+    try:
+        with open(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'predictions.json'),
+                  'r') as in_file:
+            data = load(in_file)
+            if data[0]['time'] == next_hour(current_hour()):
+                forecast_results['data'] = data
+                return make_response(forecast_results)
+    except OSError:
+        pass
+
     if environ.get(mongodb_connection) is not None:
         forecast_result = mongo.db['predictions'].find_one(
             {'cityName': city['cityName'], 'sensorId': sensor['sensorId']})
         if forecast_result is not None and forecast_result['data']:
             forecast_results['data'] = forecast_result['data']
-            return make_response(forecast_results)
 
     return make_response(forecast_results)
