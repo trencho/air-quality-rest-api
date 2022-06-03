@@ -15,7 +15,7 @@ from .handle_data import read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
 
 FORECAST_PERIOD = '1H'
-FORECAST_STEPS = 24
+FORECAST_STEPS = 25
 
 
 def fetch_forecast_result(city: dict, sensor: dict) -> dict:
@@ -177,4 +177,5 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
             forecasted_values.append(nan)
         target.update(Series(forecasted_values[-1], [target.index[-1]]))
 
-    return Series(forecasted_values, forecast_range)
+    forecast_results = Series(forecasted_values, forecast_range)
+    return forecast_results.drop(forecast_results.index[0])
