@@ -1,5 +1,5 @@
 from json import load
-from math import modf
+from math import atan2, modf
 from os import path
 from typing import Optional
 
@@ -9,6 +9,15 @@ from requests import get
 
 from api.config.cache import cache
 from definitions import countries, DATA_RAW_PATH
+
+
+def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
+    sensors = [sensor for sensor_list in [read_sensors(city['cityName']) for city in read_cities()] for sensor in
+               sensor_list]
+    distances = haversine_vector(coordinates, [tuple(map(float, sensor['position'].split(','))) for sensor in sensors],
+                                 comb=True)
+    min_distance = min(distances)
+    return sensors[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None
 
 
 def check_city(city_name: str) -> Optional[dict]:
@@ -37,8 +46,8 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 
 def fetch_cities() -> list:
     try:
-        return sorted([city for city in get('https://pulse.eco/rest/city/').json() if city['countryCode'] in countries],
-                      key=lambda i: i['cityName'])
+        return sorted([sort_city_coordinates(city) for city in get('https://pulse.eco/rest/city/').json() if
+                       city['countryCode'] in countries], key=lambda i: i['cityName'])
     except Exception:
         return []
 
@@ -112,10 +121,14 @@ def recalculate_coordinate(val: tuple, _as: Optional[str] = None) -> [float, tup
     return degrees, minutes, seconds
 
 
-def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
-    sensors = [sensor for sensor_list in [read_sensors(city['cityName']) for city in read_cities()] for sensor in
-               sensor_list]
-    distances = haversine_vector(coordinates, [tuple(map(float, sensor['position'].split(','))) for sensor in sensors],
-                                 comb=True)
-    min_distance = min(distances)
-    return sensors[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None
+def sort_city_coordinates(city: dict) -> dict:
+    border_points = [tuple(border_points.values()) for border_points in city['cityBorderPoints']]
+    border_points = [(float(latitude), float(longitude)) for latitude, longitude in border_points]
+    cent = (
+        sum([border_point[0] for border_point in border_points]) / len(border_points),
+        sum([border_point[1] for border_point in border_points]) / len(border_points))
+    border_points.sort(key=lambda border_point: atan2(border_point[1] - cent[1], border_point[0] - cent[0]))
+    city['cityBorderPoints'] = [{'latitude': border_point[0], 'longitute': border_point[1]} for border_point in
+                                border_points]
+
+    return city
