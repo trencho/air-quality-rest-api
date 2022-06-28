@@ -2,7 +2,7 @@ dnspython
 flasgger
 flask
 flask-apscheduler
-flask-caching==1.10.1
+flask-caching
 flask-cors
 flask-healthz
 flask-pymongo
