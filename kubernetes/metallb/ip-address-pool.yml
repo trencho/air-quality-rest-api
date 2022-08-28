@@ -1,0 +1,8 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: aqra-ip-address-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 194.149.144.165
