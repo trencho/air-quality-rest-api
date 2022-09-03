@@ -33,7 +33,7 @@ def split_dataframe(dataframe: DataFrame, target: str, selected_features: list =
     y = dataframe[target]
 
     x = previous_value_overwrite(x)
-    y = y.drop(y.tail(1).index)
+    y.drop(y.tail(1).index, inplace=True)
 
     selected_features = backward_elimination(x, y) if selected_features is None else selected_features
     x = x[selected_features]
