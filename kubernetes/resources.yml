@@ -157,8 +157,7 @@ spec:
           livenessProbe:
             exec:
               command:
-                - mongo
-                - --disableImplicitSessions
+                - mongosh
                 - --eval
                 - db.adminCommand('ping')
             failureThreshold: 1
