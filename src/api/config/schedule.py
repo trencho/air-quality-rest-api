@@ -135,10 +135,15 @@ def predict_locations() -> None:
 
     for city in cache.get('cities') or read_cities():
         for sensor in read_sensors(city['cityName']):
-            if forecast_result := fetch_forecast_result(city, sensor):
-                with open(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'predictions.json'),
-                          'w') as out_file:
-                    dump(list(forecast_result.values()), out_file, indent=4)
+            try:
+                if forecast_result := fetch_forecast_result(city, sensor):
+                    with open(path.join(DATA_PROCESSED_PATH, city['cityName'], sensor['sensorId'], 'predictions.json'),
+                              'w') as out_file:
+                        dump(list(forecast_result.values()), out_file, indent=4)
+            except Exception:
+                log.error(
+                    f'Error occurred while fetching forecast values for {city["cityName"]} - {sensor["sensorId"]}',
+                    exc_info=1)
 
 
 @scheduler.task(trigger='cron', minute='0')
