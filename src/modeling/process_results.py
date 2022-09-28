@@ -10,8 +10,8 @@ from definitions import RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 
 
 def filter_invalid_values(y_true: [ndarray, Series], y_predicted: [ndarray, Series]) -> tuple:
-    dataframe = DataFrame({'y_true': y_true, 'y_predicted': y_predicted}).replace([-inf, inf], nan).dropna()
-    return dataframe['y_true'], dataframe['y_predicted']
+    dataframe = DataFrame({"y_true": y_true, "y_predicted": y_predicted}).replace([-inf, inf], nan).dropna()
+    return dataframe["y_true"], dataframe["y_predicted"]
 
 
 def mean_absolute_percentage_error(y_true: Series, y_predicted: Series) -> Optional[float]:
@@ -27,14 +27,14 @@ def save_errors(city_name: str, sensor_id: str, pollutant: str, model_name: str,
         mae = mean_absolute_error(y_true, y_predicted)
         mse = mean_squared_error(y_true, y_predicted)
         dataframe = DataFrame({
-            'Mean Absolute Error': None if isinf(mae) else mae,
-            'Mean Absolute Percentage Error': mean_absolute_percentage_error(y_true, y_predicted),
-            'Mean Squared Error': mse,
-            'Root Mean Squared Error': sqrt(mse)
-        }, index=[0], columns=['Mean Absolute Error', 'Mean Absolute Percentage Error', 'Mean Squared Error',
-                               'Root Mean Squared Error'])
+            "Mean Absolute Error": None if isinf(mae) else mae,
+            "Mean Absolute Percentage Error": mean_absolute_percentage_error(y_true, y_predicted),
+            "Mean Squared Error": mse,
+            "Root Mean Squared Error": sqrt(mse)
+        }, index=[0], columns=["Mean Absolute Error", "Mean Absolute Percentage Error", "Mean Squared Error",
+                               "Root Mean Squared Error"])
         dataframe.to_csv(
-            path.join(RESULTS_ERRORS_PATH, 'data', city_name, sensor_id, pollutant, model_name, 'error.csv'),
+            path.join(RESULTS_ERRORS_PATH, "data", city_name, sensor_id, pollutant, model_name, "error.csv"),
             index=False)
 
         return mae
@@ -44,4 +44,4 @@ def save_errors(city_name: str, sensor_id: str, pollutant: str, model_name: str,
 
 def save_results(city_name: str, sensor_id: str, pollutant: str, model_name: str, dataframe: DataFrame) -> None:
     dataframe.to_csv(
-        path.join(RESULTS_PREDICTIONS_PATH, 'data', city_name, sensor_id, pollutant, model_name, 'prediction.csv'))
+        path.join(RESULTS_PREDICTIONS_PATH, "data", city_name, sensor_id, pollutant, model_name, "prediction.csv"))

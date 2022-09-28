@@ -14,19 +14,19 @@ from .feature_scaling import value_scaling
 from .handle_data import read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
 
-FORECAST_PERIOD = '1H'
+FORECAST_PERIOD = "1H"
 FORECAST_STEPS = 25
 
 
 def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     forecast_result = {}
     for pollutant in pollutants:
-        if (predictions := forecast_city_sensor(city['cityName'], sensor['sensorId'], pollutant)) is None:
+        if (predictions := forecast_city_sensor(city["cityName"], sensor["sensorId"], pollutant)) is None:
             continue
 
         for index, value in predictions.items():
             timestamp_dict = forecast_result.get(int(index.timestamp()), {})
-            timestamp_dict.update({'time': int(index.timestamp()), pollutant: None if isnan(value) else value})
+            timestamp_dict.update({"time": int(index.timestamp()), pollutant: None if isnan(value) else value})
             forecast_result.update({int(index.timestamp()): timestamp_dict})
 
     return forecast_result
@@ -55,23 +55,23 @@ def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Opti
 
 @cache.memoize(timeout=3600)
 def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
-    dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'weather.csv'))
-    dataframe = dataframe.loc[dataframe['time'] == timestamp]
+    dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, "weather.csv"))
+    dataframe = dataframe.loc[dataframe["time"] == timestamp]
     if len(dataframe.index) > 0:
-        return dataframe.to_dict('records')[0]
+        return dataframe.to_dict("records")[0]
 
     return {}
 
 
 @cache.memoize(timeout=3600)
 def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
-    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl')):
+    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.pkl")):
         return None
 
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'best_regression_model.pkl'), 'rb') as in_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.pkl"), "rb") as in_file:
         model = load(in_file)
 
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, 'selected_features.pkl'), 'rb') as in_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "selected_features.pkl"), "rb") as in_file:
         model_features = load(in_file)
 
     return model, model_features
@@ -146,8 +146,8 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     upcoming_hour = next_hour(datetime.now())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
-    dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, 'summary.csv'),
-                                   index_col='time')
+    dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, "summary.csv"),
+                                   index_col="time")
     dataframe = dataframe.loc[current_hour() - timedelta(weeks=52): current_hour()]
     target = dataframe[pollutant].copy()
 
@@ -165,7 +165,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
                 continue
 
             features = DataFrame(data, index=[date])
-            features = features.join(generate_features(target, lags), how='inner')
+            features = features.join(generate_features(target, lags), how="inner")
             features = concat([dataframe, features])[model_features]
             encode_categorical_data(features)
             features = value_scaling(features)

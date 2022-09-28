@@ -31,7 +31,7 @@ def weighted_hamming(data):
     return hmean(categories_dist, axis=0)
 
 
-def distance_matrix(data, numeric_distance='euclidean', categorical_distance='jaccard'):
+def distance_matrix(data, numeric_distance="euclidean", categorical_distance="jaccard"):
     """ Compute the pairwise distance attribute by attribute in order to account for different variables type:
         - Continuous
         - Categorical
@@ -56,8 +56,8 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
         @returns:
             - the distance matrix
     """
-    possible_continuous_distances = ['euclidean', 'cityblock']
-    possible_binary_distances = ['euclidean', 'jaccard', 'hamming', 'weighted-hamming']
+    possible_continuous_distances = ["euclidean", "cityblock"]
+    possible_binary_distances = ["euclidean", "jaccard", "hamming", "weighted-hamming"]
     number_of_variables = data.shape[1]
     number_of_observations = data.shape[0]
 
@@ -68,10 +68,10 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
     is_mixed_type = not is_all_categorical and not is_all_numeric
 
     if numeric_distance not in possible_continuous_distances:
-        print(f'The continuous distance {numeric_distance} is not supported.')
+        print(f"The continuous distance {numeric_distance} is not supported.")
         return None
     elif categorical_distance not in possible_binary_distances:
-        print(f'The binary distance {categorical_distance} is not supported.')
+        print(f"The binary distance {categorical_distance} is not supported.")
         return None
 
     # Separate the data frame into categorical and numeric attributes and normalize numeric data
@@ -96,12 +96,12 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
             data[x].fillna(data[x].mode()[0], inplace=True)
 
     # "Dummifies" categorical variables in place
-    if not is_all_numeric and not (categorical_distance == 'hamming' or categorical_distance == 'weighted-hamming'):
+    if not is_all_numeric and not (categorical_distance == "hamming" or categorical_distance == "weighted-hamming"):
         if is_mixed_type:
             data_categorical = get_dummies(data_categorical)
         else:
             data = get_dummies(data)
-    elif not is_all_numeric and categorical_distance == 'hamming':
+    elif not is_all_numeric and categorical_distance == "hamming":
         if is_mixed_type:
             data_categorical = DataFrame(
                 [factorize(data_categorical[x])[0] for x in data_categorical]).transpose()
@@ -111,13 +111,13 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
     if is_all_numeric:
         result_matrix = cdist(data, data, metric=numeric_distance)
     elif is_all_categorical:
-        if categorical_distance == 'weighted-hamming':
+        if categorical_distance == "weighted-hamming":
             result_matrix = weighted_hamming(data)
         else:
             result_matrix = cdist(data, data, metric=categorical_distance)
     else:
         result_numeric = cdist(data_numeric, data_numeric, metric=numeric_distance)
-        if categorical_distance == 'weighted-hamming':
+        if categorical_distance == "weighted-hamming":
             result_categorical = weighted_hamming(data_categorical)
         else:
             result_categorical = cdist(data_categorical, data_categorical, metric=categorical_distance)
@@ -130,8 +130,8 @@ def distance_matrix(data, numeric_distance='euclidean', categorical_distance='ja
     return DataFrame(result_matrix)
 
 
-def knn_impute(target, attributes, k_neighbors, aggregation_method='mean', numeric_distance='euclidean',
-               categorical_distance='jaccard', missing_neighbors_threshold=0.5):
+def knn_impute(target, attributes, k_neighbors, aggregation_method="mean", numeric_distance="euclidean",
+               categorical_distance="jaccard", missing_neighbors_threshold=0.5):
     """ Replace the missing values within the target variable based on its k nearest neighbors identified with the
         attributes variables. If more than 50% of its neighbors are also missing values, the value is not modified and
         remains missing. If there is a problem in the parameters provided, returns None.
@@ -160,24 +160,24 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method='mean', numer
                                               problem in the parameters, return None
     """
 
-    possible_aggregation_method = ['mean', 'median', 'mode']
+    possible_aggregation_method = ["mean", "median", "mode"]
     number_observations = len(target)
     is_target_numeric = all(isinstance(n, Number) for n in target)
 
     if number_observations < 3:
-        print('Not enough observations.')
+        print("Not enough observations.")
         return None
     if attributes.shape[0] != number_observations:
-        print('The number of observations in the attributes variable is not matching the target variable length.')
+        print("The number of observations in the attributes variable is not matching the target variable length.")
         return None
     if k_neighbors > number_observations or k_neighbors < 1:
-        print('The range of the number of neighbors is incorrect.')
+        print("The range of the number of neighbors is incorrect.")
         return None
     if aggregation_method not in possible_aggregation_method:
-        print('The aggregation method is incorrect.')
+        print("The aggregation method is incorrect.")
         return None
-    if not is_target_numeric and aggregation_method != 'mode':
-        print('The only method allowed for categorical target variable is the mode.')
+    if not is_target_numeric and aggregation_method != "mode":
+        print("The only method allowed for categorical target variable is the mode.")
         return None
 
     target = DataFrame(target)
@@ -197,11 +197,11 @@ def knn_impute(target, attributes, k_neighbors, aggregation_method='mean', numer
             # Compute the right aggregation method if at least more than 50% of the closest neighbors are not missing
             if sum(missing_neighbors) >= missing_neighbors_threshold * k_neighbors:
                 continue
-            elif aggregation_method == 'mean':
+            elif aggregation_method == "mean":
                 target.iloc[i] = ma.mean(ma.masked_array(closest_to_target, isnan(closest_to_target)))
-            elif aggregation_method == 'median':
+            elif aggregation_method == "median":
                 target.iloc[i] = ma.median(ma.masked_array(closest_to_target, isnan(closest_to_target)))
             else:
-                target.iloc[i] = stats.mode(closest_to_target, nan_policy='omit')[0][0]
+                target.iloc[i] = stats.mode(closest_to_target, nan_policy="omit")[0][0]
 
     return target
