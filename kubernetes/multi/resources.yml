@@ -57,7 +57,7 @@ spec:
         kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
         kompose.version: 1.26.1 (a9d05d509)
       labels:
-        io.kompose.network/network: 'true'
+        io.kompose.network/network: "true"
         io.kompose.service: flask
     spec:
       containers:
@@ -82,7 +82,7 @@ spec:
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
-      serviceAccountName: ''
+      serviceAccountName: ""
       volumes:
         - name: flaskdata
           persistentVolumeClaim:
@@ -111,7 +111,7 @@ spec:
         kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
         kompose.version: 1.26.1 (a9d05d509)
       labels:
-        io.kompose.network/network: 'true'
+        io.kompose.network/network: "true"
         io.kompose.service: nginx
     spec:
       containers:
@@ -132,7 +132,7 @@ spec:
           volumeMounts:
             - mountPath: /var/log/nginx
               name: nginxdata
-      serviceAccountName: ''
+      serviceAccountName: ""
       volumes:
         - name: nginxdata
           persistentVolumeClaim:

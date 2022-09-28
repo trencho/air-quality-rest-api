@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   flask:
     build:
@@ -31,7 +31,7 @@ services:
         aliases:
           - aqra
     ports:
-      - '80:80'
+      - "80:80"
     volumes:
       - flaskdata:/var/api
 
