@@ -14,8 +14,8 @@ from processing import current_hour, next_hour
 forecast_blueprint = Blueprint("forecast", __name__)
 
 
-@forecast_blueprint.route("/cities/<string:city_name>/sensors/<string:sensor_id>/forecast/",
-                          endpoint="forecast_city_sensor", methods=["GET"])
+@forecast_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/forecast/",
+                        endpoint="forecast_city_sensor")
 @cache.memoize(timeout=3600)
 @swag_from("forecast_city_sensor.yml", endpoint="forecast.forecast_city_sensor", methods=["GET"])
 def fetch_city_sensor_forecast(city_name: str, sensor_id: str) -> Response:
@@ -33,8 +33,7 @@ def fetch_city_sensor_forecast(city_name: str, sensor_id: str) -> Response:
     return return_forecast_results(latitude, longitude, city, sensor)
 
 
-@forecast_blueprint.route("/coordinates/<float:latitude>,<float:longitude>/forecast/", endpoint="coordinates",
-                          methods=["GET"])
+@forecast_blueprint.get("/coordinates/<float:latitude>,<float:longitude>/forecast/", endpoint="coordinates")
 @swag_from("forecast_coordinates.yml", endpoint="forecast.coordinates", methods=["GET"])
 def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
     if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:

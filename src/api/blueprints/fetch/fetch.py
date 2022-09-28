@@ -12,10 +12,9 @@ from processing import current_hour, next_hour
 fetch_blueprint = Blueprint("fetch", __name__)
 
 
-@fetch_blueprint.route("/fetch/", endpoint="fetch_all", methods=["GET"])
-@fetch_blueprint.route("/cities/<string:city_name>/fetch/", endpoint="fetch_city", methods=["GET"])
-@fetch_blueprint.route("/cities/<string:city_name>/sensors/<string:sensor_id>/fetch/", endpoint="fetch_city_sensor",
-                       methods=["GET"])
+@fetch_blueprint.get("/fetch/", endpoint="fetch_all")
+@fetch_blueprint.get("/cities/<string:city_name>/fetch/", endpoint="fetch_city")
+@fetch_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/fetch/", endpoint="fetch_city_sensor")
 @swag_from("fetch_all.yml", endpoint="fetch.fetch_all", methods=["GET"])
 @swag_from("fetch_city.yml", endpoint="fetch.fetch_city", methods=["GET"])
 @swag_from("fetch_city_sensor.yml", endpoint="fetch.fetch_city_sensor", methods=["GET"])

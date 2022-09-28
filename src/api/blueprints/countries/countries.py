@@ -8,8 +8,8 @@ from preparation import check_country, read_countries
 countries_blueprint = Blueprint("countries", __name__)
 
 
-@countries_blueprint.route("/countries/", endpoint="countries", methods=["GET"])
-@countries_blueprint.route("/countries/<string:country_code>/", endpoint="countries_code", methods=["GET"])
+@countries_blueprint.get("/countries/", endpoint="countries")
+@countries_blueprint.get("/countries/<string:country_code>/", endpoint="countries_code")
 @cache.memoize(timeout=3600)
 @swag_from("countries.yml", endpoint="countries.countries", methods=["GET"])
 @swag_from("countries_code.yml", endpoint="countries.countries_code", methods=["GET"])

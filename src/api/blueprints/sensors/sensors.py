@@ -8,9 +8,8 @@ from preparation import check_city, check_sensor, read_sensors
 sensors_blueprint = Blueprint("sensors", __name__)
 
 
-@sensors_blueprint.route("/cities/<string:city_name>/sensors/", endpoint="sensors_all", methods=["GET"])
-@sensors_blueprint.route("/cities/<string:city_name>/sensors/<string:sensor_id>/", endpoint="sensors_id",
-                         methods=["GET"])
+@sensors_blueprint.get("/cities/<string:city_name>/sensors/", endpoint="sensors_all")
+@sensors_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/", endpoint="sensors_id")
 @cache.memoize(timeout=3600)
 @swag_from("sensors_all.yml", endpoint="sensors.sensors_all", methods=["GET"])
 @swag_from("sensors_id.yml", endpoint="sensors.sensors_id", methods=["GET"])

@@ -8,8 +8,8 @@ from preparation import check_city, read_cities
 cities_blueprint = Blueprint("cities", __name__)
 
 
-@cities_blueprint.route("/cities/", endpoint="cities", methods=["GET"])
-@cities_blueprint.route("/cities/<string:city_name>/", endpoint="cities_name", methods=["GET"])
+@cities_blueprint.get("/cities/", endpoint="cities")
+@cities_blueprint.get("/cities/<string:city_name>/", endpoint="cities_name")
 @cache.memoize(timeout=3600)
 @swag_from("cities.yml", endpoint="cities.cities", methods=["GET"])
 @swag_from("cities_name.yml", endpoint="cities.cities_name", methods=["GET"])
