@@ -2,8 +2,8 @@ tags:
   - forecast
 #    description: Forecast values for a specified pollutant
 summary: Returns data containing forecasts of all pollutants for the specified coordinates
-description: 'Fetches forecast data for all available pollutants for specific latitude and longitude coordinates
-converted to degrees. The forecast is based upon 24 hours from the moment the request is sent.'
+description: "Fetches forecast data for all available pollutants for specific latitude and longitude coordinates
+converted to degrees. The forecast is based upon 24 hours from the moment the request is sent."
 parameters:
   - in: path
     name: latitude
@@ -23,5 +23,5 @@ responses:
   400:
     description: Value cannot be predicted because some of the parameters are invalid.
   404:
-    description: 'Value cannot be predicted because the coordinates are either too far of the nearest available sensor
-    or are invalid.'
+    description: "Value cannot be predicted because the coordinates are either too far of the nearest available sensor
+    or are invalid."

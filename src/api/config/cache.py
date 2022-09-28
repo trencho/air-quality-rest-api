@@ -6,9 +6,9 @@ cache = Cache()
 
 def configure_cache(app: Flask) -> None:
     config = {
-        'CACHE_TYPE': 'FileSystemCache',
-        'CACHE_DEFAULT_TIMEOUT': 0,
-        'CACHE_DIR': '/tmp/cache'
+        "CACHE_TYPE": "FileSystemCache",
+        "CACHE_DEFAULT_TIMEOUT": 0,
+        "CACHE_DIR": "/tmp/cache"
     }
     cache.init_app(app, config)
     cache.clear()

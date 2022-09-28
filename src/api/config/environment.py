@@ -24,31 +24,31 @@ system_paths = [
 def check_environment_variables() -> None:
     for environment_variable in environment_variables:
         if environ.get(environment_variable) is None:
-            log.error(f'The environment variable "{environment_variable}" is missing')
+            log.error(f"The environment variable \"{environment_variable}\" is missing")
             exit(-1)
 
 
 def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
     collection_dir = path.join(DATA_RAW_PATH, city_name, sensor_id)
     db_records = DataFrame(
-        list(mongo.db[collection].find({'sensorId': sensor_id}, projection={'_id': False, 'sensorId': False})))
+        list(mongo.db[collection].find({"sensorId": sensor_id}, projection={"_id": False, "sensorId": False})))
     if len(db_records.index) > 0:
         makedirs(collection_dir, exist_ok=True)
-        collection_path = path.join(collection_dir, f'{collection}.csv')
+        collection_path = path.join(collection_dir, f"{collection}.csv")
         if (dataframe := read_csv_in_chunks(collection_path)) is not None:
-            new_db_records = find_missing_data(db_records, dataframe, 'time')
-            new_db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
+            new_db_records = find_missing_data(db_records, dataframe, "time")
+            new_db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
             save_dataframe(dataframe, collection, collection_path, sensor_id)
         else:
-            db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode='a')
+            db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
 
 def fetch_db_data() -> None:
     for city in read_cities():
-        for sensor in read_sensors(city['cityName']):
+        for sensor in read_sensors(city["cityName"]):
             for collection in collections:
-                fetch_collection(collection, city['cityName'], sensor['sensorId'])
+                fetch_collection(collection, city["cityName"], sensor["sensorId"])
 
 
 def fetch_data() -> None:
