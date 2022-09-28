@@ -12,10 +12,9 @@ from preparation import check_city, check_sensor, read_cities, read_sensors
 train_blueprint = Blueprint("train", __name__)
 
 
-@train_blueprint.route("/train/", endpoint="train_all", methods=["GET"])
-@train_blueprint.route("/cities/<string:city_name>/train/", endpoint="train_city", methods=["GET"])
-@train_blueprint.route("/cities/<string:city_name>/sensors/<string:sensor_id>/train/", endpoint="train_city_sensor",
-                       methods=["GET"])
+@train_blueprint.get("/train/", endpoint="train_all")
+@train_blueprint.get("/cities/<string:city_name>/train/", endpoint="train_city")
+@train_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/train/", endpoint="train_city_sensor")
 @swag_from("train_all.yml", endpoint="train.train_all", methods=["GET"])
 @swag_from("train_city.yml", endpoint="train.train_city", methods=["GET"])
 @swag_from("train_city_sensor.yml", endpoint="train.train_city_sensor", methods=["GET"])
