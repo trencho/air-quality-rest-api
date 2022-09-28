@@ -21,8 +21,7 @@ def fetch_measurements(city_name: str, sensor_id: str) -> Response:
     return make_response(jsonify(measurements))
 
 
-@pollutants_blueprint.route("/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/", endpoint="city_sensor",
-                            methods=["GET"])
+@pollutants_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/", endpoint="city_sensor")
 @cache.memoize(timeout=3600)
 @swag_from("pollutants_city_sensor.yml", endpoint="pollutants.city_sensor", methods=["GET"])
 def fetch_city_sensor_pollutants(city_name: str, sensor_id: str) -> Response:
@@ -37,8 +36,7 @@ def fetch_city_sensor_pollutants(city_name: str, sensor_id: str) -> Response:
     return fetch_measurements(sensor["cityName"], sensor["sensorId"])
 
 
-@pollutants_blueprint.route("/coordinates/<float:latitude>,<float:longitude>/pollutants/", endpoint="coordinates",
-                            methods=["GET"])
+@pollutants_blueprint.get("/coordinates/<float:latitude>,<float:longitude>/pollutants/", endpoint="coordinates")
 @swag_from("pollutants_coordinates.yml", endpoint="pollutants.coordinates", methods=["GET"])
 def fetch_coordinates_pollutants(latitude: float, longitude: float) -> Response:
     if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:

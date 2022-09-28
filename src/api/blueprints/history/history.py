@@ -15,8 +15,8 @@ history_blueprint = Blueprint("history", __name__)
 data_types = ["pollution", "weather"]
 
 
-@history_blueprint.route("/cities/<string:city_name>/sensors/<string:sensor_id>/history/<string:data_type>/",
-                         endpoint="city_sensor", methods=["GET"])
+@history_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/history/<string:data_type>/",
+                       endpoint="city_sensor")
 @swag_from("history_city_sensor.yml", endpoint="history.city_sensor", methods=["GET"])
 def fetch_city_sensor_history(city_name: str, sensor_id: str, data_type: str) -> Response:
     if data_type not in data_types:
@@ -38,8 +38,8 @@ def fetch_city_sensor_history(city_name: str, sensor_id: str, data_type: str) ->
     return return_historical_data(city_name, sensor, data_type, start_time, end_time)
 
 
-@history_blueprint.route("/coordinates/<float:latitude>,<float:longitude>/history/<string:data_type>/",
-                         endpoint="coordinates", methods=["GET"])
+@history_blueprint.get("/coordinates/<float:latitude>,<float:longitude>/history/<string:data_type>/",
+                       endpoint="coordinates")
 @swag_from("history_coordinates.yml", endpoint="history.coordinates", methods=["GET"])
 def fetch_coordinates_history(latitude: float, longitude: float, data_type: str) -> Response:
     if data_type not in data_types:
