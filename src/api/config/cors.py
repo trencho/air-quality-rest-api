@@ -3,4 +3,4 @@ from flask_cors import CORS
 
 
 def configure_cors(app: Flask) -> None:
-    CORS(app, resources=r'/api/v1/*')
+    CORS(app, resources=r"/api/v1/*")

@@ -2,8 +2,8 @@ tags:
   - forecast
 #    description: Forecast values for a specified pollutant
 summary: Returns data of the forecasted pollutant for a specified sensor
-description: 'Fetches forecast data of all available pollutants for a specific city and sensor. The forecast is based
-upon 24 hours from the moment the request is sent.'
+description: "Fetches forecast data of all available pollutants for a specific city and sensor. The forecast is based
+upon 24 hours from the moment the request is sent."
 parameters:
   - in: path
     name: city_name

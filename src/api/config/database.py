@@ -10,18 +10,18 @@ mongo = PyMongo()
 
 
 def configure_database(app: Flask) -> None:
-    app.config['MONGO_URI'] = (
-        f'{environ[mongodb_connection]}://{environ[mongo_username]}:{environ[mongo_password]}@'
-        f'{environ[mongodb_hostname]}/{environ[mongo_database]}?authSource=admin&retryWrites=true&w=majority'
+    app.config["MONGO_URI"] = (
+        f"{environ[mongodb_connection]}://{environ[mongo_username]}:{environ[mongo_password]}@"
+        f"{environ[mongodb_hostname]}/{environ[mongo_database]}?authSource=admin&retryWrites=true&w=majority"
     )
     mongo.init_app(app)
     create_indexes()
 
 
 def create_indexes():
-    mongo.db['cities'].create_index([('cityName', ASCENDING)])
-    mongo.db['countries'].create_index([('countryCode', ASCENDING)])
-    mongo.db['sensors'].create_index([('sensorId', ASCENDING)])
-    mongo.db['predictions'].create_index([('cityName', ASCENDING), ('sensorId', ASCENDING)])
+    mongo.db["cities"].create_index([("cityName", ASCENDING)])
+    mongo.db["countries"].create_index([("countryCode", ASCENDING)])
+    mongo.db["sensors"].create_index([("sensorId", ASCENDING)])
+    mongo.db["predictions"].create_index([("cityName", ASCENDING), ("sensorId", ASCENDING)])
     for collection in collections:
-        mongo.db[collection].create_index([('sensorId', ASCENDING)])
+        mongo.db[collection].create_index([("sensorId", ASCENDING)])

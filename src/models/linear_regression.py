@@ -9,8 +9,8 @@ class LinearRegressionModel(BaseRegressionModel):
     def __init__(self):
         reg = LinearRegression()
         param_grid = {
-            'fit_intercept': [True, False],
-            'copy_X': [True, False],
-            'n_jobs': [cpu_count() // 2]
+            "fit_intercept": [True, False],
+            "copy_X": [True, False],
+            "n_jobs": [cpu_count() // 2]
         }
         super().__init__(reg, param_grid)

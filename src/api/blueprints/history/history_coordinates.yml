@@ -38,5 +38,5 @@ responses:
   200:
     description: Returned historical data for weather or pollution.
   404:
-    description: 'Cannot return historical data because the coordinates are either too far of the nearest available
-    sensor or are invalid.'
+    description: "Cannot return historical data because the coordinates are either too far of the nearest available
+    sensor or are invalid."
