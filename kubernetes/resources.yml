@@ -15,7 +15,7 @@ metadata:
   name: cronjob-cert-delete
 rules:
   - apiGroups:
-      - ''
+      - ""
       - cert-manager.io
     resources:
       - certificates
@@ -28,7 +28,7 @@ kind: ClusterRoleBinding
 metadata:
   name: cronjob-crb
 roleRef:
-  apiGroup: ''
+  apiGroup: ""
   kind: ClusterRole
   name: cronjob-cert-delete
 subjects:
@@ -145,7 +145,7 @@ spec:
         kompose.cmd: kompose convert -f docker/single/docker-compose.yml
         kompose.version: 1.26.1 (a9d05d509)
       labels:
-        io.kompose.network/network: 'true'
+        io.kompose.network/network: "true"
         io.kompose.service: mongo
     spec:
       containers:
@@ -159,7 +159,7 @@ spec:
               command:
                 - mongosh
                 - --eval
-                - db.adminCommand('ping')
+                - db.adminCommand("ping")
             failureThreshold: 1
             initialDelaySeconds: 60
             periodSeconds: 300
@@ -171,7 +171,7 @@ spec:
           volumeMounts:
             - mountPath: /data/db
               name: mongodata
-      serviceAccountName: ''
+      serviceAccountName: ""
       volumes:
         - name: mongodata
           persistentVolumeClaim:
@@ -285,7 +285,7 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              io.kompose.network/network: 'true'
+              io.kompose.network/network: "true"
   podSelector:
     matchLabels:
-      io.kompose.network/network: 'true'
+      io.kompose.network/network: "true"

@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-LABEL maintainer='Aleksandar Trenchevski <atrenchevski@gmail.com>'
+LABEL maintainer="Aleksandar Trenchevski <atrenchevski@gmail.com>"
 
 ARG DEBIAN_FRONTEND=noninteractive
 

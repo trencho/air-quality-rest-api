@@ -1,6 +1,6 @@
 FROM ubuntu
 
-LABEL maintainer='Aleksandar Trenchevski <atrenchevski@gmail.com>'
+LABEL maintainer="Aleksandar Trenchevski <atrenchevski@gmail.com>"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -22,7 +22,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 COPY . /
 
-RUN adduser --disabled-password --gecos '' nginx && \
+RUN adduser --disabled-password --gecos "" nginx && \
     chown -R nginx:nginx /src && \
     chmod 777 /run -R && \
     chmod 777 /root -R
