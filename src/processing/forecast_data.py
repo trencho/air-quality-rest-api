@@ -148,6 +148,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
 
     dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, "summary.csv"),
                                    index_col="time")
+    dataframe.sort_index(inplace=True)
     dataframe = dataframe.loc[current_hour() - timedelta(weeks=52): current_hour()]
     target = dataframe[pollutant].copy()
 
