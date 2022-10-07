@@ -43,7 +43,7 @@ def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFr
         if len(chunk.index) > 0:
             chunks.append(chunk)
 
-    return concat(chunks) if len(chunks) > 0 else None
+    return concat(chunks).sort_index() if len(chunks) > 0 else None
 
 
 def rename_features(dataframe: DataFrame) -> None:
