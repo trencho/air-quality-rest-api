@@ -37,13 +37,11 @@ def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column
 
 
 def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFrame]:
-    chunks = []
-    for chunk in read_csv(data_path, index_col=index_col, chunksize=chunk_size):
-        chunk.index = to_datetime(chunk.index, unit="s")
-        if len(chunk.index) > 0:
-            chunks.append(chunk)
-
-    return concat(chunks).sort_index() if len(chunks) > 0 else None
+    chunks = [chunk for chunk in read_csv(data_path, index_col=index_col, chunksize=chunk_size) if len(chunk.index) > 0]
+    dataframe = concat(chunks)
+    if index_col is not None:
+        dataframe.index = to_datetime(dataframe.index, unit="s")
+    return dataframe.sort_index() if len(dataframe.index) > 0 else None
 
 
 def rename_features(dataframe: DataFrame) -> None:
