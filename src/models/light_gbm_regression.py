@@ -1,10 +1,10 @@
-from lightgbm import LGBMRegressor
+from lightgbm import Booster, LGBMRegressor
 
 from .base_regression_model import BaseRegressionModel
 
 
 class LightGBMRegressionModel(BaseRegressionModel):
-    def __init__(self):
+    def __init__(self) -> None:
         reg = LGBMRegressor()
         param_grid = {
             "num_leaves": (6, 50),
@@ -16,3 +16,9 @@ class LightGBMRegressionModel(BaseRegressionModel):
             "reg_lambda": [0, 1e-1, 1, 5, 10, 20, 50, 100]
         }
         super().__init__(reg, param_grid)
+
+    def save(self, file_path: str) -> None:
+        self.reg.booster_.save_model(file_path)
+
+    def load(self, file_path: str) -> None:
+        self.reg._Booster = Booster(model_file=file_path)

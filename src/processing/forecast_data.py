@@ -65,10 +65,10 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 @cache.memoize(timeout=3600)
 def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
-    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.pkl")):
+    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.mdl")):
         return None
 
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.pkl"), "rb") as in_file:
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.mdl"), "rb") as in_file:
         model = load(in_file)
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "selected_features.pkl"), "rb") as in_file:

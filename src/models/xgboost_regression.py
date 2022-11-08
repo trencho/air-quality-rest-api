@@ -6,7 +6,7 @@ from .base_regression_model import BaseRegressionModel
 
 
 class XGBoostRegressionModel(BaseRegressionModel):
-    def __init__(self):
+    def __init__(self) -> None:
         reg = XGBRegressor()
         param_grid = {
             "n_jobs": [cpu_count() // 2],
@@ -18,3 +18,9 @@ class XGBoostRegressionModel(BaseRegressionModel):
             "n_estimators": [500]
         }
         super().__init__(reg, param_grid)
+
+    def save(self, file_path: str) -> None:
+        self.reg.get_booster().save_model(file_path)
+
+    def load(self, file_path: str) -> None:
+        self.reg.load_model(file_path)

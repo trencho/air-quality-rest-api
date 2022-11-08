@@ -4,7 +4,7 @@ from .base_regression_model import BaseRegressionModel
 
 
 class MLPRegressionModel(BaseRegressionModel):
-    def __init__(self):
+    def __init__(self) -> None:
         reg = MLPRegressor()
         param_grid = {
             "hidden_layer_sizes": [i for i in range(1, 15)],
