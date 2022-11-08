@@ -4,7 +4,7 @@ from .base_regression_model import BaseRegressionModel
 
 
 class DecisionTreeRegressionModel(BaseRegressionModel):
-    def __init__(self):
+    def __init__(self) -> None:
         reg = DecisionTreeRegressor()
         param_grid = {
             "criterion": ["absolute_error", "squared_error"],
