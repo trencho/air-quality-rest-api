@@ -7,7 +7,7 @@ from .base_regression_model import BaseRegressionModel
 
 
 class RandomForestRegressionModel(BaseRegressionModel):
-    def __init__(self):
+    def __init__(self) -> None:
         reg = RandomForestRegressor()
         max_depth = [int(x) for x in linspace(10, 110, num=11)]
         max_depth.append(None)

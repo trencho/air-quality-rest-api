@@ -6,7 +6,7 @@ from .base_regression_model import BaseRegressionModel
 
 
 class LinearRegressionModel(BaseRegressionModel):
-    def __init__(self):
+    def __init__(self) -> None:
         reg = LinearRegression()
         param_grid = {
             "fit_intercept": [True, False],
