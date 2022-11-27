@@ -1,4 +1,5 @@
 from datetime import datetime
+from glob import glob
 from math import inf
 from os import environ, makedirs, path, remove
 from pickle import dump, HIGHEST_PROTOCOL
@@ -50,7 +51,7 @@ def read_model(city_name: str, sensor_id: str, pollutant: str, model_name: str, 
         path.join(RESULTS_ERRORS_PATH, "data", city_name, sensor_id, pollutant, model_name, "error.csv"))
     model = make_model(model_name)
     model.load(
-        path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, f"{model_name}.mdl"))
+        path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name))
     return model, dataframe_errors.iloc[0][error_type]
 
 
@@ -99,13 +100,14 @@ def remove_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> Non
 
 def check_best_regression_model(city_name: str, sensor_id: str, pollutant: str) -> bool:
     try:
-        last_modified = int(
-            path.getmtime(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.mdl")))
-        month_in_seconds = 2629800
-        if last_modified < int(datetime.timestamp(current_hour())) - month_in_seconds:
-            return False
+        if files := glob(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "*.mdl")):
+            last_modified = int(path.getmtime(files[0]))
+            month_in_seconds = 2629800
+            if last_modified < int(datetime.timestamp(current_hour())) - month_in_seconds:
+                return False
+            return True
 
-        return True
+        return False
     except OSError:
         return False
 
@@ -136,13 +138,15 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
 
         create_paths(city_name, sensor_id, pollutant, model_name)
 
-        model = make_model(model_name)
-        params = hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant)
-        model.set_params(**params)
-        model.train(x_train, y_train)
+        try:
+            model = setup_model(model_name, x_train, y_train, city_name, sensor_id, pollutant)
+        except Exception:
+            log.error(f"Error occurred while training regression model for {city_name} - {sensor_id} - {pollutant} - "
+                      f"{model_name}", exc_info=1)
+            continue
 
         if env_var == app_dev:
-            model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, f"{model_name}.mdl"))
+            model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name))
 
         y_predicted = model.predict(x_test)
 
@@ -157,8 +161,21 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
     if best_model is not None:
         save_selected_features(city_name, sensor_id, pollutant, selected_features)
         x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
-        best_model.train(x_train, y_train)
-        best_model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.mdl"))
+        try:
+            best_model = setup_model(type(best_model).__name__, x_train, y_train, city_name, sensor_id, pollutant)
+        except Exception:
+            log.error(f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
+                      f"{pollutant} - {type(best_model).__name__}", exc_info=1)
+        best_model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
+
+
+def setup_model(model_name: str, x_train: DataFrame, y_train: Series, city_name: str, sensor_id: str,
+                pollutant: str) -> BaseRegressionModel:
+    model = make_model(model_name)
+    params = hyper_parameter_tuning(model, x_train, y_train, city_name, sensor_id, pollutant)
+    model.set_params(**params)
+    model.train(x_train, y_train)
+    return model
 
 
 def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
