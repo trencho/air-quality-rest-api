@@ -1,3 +1,5 @@
+from os import path
+
 from lightgbm import Booster, LGBMRegressor
 
 from .base_regression_model import BaseRegressionModel
@@ -18,7 +20,7 @@ class LightGBMRegressionModel(BaseRegressionModel):
         super().__init__(reg, param_grid)
 
     def save(self, file_path: str) -> None:
-        self.reg.booster_.save_model(file_path)
+        self.reg.booster_.save_model(path.join(file_path, f"{type(self).__name__}.mdl"))
 
     def load(self, file_path: str) -> None:
-        self.reg._Booster = Booster(model_file=file_path)
+        self.reg._Booster = Booster(model_file=path.join(file_path, f"{type(self).__name__}.mdl"))

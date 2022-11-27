@@ -1,4 +1,4 @@
-from os import cpu_count
+from os import cpu_count, path
 
 from xgboost.sklearn import XGBRegressor
 
@@ -20,7 +20,7 @@ class XGBoostRegressionModel(BaseRegressionModel):
         super().__init__(reg, param_grid)
 
     def save(self, file_path: str) -> None:
-        self.reg.get_booster().save_model(file_path)
+        self.reg.get_booster().save_model(path.join(file_path, f"{type(self).__name__}.mdl"))
 
     def load(self, file_path: str) -> None:
-        self.reg.load_model(file_path)
+        self.reg.load_model(path.join(file_path, f"{type(self).__name__}.mdl"))
