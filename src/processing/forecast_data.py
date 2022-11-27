@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from glob import glob
 from math import isnan, nan
 from os import path
 from pickle import load
@@ -8,6 +9,7 @@ from pandas import concat, DataFrame, date_range, Series, Timedelta
 
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
+from models import make_model
 from models.base_regression_model import BaseRegressionModel
 from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import value_scaling
@@ -65,11 +67,12 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 @cache.memoize(timeout=3600)
 def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
-    if not path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.mdl")):
+    files = glob(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "*.mdl"))
+    if not files:
         return None
 
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "best_regression_model.mdl"), "rb") as in_file:
-        model = load(in_file)
+    model = make_model(path.splitext(path.split(files[0])[1])[0])
+    model.load(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "selected_features.pkl"), "rb") as in_file:
         model_features = load(in_file)
