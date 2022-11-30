@@ -88,4 +88,4 @@ def generate_features(target: Series, lags: int = 24) -> DataFrame:
     time_features = generate_time_features(target)
     features = time_features if len(lag_features.index) == 0 else lag_features.join(time_features, how="inner")
 
-    return features.dropna(axis="columns", how="all").dropna(axis="index", how="any")
+    return features

@@ -32,7 +32,7 @@ def split_dataframe(dataframe: DataFrame, target: str, selected_features: list =
     y = dataframe[target]
 
     x = previous_value_overwrite(x)
-    y.drop(y.tail(1).index, inplace=True)
+    y = y.drop(y.tail(1).index)
 
     selected_features = backward_elimination(x, y) if selected_features is None else selected_features
     x = x[selected_features]
@@ -114,6 +114,7 @@ def check_best_regression_model(city_name: str, sensor_id: str, pollutant: str) 
 
 def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: str, pollutant: str) -> None:
     dataframe = dataframe.join(generate_features(dataframe[pollutant]), how="inner")
+    dataframe = dataframe.dropna(axis="columns", how="all").dropna(axis="index", how="any")
     encode_categorical_data(dataframe)
     validation_split = len(dataframe.index) * 3 // 4
 
