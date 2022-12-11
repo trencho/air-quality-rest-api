@@ -3,7 +3,7 @@ from os import environ, makedirs, path
 from pandas import DataFrame
 
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, environment_variables, \
-    LOG_PATH, MODELS_PATH, mongodb_connection, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
+    LOG_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from preparation import read_cities, read_sensors
 from processing import find_missing_data, read_csv_in_chunks, save_dataframe
 from .database import mongo
@@ -53,8 +53,10 @@ def fetch_db_data() -> None:
 
 def fetch_data() -> None:
     fetch_locations()
-    if environ.get(mongodb_connection) is not None:
+    try:
         fetch_db_data()
+    except Exception:
+        log.error("Could not fetch data from the database", exc_info=1)
 
 
 def init_system_paths() -> None:

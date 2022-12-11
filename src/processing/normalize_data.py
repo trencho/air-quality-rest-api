@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo
 from os import path
 
 from numpy import abs
 from pandas import concat, DataFrame, to_numeric
+from pytz import timezone
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
@@ -14,12 +15,18 @@ from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_
     trim_dataframe
 
 
-def closest_hour(t: datetime) -> datetime:
-    t = t if t.minute < 30 else t + timedelta(hours=1)
-    return t.replace(minute=0, second=0, microsecond=0)
+def closest_hour(t: datetime, tzinfo: tzinfo = None) -> datetime:
+    if t.tzinfo is None and tzinfo is not None:
+        return timezone(tzinfo.__str__()).localize(
+            t.replace(hour=t.hour + t.minute // 30, minute=0, second=0, microsecond=0))
+
+    return t.replace(hour=t.hour if t.minute < 30 else t.hour + 1, minute=0, second=0, microsecond=0)
 
 
-def current_hour() -> datetime:
+def current_hour(tzinfo: tzinfo = None) -> datetime:
+    if tzinfo is not None:
+        return timezone(tzinfo.__str__()).localize(datetime.now().replace(minute=0, second=0, microsecond=0))
+
     return datetime.now().replace(minute=0, second=0, microsecond=0)
 
 
@@ -67,7 +74,10 @@ def flatten_json(nested_json: dict, exclude=None) -> dict:
     return out
 
 
-def next_hour(t: datetime) -> datetime:
+def next_hour(t: datetime, tzinfo: tzinfo = None) -> datetime:
+    if t.tzinfo is None and tzinfo is not None:
+        return timezone(tzinfo.__str__()).localize(t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
+
     return t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
 

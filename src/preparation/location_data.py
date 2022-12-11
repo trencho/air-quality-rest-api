@@ -1,3 +1,4 @@
+from datetime import tzinfo
 from json import load
 from math import atan2, modf
 from os import path
@@ -5,6 +6,7 @@ from typing import Optional
 
 from haversine import haversine_vector
 from numpy import where
+from pytz import country_timezones, timezone
 from requests import get
 
 from api.config.cache import cache
@@ -65,6 +67,10 @@ def fetch_sensors(city_name: str) -> list:
                        sensor["status"] == "ACTIVE"], key=lambda i: i["sensorId"])
     except Exception:
         return []
+
+
+def location_timezone(country_code: str) -> tzinfo:
+    return timezone(country_timezones[country_code][0])
 
 
 def read_cities() -> list:
