@@ -9,7 +9,7 @@ from flask_apscheduler import APScheduler
 
 from api.blueprints import fetch_city_data
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, MODELS_PATH, \
-    mongodb_connection, pollutants, repo_name
+    pollutants, repo_name
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
 from processing import fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
@@ -56,20 +56,25 @@ def fetch_locations() -> None:
     with open(path.join(DATA_RAW_PATH, "countries.json"), "w") as out_file:
         dump(countries, out_file, indent=4)
     cache.set("countries", countries)
-    mongodb_env = environ.get(mongodb_connection)
     for country in countries:
-        if mongodb_env is not None:
+        try:
             mongo.db["countries"].replace_one({"countryCode": country["countryCode"]}, country, upsert=True)
+        except Exception:
+            log.error(f"Error occurred while updating data for {country['countryName']}", exc_info=1)
 
     sensors = {}
     for city in cities:
-        if mongodb_env is not None:
+        try:
             mongo.db["cities"].replace_one({"cityName": city["cityName"]}, city, upsert=True)
+        except Exception:
+            log.error(f"Error occurred while updating data for {city['cityName']}", exc_info=1)
         sensors[city["cityName"]] = fetch_sensors(city["cityName"])
         for sensor in sensors[city["cityName"]]:
             sensor["cityName"] = city["cityName"]
-            if mongodb_env is not None:
+            try:
                 mongo.db["sensors"].replace_one({"sensorId": sensor["sensorId"]}, sensor, upsert=True)
+            except Exception:
+                log.error(f"Error occurred while updating data for {sensor['sensorId']}", exc_info=1)
         makedirs(path.join(DATA_RAW_PATH, city["cityName"]), exist_ok=True)
         with open(path.join(DATA_RAW_PATH, city["cityName"], "sensors.json"), "w") as out_file:
             dump(sensors[city["cityName"]], out_file, indent=4)
@@ -87,16 +92,18 @@ def import_data() -> None:
 
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
+            if not file.endswith(".csv"):
+                continue
+
             file_path = path.join(root, file)
-            if file.endswith(".csv"):
-                try:
-                    if (dataframe := read_csv_in_chunks(file_path)) is not None:
-                        save_dataframe(dataframe, path.splitext(file)[0],
-                                       path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
-                                       path.basename(path.dirname(file_path)))
-                    remove(file_path)
-                except Exception:
-                    log.error(f"Error occurred while importing data from {file_path}", exc_info=1)
+            try:
+                dataframe = read_csv_in_chunks(file_path)
+                save_dataframe(dataframe, path.splitext(file)[0],
+                               path.join(DATA_RAW_PATH, path.relpath(file_path, DATA_EXTERNAL_PATH)),
+                               path.basename(path.dirname(file_path)))
+                remove(file_path)
+            except Exception:
+                log.error(f"Error occurred while importing data from {file_path}", exc_info=1)
 
         if not directories and not files:
             rmdir(root)
@@ -118,28 +125,27 @@ def model_training() -> None:
 
 @scheduler.task(trigger="cron", minute=0)
 def predict_locations() -> None:
-    if environ.get(mongodb_connection) is not None:
-        for city in cache.get("cities") or read_cities():
-            for sensor in read_sensors(city["cityName"]):
-                try:
-                    with open(file_path := path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"],
-                                                     "predictions.json"), "r") as in_file:
-                        mongo.db["predictions"].replace_one(
-                            {"cityName": city["cityName"], "sensorId": sensor["sensorId"]},
-                            {"data": load(in_file), "cityName": city["cityName"], "sensorId": sensor["sensorId"]},
-                            upsert=True)
-                except Exception:
-                    log.error(f"Error occurred while updating forecast values from {file_path}", exc_info=1)
+    for city in cache.get("cities") or read_cities():
+        for sensor in read_sensors(city["cityName"]):
+            try:
+                with open(file_path := path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"],
+                                                 "predictions.json"), "r") as in_file:
+                    mongo.db["predictions"].replace_one(
+                        {"cityName": city["cityName"], "sensorId": sensor["sensorId"]},
+                        {"data": load(in_file), "cityName": city["cityName"], "sensorId": sensor["sensorId"]},
+                        upsert=True)
+            except Exception:
+                log.error(f"Error occurred while updating forecast values from {file_path}", exc_info=1)
 
     log.info("Finished updating predictions for all locations!")
 
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             try:
-                if forecast_result := fetch_forecast_result(city, sensor):
-                    with open(path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"], "predictions.json"),
-                              "w") as out_file:
-                        dump(list(forecast_result.values()), out_file, indent=4)
+                forecast_result = fetch_forecast_result(city, sensor)
+                with open(path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"], "predictions.json"),
+                          "w") as out_file:
+                    dump(list(forecast_result.values()), out_file, indent=4, default=str)
             except Exception:
                 log.error(
                     f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}",
