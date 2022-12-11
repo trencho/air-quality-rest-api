@@ -39,8 +39,7 @@ def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column
 def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFrame]:
     chunks = [chunk for chunk in read_csv(data_path, index_col=index_col, chunksize=chunk_size) if len(chunk.index) > 0]
     dataframe = concat(chunks)
-    if index_col is not None:
-        dataframe.index = to_datetime(dataframe.index, unit="s")
+    dataframe.index = to_datetime(dataframe.index, errors="ignore", unit="s")
     return dataframe.sort_index() if len(dataframe.index) > 0 else None
 
 

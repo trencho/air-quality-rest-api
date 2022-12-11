@@ -2,7 +2,7 @@ from os import environ
 
 from flask import Flask
 
-from definitions import app_dev, app_env, app_prod, mongodb_connection
+from definitions import app_dev, app_env, app_prod
 from .blueprints import register_blueprints
 from .cache import configure_cache
 from .cors import configure_cors
@@ -28,8 +28,10 @@ def create_app() -> Flask:
     configure_cache(app)
     configure_cors(app)
 
-    if environ.get(mongodb_connection) is not None:
+    try:
         configure_database(app)
+    except Exception:
+        pass
 
     configure_healthcheck(app)
     configure_logger()
