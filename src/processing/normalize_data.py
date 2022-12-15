@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta, tzinfo
+from math import isnan
 from os import path
 
 from numpy import abs
-from pandas import concat, DataFrame, to_numeric
+from pandas import concat, DataFrame, Series, to_numeric
 from pytz import timezone
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
@@ -15,17 +16,27 @@ from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_
     trim_dataframe
 
 
-def closest_hour(t: datetime, tzinfo: tzinfo = None) -> datetime:
-    if t.tzinfo is None and tzinfo is not None:
-        return timezone(tzinfo.__str__()).localize(
+def calculate_index(row: Series) -> float:
+    row = to_numeric(row, errors="coerce")
+    if not isnan(row["aqi"]):
+        return row["aqi"]
+
+    return calculate_aqi(calculate_co_index(row["co"]), calculate_no2_index(row["no2"]), calculate_o3_index(row["o3"]),
+                         calculate_pm2_5_index(row["pm2_5"]), calculate_pm10_index(row["pm10"]),
+                         calculate_so2_index(row["so2"]))
+
+
+def closest_hour(t: datetime, tz: tzinfo = None) -> datetime:
+    if t.tzinfo is None and tz is not None:
+        return timezone(tz.__str__()).localize(
             t.replace(hour=t.hour + t.minute // 30, minute=0, second=0, microsecond=0))
 
     return t.replace(hour=t.hour if t.minute < 30 else t.hour + 1, minute=0, second=0, microsecond=0)
 
 
-def current_hour(tzinfo: tzinfo = None) -> datetime:
-    if tzinfo is not None:
-        return timezone(tzinfo.__str__()).localize(datetime.now().replace(minute=0, second=0, microsecond=0))
+def current_hour(tz: tzinfo = None) -> datetime:
+    if tz is not None:
+        return timezone(tz.__str__()).localize(datetime.now().replace(minute=0, second=0, microsecond=0))
 
     return datetime.now().replace(minute=0, second=0, microsecond=0)
 
@@ -74,9 +85,9 @@ def flatten_json(nested_json: dict, exclude=None) -> dict:
     return out
 
 
-def next_hour(t: datetime, tzinfo: tzinfo = None) -> datetime:
-    if t.tzinfo is None and tzinfo is not None:
-        return timezone(tzinfo.__str__()).localize(t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
+def next_hour(t: datetime, tz: tzinfo = None) -> datetime:
+    if t.tzinfo is None and tz is not None:
+        return timezone(tz.__str__()).localize(t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
 
     return t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
@@ -117,14 +128,8 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             dataframe[list(pollutants_wo_aqi)].std() == 0].index.values
         dataframe.drop(columns=drop_columns_std, inplace=True, errors="ignore")
 
-        dataframe["aqi"] = dataframe.apply(
-            lambda row: calculate_aqi(calculate_co_index(row["co"]) if "co" in dataframe.columns else 0,
-                                      calculate_no2_index(row["no2"]) if "no2" in dataframe.columns else 0,
-                                      calculate_o3_index(row["o3"]) if "o3" in dataframe.columns else 0,
-                                      calculate_pm2_5_index(row["pm2_5"]) if "pm2_5" in dataframe.columns else 0,
-                                      calculate_pm10_index(row["pm10"]) if "pm10" in dataframe.columns else 0,
-                                      calculate_so2_index(row["so2"]) if "so2" in dataframe.columns else 0)
-            if row.get("aqi") is None else row["aqi"], axis=1)
+        if collection != "weather":
+            dataframe["aqi"] = dataframe[list(pollutants)].apply(calculate_index, axis=1)
 
         # dataframe = drop_numerical_outliers_with_z_score(dataframe)
 
