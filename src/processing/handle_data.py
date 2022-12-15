@@ -1,11 +1,11 @@
-from os import environ, path
+from os import path
 from pickle import dump, HIGHEST_PROTOCOL, load
 from typing import Optional
 
 from pandas import concat, DataFrame, read_csv, to_datetime
 
 from api.config.database import mongo
-from definitions import chunk_size, mongodb_connection
+from definitions import chunk_size
 
 
 def convert_dtype(x: object) -> str:
@@ -57,22 +57,21 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
     rename_features(dataframe)
     drop_unnecessary_features(dataframe)
 
-    if (mongodb_env := environ.get(mongodb_connection)) is not None:
-        db_records = DataFrame(list(mongo.db[collection].find({"sensorId": sensor_id}, projection={"_id": False})))
-
-        if len(db_records.index) > 0:
-            dataframe = find_missing_data(dataframe, db_records, "time")
+    db_records = DataFrame(list(mongo.db[collection].find({"sensorId": sensor_id}, projection={"_id": False})))
+    if len(db_records.index) > 0:
+        dataframe = find_missing_data(dataframe, db_records, "time")
 
     trim_dataframe(dataframe, "time")
-    if len(dataframe.index) > 0:
-        dataframe.loc[:, "sensorId"] = sensor_id
-        if mongodb_env is not None:
-            mongo.db[collection].insert_many(dataframe.to_dict("records"))
+    if len(dataframe.index) == 0:
+        return
 
-        if (df := read_csv_in_chunks(collection_path)) is not None:
-            dataframe = find_missing_data(dataframe, df, "time")
-        dataframe.drop(columns="sensorId", inplace=True, errors="ignore")
-        dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
+    dataframe.loc[:, "sensorId"] = sensor_id
+    mongo.db[collection].insert_many(dataframe.to_dict("records"))
+
+    if (df := read_csv_in_chunks(collection_path)) is not None:
+        dataframe = find_missing_data(dataframe, df, "time")
+    dataframe.drop(columns="sensorId", inplace=True, errors="ignore")
+    dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
 
 def store_dtypes(file_path: str, collection: str, dtypes: dict) -> None:
