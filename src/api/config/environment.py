@@ -29,19 +29,21 @@ def check_environment_variables() -> None:
 
 
 def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
-    collection_dir = path.join(DATA_RAW_PATH, city_name, sensor_id)
     db_records = DataFrame(
         list(mongo.db[collection].find({"sensorId": sensor_id}, projection={"_id": False, "sensorId": False})))
-    if len(db_records.index) > 0:
-        makedirs(collection_dir, exist_ok=True)
-        collection_path = path.join(collection_dir, f"{collection}.csv")
-        if (dataframe := read_csv_in_chunks(collection_path)) is not None:
-            new_db_records = find_missing_data(db_records, dataframe, "time")
-            new_db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
+    if len(db_records.index) == 0:
+        return
 
-            save_dataframe(dataframe, collection, collection_path, sensor_id)
-        else:
-            db_records.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
+    collection_dir = path.join(DATA_RAW_PATH, city_name, sensor_id)
+    makedirs(collection_dir, exist_ok=True)
+    collection_path = path.join(collection_dir, f"{collection}.csv")
+    if (dataframe := read_csv_in_chunks(collection_path)) is not None:
+        new_db_records = find_missing_data(db_records, dataframe, "time")
+        new_db_records.to_csv(collection_path, header=False, index=False, mode="a")
+
+        save_dataframe(dataframe, collection, collection_path, sensor_id)
+    else:
+        db_records.to_csv(collection_path, index=False)
 
 
 def fetch_db_data() -> None:
