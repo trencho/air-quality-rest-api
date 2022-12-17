@@ -7,8 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH
 from preparation import fetch_dark_sky_data, fetch_pollution_data
-from processing import read_csv_in_chunks
-from processing.merge_data import merge_air_quality_data
+from processing import merge_air_quality_data, read_csv_in_chunks
 
 
 @cache.memoize(timeout=3600)
