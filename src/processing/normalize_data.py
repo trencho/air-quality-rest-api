@@ -3,7 +3,7 @@ from math import isnan
 from os import path
 
 from numpy import abs
-from pandas import concat, DataFrame, Series, to_numeric
+from pandas import concat, DataFrame, merge, Series, to_numeric
 from pytz import timezone
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
@@ -13,7 +13,7 @@ from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, pollutants
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
     calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
 from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_in_chunks, rename_features, \
-    trim_dataframe
+    save_dataframe, trim_dataframe
 
 
 def calculate_index(row: Series) -> float:
@@ -83,6 +83,19 @@ def flatten_json(nested_json: dict, exclude=None) -> dict:
 
     flatten(nested_json)
     return out
+
+
+def merge_air_quality_data(data_path: str, city_name: str, sensor_id: str) -> None:
+    try:
+        weather_data = read_csv_in_chunks(path.join(data_path, city_name, sensor_id, "weather.csv"))
+        pollution_data = read_csv_in_chunks(path.join(data_path, city_name, sensor_id, "pollution.csv"))
+
+        dataframe = merge(weather_data, pollution_data, on="time")
+
+        if len(dataframe.index) > 0:
+            save_dataframe(dataframe, "summary", path.join(data_path, city_name, sensor_id, "summary.csv"), sensor_id)
+    except Exception:
+        log.error(f"Error occurred while merging air quality data for {city_name} - {sensor_id}", exc_info=1)
 
 
 def next_hour(t: datetime, tz: tzinfo = None) -> datetime:
