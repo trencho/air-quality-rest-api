@@ -7,7 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH
 from preparation import fetch_dark_sky_data, fetch_pollution_data
-from processing import merge_air_quality_data, read_csv_in_chunks
+from processing import read_csv_in_chunks
 
 
 @cache.memoize(timeout=3600)
@@ -33,4 +33,3 @@ def fetch_city_data(city_name: str, sensor: dict) -> None:
 
     fetch_dark_sky_data(city_name, sensor)
     fetch_pollution_data(city_name, sensor)
-    merge_air_quality_data(DATA_RAW_PATH, city_name, sensor["sensorId"])

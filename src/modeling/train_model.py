@@ -14,7 +14,7 @@ from definitions import app_dev, app_env, DATA_PROCESSED_PATH, MODELS_PATH, poll
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
 from processing import backward_elimination, current_hour, encode_categorical_data, generate_features, \
-    read_csv_in_chunks, value_scaling
+    fetch_summary_dataframe, value_scaling
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
@@ -159,15 +159,17 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
             best_model = model
             best_model_error = model_error
 
-    if best_model is not None:
-        save_selected_features(city_name, sensor_id, pollutant, selected_features)
-        x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
-        try:
-            best_model = setup_model(type(best_model).__name__, x_train, y_train, city_name, sensor_id, pollutant)
-        except Exception:
-            log.error(f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
-                      f"{pollutant} - {type(best_model).__name__}", exc_info=1)
-        best_model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
+    if best_model is None:
+        return
+
+    save_selected_features(city_name, sensor_id, pollutant, selected_features)
+    x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
+    try:
+        best_model = setup_model(type(best_model).__name__, x_train, y_train, city_name, sensor_id, pollutant)
+    except Exception:
+        log.error(f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
+                  f"{pollutant} - {type(best_model).__name__}", exc_info=1)
+    best_model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
 
 
 def setup_model(model_name: str, x_train: DataFrame, y_train: Series, city_name: str, sensor_id: str,
@@ -184,8 +186,8 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             city["cityName"], sensor["sensorId"], pollutant):
         return
     try:
-        dataframe = read_csv_in_chunks(
-            path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"], "summary.csv"), index_col="time")
+        dataframe = fetch_summary_dataframe(path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"]),
+                                            index_col="time")
         dataframe = dataframe.loc[dataframe.index <= datetime.utcnow()]
         if pollutant in dataframe.columns:
             create_pollutant_lock(city["cityName"], sensor["sensorId"], pollutant)
