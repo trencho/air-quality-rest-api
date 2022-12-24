@@ -44,6 +44,8 @@ def fetch_hourly_data() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             fetch_city_data(city["cityName"], sensor)
+            for collection in collections:
+                process_data(city["cityName"], sensor["sensorId"], collection)
 
 
 @scheduler.task(trigger="cron", hour=0)
@@ -150,14 +152,6 @@ def predict_locations() -> None:
                 log.error(
                     f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}",
                     exc_info=1)
-
-
-@scheduler.task(trigger="cron", minute="0")
-def process_fetched_data() -> None:
-    for city in cache.get("cities") or read_cities():
-        for sensor in read_sensors(city["cityName"]):
-            for collection in collections:
-                process_data(city["cityName"], sensor["sensorId"], collection)
 
 
 def schedule_jobs(app: Flask) -> None:
