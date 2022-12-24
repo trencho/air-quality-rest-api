@@ -50,7 +50,7 @@ RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, "predictions")
 app_dev = "development"
 app_prod = "production"
 
-collections = ["weather", "pollution", "summary"]
+collections = ["weather", "pollution"]
 
 chunk_size = 15000
 

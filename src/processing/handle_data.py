@@ -5,7 +5,7 @@ from typing import Optional
 from pandas import concat, DataFrame, read_csv, to_datetime
 
 from api.config.database import mongo
-from definitions import chunk_size
+from definitions import chunk_size, collections
 
 
 def convert_dtype(x: object) -> str:
@@ -51,6 +51,12 @@ def rename_features(dataframe: DataFrame) -> None:
                  "precipIntensity": "precipitation", "AQI": "aqi", "CO": "co", "CO2": "co2", "NH3": "nh3", "NO": "no",
                  "NO2": "no2", "O3": "o3", "PM25": "pm2_5", "PM10": "pm10", "SO2": "so2"}, inplace=True,
         errors="ignore")
+
+
+def fetch_summary_dataframe(data_path: str, index_col: str):
+    dataframe_list = [read_csv_in_chunks(path.join(data_path, f"{collection}.csv"), index_col=index_col) for collection
+                      in collections]
+    return concat(dataframe_list, axis=1, join="inner")
 
 
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
