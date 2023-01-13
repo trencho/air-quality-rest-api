@@ -38,17 +38,6 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
 
 
 @cache.memoize(timeout=3600)
-def fetch_weather_features(city_name: str, sensor_id: str, model_features: list, timestamp: int) -> dict:
-    forecast_data = forecast_sensor(city_name, sensor_id, timestamp)
-    data = {}
-    for model_feature in model_features:
-        if (feature_value := forecast_data.get(model_feature)) is not None:
-            data[model_feature] = feature_value
-
-    return data
-
-
-@cache.memoize(timeout=3600)
 def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Optional[Series]:
     if (load_model := load_regression_model(city_name, sensor_id, pollutant)) is None:
         return None
@@ -167,11 +156,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
 
         timestamp = int((date - timedelta(hours=1)).timestamp())
         try:
-            if not (data := fetch_weather_features(city_name, sensor_id, model_features, timestamp)):
-                forecasted_values.append(nan)
-                target.update(Series(forecasted_values[-1], [target.index[-1]]))
-                continue
-
+            data = forecast_sensor(city_name, sensor_id, timestamp)
             features = DataFrame(data, index=[date])
             features = features.join(generate_features(target, lags), how="inner")
             features = concat([dataframe, features])[model_features]
