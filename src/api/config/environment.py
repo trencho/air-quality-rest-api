@@ -37,12 +37,14 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
     collection_dir = path.join(DATA_RAW_PATH, city_name, sensor_id)
     makedirs(collection_dir, exist_ok=True)
     collection_path = path.join(collection_dir, f"{collection}.csv")
-    if (dataframe := read_csv_in_chunks(collection_path)) is not None:
+    try:
+        dataframe = read_csv_in_chunks(collection_path)
         new_db_records = find_missing_data(db_records, dataframe, "time")
         new_db_records.to_csv(collection_path, header=False, index=False, mode="a")
 
         save_dataframe(dataframe, collection, collection_path, sensor_id)
-    else:
+    except Exception:
+        log.error(f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}", exc_info=1)
         db_records.to_csv(collection_path, index=False)
 
 
@@ -50,15 +52,16 @@ def fetch_db_data() -> None:
     for city in read_cities():
         for sensor in read_sensors(city["cityName"]):
             for collection in collections:
-                fetch_collection(collection, city["cityName"], sensor["sensorId"])
+                try:
+                    fetch_collection(collection, city["cityName"], sensor["sensorId"])
+                except Exception:
+                    log.error(f"Could not fetch data from the database for {city['cityName']} - {sensor['sensorId']} - "
+                              f"{collection}", exc_info=1)
 
 
 def fetch_data() -> None:
     fetch_locations()
-    try:
-        fetch_db_data()
-    except Exception:
-        log.error("Could not fetch data from the database", exc_info=1)
+    fetch_db_data()
 
 
 def init_system_paths() -> None:

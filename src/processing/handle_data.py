@@ -5,6 +5,7 @@ from typing import Optional
 from pandas import concat, DataFrame, read_csv, to_datetime
 
 from api.config.database import mongo
+from api.config.logger import log
 from definitions import chunk_size, collections
 
 
@@ -74,8 +75,11 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
     dataframe.loc[:, "sensorId"] = sensor_id
     mongo.db[collection].insert_many(dataframe.to_dict("records"))
 
-    if (df := read_csv_in_chunks(collection_path)) is not None:
+    try:
+        df = read_csv_in_chunks(collection_path)
         dataframe = find_missing_data(dataframe, df, "time")
+    except Exception:
+        log.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=1)
     dataframe.drop(columns="sensorId", inplace=True, errors="ignore")
     dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
