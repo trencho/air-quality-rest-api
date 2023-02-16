@@ -100,14 +100,16 @@ def remove_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> Non
 
 def check_best_regression_model(city_name: str, sensor_id: str, pollutant: str) -> bool:
     try:
-        if files := glob(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "*.mdl")):
-            last_modified = int(path.getmtime(files[0]))
-            month_in_seconds = 2629800
-            if last_modified < int(datetime.timestamp(current_hour())) - month_in_seconds:
-                return False
-            return True
+        if not len(files := glob(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "*.mdl"))):
+            return False
 
-        return False
+        last_modified = int(path.getmtime(files[0]))
+        month_in_seconds = 2629800
+        if last_modified < int(datetime.timestamp(current_hour())) - month_in_seconds:
+            remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, files[0]))
+            return False
+
+        return True
     except OSError:
         return False
 
