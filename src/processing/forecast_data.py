@@ -158,8 +158,9 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
         try:
             data = forecast_sensor(city_name, sensor_id, timestamp)
             features = DataFrame(data, index=[date])
+            features = concat([dataframe, features])
             features = features.join(generate_features(target, lags), how="inner")
-            features = concat([dataframe, features])[model_features]
+            features = features[model_features]
             encode_categorical_data(features)
             features = value_scaling(features)
             features = features.tail(1)
