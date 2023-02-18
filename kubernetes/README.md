@@ -22,7 +22,7 @@ kubectl kustomize kubernetes/single/resources > kubernetes/single/resources.yml
 ###### Apply flannel network for kubernetes pods
 
 ```
-kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 ```
 
 ###### Apply cert-manager resources
