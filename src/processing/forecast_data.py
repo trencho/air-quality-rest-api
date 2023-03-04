@@ -8,6 +8,7 @@ from typing import Optional
 from pandas import concat, DataFrame, date_range, Series
 
 from api.config.cache import cache
+from api.config.logger import log
 from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
@@ -168,6 +169,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
             prediction = predictions[-1]
             forecasted_values.append(prediction if prediction >= 0 else nan)
         except Exception:
+            log.error(f"Error occurred while forecasting data for {city_name} - {sensor_id} - {pollutant}", exc_info=1)
             forecasted_values.append(nan)
         target.update(Series(forecasted_values[-1], [target.index[-1]]))
 

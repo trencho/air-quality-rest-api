@@ -139,8 +139,6 @@ def predict_locations() -> None:
             except Exception:
                 log.error(f"Error occurred while updating forecast values from {file_path}", exc_info=1)
 
-    log.info("Finished updating predictions for all locations!")
-
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             try:
