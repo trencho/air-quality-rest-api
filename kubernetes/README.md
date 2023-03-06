@@ -77,6 +77,9 @@ kubectl get pods -n aqra
 
 ```
 kubectl logs -f [pod-name] -n aqra
+
+kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | xargs kubectl logs -f -n aqra
+kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | xargs kubectl logs -f -n aqra
 ```
 
 ###### Enter bash of deployed pod
