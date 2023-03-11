@@ -31,6 +31,6 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, "pollution",
                            path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "pollution.csv"), sensor["sensorId"])
     except Exception:
-        log.error(f"Error occurred while fetching pollution data for {city_name} - {sensor['sensorId']}", exc_info=1)
+        log.error(f"Error occurred while fetching pollution data for {city_name} - {sensor['sensorId']}", exc_info=True)
     finally:
         sleep(1)

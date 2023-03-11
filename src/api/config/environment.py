@@ -44,7 +44,8 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
 
         save_dataframe(dataframe, collection, collection_path, sensor_id)
     except Exception:
-        log.error(f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}", exc_info=1)
+        log.error(f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}",
+                  exc_info=True)
         db_records.to_csv(collection_path, index=False)
 
 
@@ -56,7 +57,7 @@ def fetch_db_data() -> None:
                     fetch_collection(collection, city["cityName"], sensor["sensorId"])
                 except Exception:
                     log.error(f"Could not fetch data from the database for {city['cityName']} - {sensor['sensorId']} - "
-                              f"{collection}", exc_info=1)
+                              f"{collection}", exc_info=True)
 
 
 def fetch_data() -> None:

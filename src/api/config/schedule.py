@@ -62,21 +62,21 @@ def fetch_locations() -> None:
         try:
             mongo.db["countries"].replace_one({"countryCode": country["countryCode"]}, country, upsert=True)
         except Exception:
-            log.error(f"Error occurred while updating data for {country['countryName']}", exc_info=1)
+            log.error(f"Error occurred while updating data for {country['countryName']}", exc_info=True)
 
     sensors = {}
     for city in cities:
         try:
             mongo.db["cities"].replace_one({"cityName": city["cityName"]}, city, upsert=True)
         except Exception:
-            log.error(f"Error occurred while updating data for {city['cityName']}", exc_info=1)
+            log.error(f"Error occurred while updating data for {city['cityName']}", exc_info=True)
         sensors[city["cityName"]] = fetch_sensors(city["cityName"])
         for sensor in sensors[city["cityName"]]:
             sensor["cityName"] = city["cityName"]
             try:
                 mongo.db["sensors"].replace_one({"sensorId": sensor["sensorId"]}, sensor, upsert=True)
             except Exception:
-                log.error(f"Error occurred while updating data for {sensor['sensorId']}", exc_info=1)
+                log.error(f"Error occurred while updating data for {sensor['sensorId']}", exc_info=True)
         makedirs(path.join(DATA_RAW_PATH, city["cityName"]), exist_ok=True)
         with open(path.join(DATA_RAW_PATH, city["cityName"], "sensors.json"), "w") as out_file:
             dump(sensors[city["cityName"]], out_file, indent=4)
@@ -105,7 +105,7 @@ def import_data() -> None:
                                path.basename(path.dirname(file_path)))
                 remove(file_path)
             except Exception:
-                log.error(f"Error occurred while importing data from {file_path}", exc_info=1)
+                log.error(f"Error occurred while importing data from {file_path}", exc_info=True)
 
         if not directories and not files:
             rmdir(root)
@@ -137,7 +137,7 @@ def predict_locations() -> None:
                         {"data": load(in_file), "cityName": city["cityName"], "sensorId": sensor["sensorId"]},
                         upsert=True)
             except Exception:
-                log.error(f"Error occurred while updating forecast values from {file_path}", exc_info=1)
+                log.error(f"Error occurred while updating forecast values from {file_path}", exc_info=True)
 
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -149,7 +149,7 @@ def predict_locations() -> None:
             except Exception:
                 log.error(
                     f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}",
-                    exc_info=1)
+                    exc_info=True)
 
 
 def schedule_jobs(app: Flask) -> None:

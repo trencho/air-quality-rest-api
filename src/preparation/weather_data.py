@@ -26,7 +26,7 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, "weather", path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "weather.csv"),
                            sensor["sensorId"])
     except Exception:
-        log.error(f"Error occurred while fetching DarkSky data for {city_name} - {sensor['sensorId']}", exc_info=1)
+        log.error(f"Error occurred while fetching DarkSky data for {city_name} - {sensor['sensorId']}", exc_info=True)
         fetch_open_weather_data(city_name, sensor)
     finally:
         sleep(1)
@@ -50,6 +50,7 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, "weather", path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "weather.csv"),
                            sensor["sensorId"])
     except Exception:
-        log.error(f"Error occurred while fetching Open Weather data for {city_name} - {sensor['sensorId']}", exc_info=1)
+        log.error(f"Error occurred while fetching Open Weather data for {city_name} - {sensor['sensorId']}",
+                  exc_info=True)
     finally:
         sleep(1)
