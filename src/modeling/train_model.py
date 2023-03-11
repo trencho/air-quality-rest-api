@@ -145,7 +145,7 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
             model = setup_model(model_name, x_train, y_train, city_name, sensor_id, pollutant)
         except Exception:
             log.error(f"Error occurred while training regression model for {city_name} - {sensor_id} - {pollutant} - "
-                      f"{model_name}", exc_info=1)
+                      f"{model_name}", exc_info=True)
             continue
 
         if env_var == app_dev:
@@ -170,7 +170,7 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
         best_model = setup_model(type(best_model).__name__, x_train, y_train, city_name, sensor_id, pollutant)
     except Exception:
         log.error(f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
-                  f"{pollutant} - {type(best_model).__name__}", exc_info=1)
+                  f"{pollutant} - {type(best_model).__name__}", exc_info=True)
     best_model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
 
 
@@ -198,7 +198,7 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             draw_predictions(city, sensor, pollutant)
     except Exception:
         log.error(f"Error occurred while training regression model for {city['cityName']} - {sensor['sensorId']} - "
-                  f"{pollutant}", exc_info=1)
+                  f"{pollutant}", exc_info=True)
     finally:
         remove_pollutant_lock(city["cityName"], sensor["sensorId"], pollutant)
 

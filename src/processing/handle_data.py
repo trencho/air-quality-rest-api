@@ -79,7 +79,7 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
         df = read_csv_in_chunks(collection_path)
         dataframe = find_missing_data(dataframe, df, "time")
     except Exception:
-        log.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=1)
+        log.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=True)
     dataframe.drop(columns="sensorId", inplace=True, errors="ignore")
     dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
