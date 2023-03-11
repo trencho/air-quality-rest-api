@@ -35,7 +35,7 @@ def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base
                              element_list[:len(element_list) // 2])
             commit_git_files(repo, master_ref, master_sha, base_tree, commit_message,
                              element_list[len(element_list) // 2:])
-        log.error("Error occurred while committing files to GitHub", exc_info=1)
+        log.error("Error occurred while committing files to GitHub", exc_info=True)
 
 
 def create_archive(source, destination):
@@ -57,7 +57,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
         trim_dataframe(local_file_content, "time")
         return local_file_content.to_csv(index=False)
     except Exception:
-        log.error("Error occurred while merging local files with files from GitHub repository", exc_info=1)
+        log.error("Error occurred while merging local files with files from GitHub repository", exc_info=True)
 
 
 def update_git_files(file_list: list, file_names: list, repo_name: str, branch: str,

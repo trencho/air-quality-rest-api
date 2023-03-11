@@ -1,4 +1,5 @@
 from numbers import Number
+from typing import Optional
 
 from numpy import array, asarray, fill_diagonal, isnan, ma, nan
 from pandas import DataFrame, factorize, get_dummies, isnull
@@ -7,7 +8,7 @@ from scipy.spatial.distance import cdist
 from scipy.stats import hmean
 
 
-def weighted_hamming(data):
+def weighted_hamming(data: DataFrame):
     """ Compute weighted hamming distance on categorical variables. For one variable, it is equal to 1 if
         the values between point A and point B are different, else it is equal the relative frequency of the
         distribution of the value across the variable. For multiple variables, the harmonic mean is computed
@@ -31,7 +32,8 @@ def weighted_hamming(data):
     return hmean(categories_dist, axis=0)
 
 
-def distance_matrix(data, numeric_distance="euclidean", categorical_distance="jaccard"):
+def distance_matrix(data: DataFrame, numeric_distance: str = "euclidean", categorical_distance: str = "jaccard") -> \
+        Optional[DataFrame]:
     """ Compute the pairwise distance attribute by attribute in order to account for different variables type:
         - Continuous
         - Categorical
@@ -130,8 +132,9 @@ def distance_matrix(data, numeric_distance="euclidean", categorical_distance="ja
     return DataFrame(result_matrix)
 
 
-def knn_impute(target, attributes, k_neighbors, aggregation_method="mean", numeric_distance="euclidean",
-               categorical_distance="jaccard", missing_neighbors_threshold=0.5):
+def knn_impute(target, attributes, k_neighbors: int, aggregation_method: str = "mean",
+               numeric_distance: str = "euclidean", categorical_distance: str = "jaccard",
+               missing_neighbors_threshold: float = 0.5) -> Optional[DataFrame]:
     """ Replace the missing values within the target variable based on its k nearest neighbors identified with the
         attributes variables. If more than 50% of its neighbors are also missing values, the value is not modified and
         remains missing. If there is a problem in the parameters provided, returns None.

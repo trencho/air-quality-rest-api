@@ -109,8 +109,8 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         df_columns = df_columns.drop(["aqi", "icon", "precipType", "summary"], errors="ignore")
 
         imp = KNNImputer()
+        dataframe[df_columns] = dataframe[df_columns].apply(to_numeric, axis="columns", errors="coerce")
         for column in df_columns:
-            dataframe[column] = to_numeric(dataframe[column], errors="coerce")
             if dataframe[column].isna().all():
                 dataframe.drop(columns=column, inplace=True, errors="ignore")
             if dataframe[column].isna().any():
@@ -136,4 +136,4 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
     except Exception:
-        log.error(f"Error occurred while processing {collection} data for {city_name} - {sensor_id}", exc_info=1)
+        log.error(f"Error occurred while processing {collection} data for {city_name} - {sensor_id}", exc_info=True)
