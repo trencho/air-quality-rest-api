@@ -77,14 +77,16 @@ kubectl get pods -n aqra
 
 ```
 kubectl logs -f [pod-name] -n aqra
-kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | xargs kubectl logs -f -n aqra
-kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | xargs kubectl logs -f -n aqra
+kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
+kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
 ```
 
 ###### Enter bash of deployed pod
 
 ```
 kubectl exec -n aqra --stdin --tty [pod-name] -- /bin/bash
+kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
+kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
 ```
 
 ###### Delete and reapply deployments if changes are made to the Docker images
@@ -104,10 +106,10 @@ kubectl apply -f kubernetes/single/resources/flask-deployment.yml
 ```
 kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml > kubernetes/master.key
 
-kubeseal --recovery-unseal < kubernetes/flask-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
-kubernetes/flask-secret.yml
-kubeseal --recovery-unseal < kubernetes/mongo-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
-kubernetes/mongo-secret.yml
+kubeseal --recovery-unseal < kubernetes/sealed-secrets/flask-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
+kubernetes/secrets/flask-secret.yml
+kubeseal --recovery-unseal < kubernetes/sealed-secrets/mongo-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
+kubernetes/secrets/mongo-secret.yml
 ```
 
 ###### Cleanup resources by deleting persistent volumes and used namespaces
