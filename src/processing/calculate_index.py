@@ -1,4 +1,4 @@
-def calculate_aqi(*args: tuple[int]) -> int:
+def calculate_aqi(*args) -> int:
     return max(args)
 
 
