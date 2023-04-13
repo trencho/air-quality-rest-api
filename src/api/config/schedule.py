@@ -11,7 +11,7 @@ from api.blueprints import fetch_city_data
 from definitions import collections, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, MODELS_PATH, \
     pollutants, repo_name
 from modeling import train_regression_model
-from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
+from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors, reset_counters
 from processing import fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
 from .cache import cache
 from .database import mongo
@@ -150,6 +150,11 @@ def predict_locations() -> None:
                 log.error(
                     f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}",
                     exc_info=True)
+
+
+@scheduler.task(trigger="cron", hour=0)
+def reset_api_counter() -> None:
+    reset_counters()
 
 
 def schedule_jobs(app: Flask) -> None:
