@@ -26,8 +26,17 @@ jobs:
       - name: Clone or pull repository
         uses: actions/checkout@v3
         with:
-          repository: ${{ secrets.REPO_URL }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          command: |
+            if [ ! -d "${{ secrets.REPO_PATH }}" ]; then
+              git clone ${{ secrets.REPO_URL }} ${{ secrets.REPO_PATH }}
+            else
+              cd ${{ secrets.REPO_PATH }}
+              git pull
+            fi
+          env:
+            GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+          ssh: ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Build and deploy
         run: |
           cd ${{ secrets.REPO_PATH }}
