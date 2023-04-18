@@ -17,7 +17,7 @@ jobs:
           sudo apt update
           sudo apt install -y openvpn openvpn-systemd-resolved
       - name: Connect to VPN
-        uses: "kota65535/github-openvpn-connect-action@v2"
+        uses: kota65535/github-openvpn-connect-action@v2
         with:
           config_file: .github/workflows/atrenchevski.ovpn
           username: ${{ secrets.OVPN_USERNAME }}
@@ -31,6 +31,8 @@ jobs:
         run: |
           git pull
           docker-compose -f docker/single/docker-compose.yml build
+          echo $KUBECONFIG
+          echo ${{ secrets.KUBECONFIG }}
           kubectl apply -f kubernetes/mongo-deployment.yml
           kubectl apply -f kubernetes/single/resources/flask-deployment.yml
         env:
