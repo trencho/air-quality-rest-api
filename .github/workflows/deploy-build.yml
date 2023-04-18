@@ -33,8 +33,8 @@ jobs:
           docker-compose -f docker/single/docker-compose.yml build
           kubectl apply -f kubernetes/mongo-deployment.yml
           kubectl apply -f kubernetes/single/resources/flask-deployment.yml
-      #        env:
-      #          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
       - name: Cleanup
         run: |
           docker system prune -a --volumes
