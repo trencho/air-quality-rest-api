@@ -23,16 +23,21 @@ jobs:
           username: ${{ secrets.OVPN_USERNAME }}
           password: ${{ secrets.OVPN_PASSWORD }}
           client_key: ${{ secrets.USER_KEY }}
-      - name: Clone or pull repository
-        uses: actions/checkout@v3
-        with:
-          repository: ${{ secrets.REPO_URL }}
-      - name: Build and deploy
+      - name: Build
         run: |
           git pull
           docker-compose -f docker/single/docker-compose.yml build
-          echo $KUBECONFIG
-          echo ${{ secrets.KUBECONFIG }}
+      - name: Cache Docker build cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            docker/single/Dockerfile
+            requirements.txt
+          key: ${{ runner.os }}-docker-${{ hashFiles('docker/single/Dockerfile') }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-${{ hashFiles('docker/single/Dockerfile') }}-
+      - name: Deploy
+        run: |
           kubectl apply -f kubernetes/mongo-deployment.yml
           kubectl apply -f kubernetes/single/resources/flask-deployment.yml
         env:
