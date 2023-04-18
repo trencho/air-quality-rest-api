@@ -26,8 +26,7 @@ jobs:
       - name: Clone or pull repository
         uses: actions/checkout@v3
         with:
-          repository: ${{ secrets.REPO_PATH }}
-          token: ${{ secrets.REPO_TOKEN }}
+          repository: ${{ secrets.REPO_URL }}
       - name: Build and deploy
         run: |
           if [ ! -d "${{ secrets.REPO_PATH }}" ]; then
