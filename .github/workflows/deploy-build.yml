@@ -26,15 +26,16 @@ jobs:
       - name: Clone or pull repository
         uses: actions/checkout@v3
         with:
-          command: |
-            if [ ! -d "${{ secrets.REPO_PATH }}" ]; then
-              git clone ${{ secrets.REPO_URL }} ${{ secrets.REPO_PATH }}
-            else
-              cd ${{ secrets.REPO_PATH }}
-              git pull
-            fi
+          repository: ${{ secrets.REPO_PATH }}
+          token: ${{ secrets.REPO_TOKEN }}
       - name: Build and deploy
         run: |
+          if [ ! -d "${{ secrets.REPO_PATH }}" ]; then
+            git clone ${{ secrets.REPO_URL }} ${{ secrets.REPO_PATH }}
+          else
+            cd ${{ secrets.REPO_PATH }}
+            git pull
+          fi
           cd ${{ secrets.REPO_PATH }}
           git pull
           docker-compose -f docker/single/docker-compose.yml build
