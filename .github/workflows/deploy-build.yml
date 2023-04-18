@@ -27,6 +27,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: ${{ secrets.REPO_URL }}
+          path: ${{ secrets.REPO_PATH }}
       - name: Build and deploy
         run: |
           if [ ! -d "${{ secrets.REPO_PATH }}" ]; then
