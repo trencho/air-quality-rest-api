@@ -10,10 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Print Current User and KUBECONFIG location
-        run: |
-          whoami
-          cat /home/atrenchevski/admin.conf
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install OpenVPN
@@ -29,6 +25,8 @@ jobs:
           client_key: ${{ secrets.USER_KEY }}
       - name: Build
         run: |
+          whoami
+          cat /home/atrenchevski/admin.conf
           git pull
           docker-compose -f docker/single/docker-compose.yml build
       - name: Cache Docker build cache
