@@ -26,7 +26,7 @@ jobs:
       - name: Build
         run: |
           whoami
-          cat /home/atrenchevski/admin.conf
+          ll -a /home
           git pull
           docker-compose -f docker/single/docker-compose.yml build
       - name: Cache Docker build cache
