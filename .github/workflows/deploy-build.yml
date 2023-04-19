@@ -13,7 +13,7 @@ jobs:
       - name: Print Current User and KUBECONFIG location
         run: |
           whoami
-          ls -a /home/atrenchevski
+          cat /home/atrenchevski/admin.conf
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install OpenVPN
