@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Print Current User and KUBECONFIG location
+        run: |
+          whoami
+          ls -a /home/atrenchevski
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install OpenVPN
