@@ -1,9 +1,20 @@
-name: Deploy Flask API
+name: Deploy Flask API with MongoDB
 
 on:
   push:
     branches:
       - master
+
+env:
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+  SERVER_HOST: ${{ secrets.SERVER_HOST }}
+  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  GIT_REPO_PATH: ${{ secrets.GIT_REPO_PATH }}
+  GIT_REPO_USERNAME: ${{ secrets.GIT_REPO_USERNAME }}
+  GIT_REPO_NAME: ${{ secrets.GIT_REPO_NAME }}
+  KUBECONFIG: ${{ secrets.KUBECONFIG }}
+  KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
 
 jobs:
   deploy:
@@ -12,36 +23,44 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install OpenVPN
-        run: |
-          sudo apt update
-          sudo apt install -y openvpn openvpn-systemd-resolved
-      - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@v2
+
+      - name: Connect to server
+        uses: appleboy/ssh-action@master
         with:
-          config_file: .github/workflows/atrenchevski.ovpn
-          username: ${{ secrets.OVPN_USERNAME }}
-          password: ${{ secrets.OVPN_PASSWORD }}
-          client_key: ${{ secrets.USER_KEY }}
-      - name: Build
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
+          port: 22
+
+      - name: Create Git repo directory
         run: |
-          git pull
+          sudo mkdir -p $GIT_REPO_PATH
+          sudo chown $SSH_USERNAME:$SSH_USERNAME $GIT_REPO_PATH
+
+      - name: Check if Git repo is initialized
+        run: |
+          if [ ! -d $GIT_REPO_PATH/.git ]; then
+            git clone https://$ACCESS_TOKEN@github.com/$GIT_REPO_USERNAME/$GIT_REPO_NAME.git $GIT_REPO_PATH
+          fi
+
+      - name: Update Git repository
+        run: |
+          cd $GIT_REPO_PATH
+          git fetch origin
+          git reset --hard origin/main
+
+      - name: Build Docker images and deploy with Docker Compose
+        run: |
+          cd $GIT_REPO_PATH
           docker-compose -f docker/single/docker-compose.yml build
-      - name: Cache Docker build cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            docker/single/Dockerfile
-            requirements.txt
-          key: ${{ runner.os }}-docker-${{ hashFiles('docker/single/Dockerfile') }}-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-docker-${{ hashFiles('docker/single/Dockerfile') }}-
-      - name: Deploy
+
+      - name: Deploy Kubernetes manifests with kubectl
         run: |
-          kubectl apply -f kubernetes/mongo-deployment.yml
-          kubectl apply -f kubernetes/single/resources/flask-deployment.yml
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
-      - name: Cleanup
-        run: |
-          docker system prune -a --volumes
+          cd $GIT_REPO_PATH
+          docker run --rm \
+            -v $PWD:$PWD \
+            -w $PWD \
+            --env KUBECONFIG=KUBECONFIG \
+            lachlanevenson/k8s-kubectl:v1.25.4 \
+            kubectl apply -f .
+        working-directory: ${{ env.GIT_REPO_PATH }}
