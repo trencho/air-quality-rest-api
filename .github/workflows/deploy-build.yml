@@ -24,13 +24,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - - name: Connect to OpenVPN
-          uses: docker://dperson/openvpn-client
-          with:
-            pull: 'yes'
-            mute-replay-warnings: 'yes'
-            config: ${{ env.OPENVPN_CONFIG }}
-            auth-user-pass: ${{ env.OPENVPN_AUTH }}
+      - name: Connect to OpenVPN
+        uses: docker://dperson/openvpn-client
+        with:
+          pull: 'yes'
+          mute-replay-warnings: 'yes'
+          config: ${{ env.OPENVPN_CONFIG }}
+          auth-user-pass: ${{ env.OPENVPN_AUTH }}
 
       - name: Connect to server
         uses: appleboy/ssh-action@master
