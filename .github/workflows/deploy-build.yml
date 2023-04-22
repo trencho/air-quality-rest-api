@@ -6,6 +6,8 @@ on:
       - master
 
 env:
+  OPENVPN_CONFIG: ${{ secrets.OPENVPN_CONFIG }}
+  OPENVPN_AUTH: ${{ secrets.OPENVPN_AUTH }}
   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
   SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
   SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
@@ -22,13 +24,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - - name: Connect to OpenVPN
+          uses: docker://dperson/openvpn-client
+          with:
+            pull: 'yes'
+            mute-replay-warnings: 'yes'
+            config: ${{ env.OPENVPN_CONFIG }}
+            auth-user-pass: ${{ env.OPENVPN_AUTH }}
+
       - name: Connect to server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
-          password: ${{ env.SSH_PASSWORD }}
-          key: ${{ env.SSH_PRIVATE_KEY }}
+          key: /root/.ssh/id_rsa
 
       - name: Create Git repo directory
         run: |
