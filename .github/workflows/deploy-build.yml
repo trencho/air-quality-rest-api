@@ -7,37 +7,43 @@ on:
 
 env:
   OPENVPN_CONFIG: ${{ secrets.OPENVPN_CONFIG }}
-  OPENVPN_AUTH: ${{ secrets.OPENVPN_AUTH }}
-  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  OPENVPN_USERNAME: ${{ secrets.OPENVPN_USERNAME }}
+  OPENVPN_PASSWORD: ${{ secrets.OPENVPN_PASSWORD }}
+  USER_KEY: ${{ secrets.USER_KEY }}
   SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-  SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
   SERVER_HOST: ${{ secrets.SERVER_HOST }}
   ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
   GIT_REPO_PATH: ${{ secrets.GIT_REPO_PATH }}
   GIT_REPO_USERNAME: ${{ secrets.GIT_REPO_USERNAME }}
   GIT_REPO_NAME: ${{ secrets.GIT_REPO_NAME }}
   KUBECONFIG: ${{ secrets.KUBECONFIG }}
-  KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Connect to OpenVPN
-        uses: docker://dperson/openvpn-client
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install OpenVPN
+        run: |
+          sudo apt update
+          sudo apt install -y openvpn openvpn-systemd-resolved
+      - name: Connect to VPN
+        uses: kota65535/github-openvpn-connect-action@v2
         with:
-          pull: 'yes'
-          mute-replay-warnings: 'yes'
-          config: ${{ env.OPENVPN_CONFIG }}
-          auth-user-pass: ${{ env.OPENVPN_AUTH }}
+          config_file: ${{ env.OPENVPN_CONFIG }}
+          username: ${{ env.OPENVPN_USERNAME }}
+          password: ${{ env.OPENVPN_PASSWORD }}
+          client_key: ${{ env.USER_KEY }}
 
       - name: Connect to server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
-          key: /root/.ssh/id_rsa
+          key: ${{ env.SSH_PRIVATE_KEY }}
 
       - name: Create Git repo directory
         run: |
@@ -70,4 +76,3 @@ jobs:
             --env KUBECONFIG=KUBECONFIG \
             lachlanevenson/k8s-kubectl:v1.25.4 \
             kubectl apply -f .
-        working-directory: ${{ env.GIT_REPO_PATH }}
