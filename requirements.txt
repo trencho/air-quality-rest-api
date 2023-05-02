@@ -1,6 +1,6 @@
 dnspython==2.3.0
 flasgger==0.9.5
-Flask==2.2.3
+Flask==2.3.2
 Flask-APScheduler==1.12.4
 Flask-Caching==2.0.2
 Flask-Cors==3.0.10
