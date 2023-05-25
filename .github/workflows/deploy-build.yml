@@ -33,7 +33,7 @@ jobs:
           sudo apt install -y openvpn openvpn-systemd-resolved
 
       - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@v2
+        uses: kota65535/github-openvpn-connect-action@v2.0.2
         with:
           config_file: ${{ env.OPENVPN_CONFIG }}
           username: ${{ env.OPENVPN_USERNAME }}
