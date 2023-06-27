@@ -54,7 +54,7 @@ jobs:
             fi
             cd ${{ env.GIT_REPO_PATH }}
             git fetch origin
-            git reset --hard origin/main
+            git reset --hard origin/master
 
 #      - name: Build and deploy
 #        uses: appleboy/ssh-action@v0.1.10
