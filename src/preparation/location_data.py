@@ -10,7 +10,7 @@ from pytz import country_timezones, timezone
 from requests import get
 
 from api.config.cache import cache
-from definitions import countries, DATA_RAW_PATH
+from definitions import COUNTRIES, DATA_RAW_PATH
 
 
 def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
@@ -49,7 +49,7 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 def fetch_cities() -> list:
     try:
         return sorted([sort_city_coordinates(city) for city in get("https://pulse.eco/rest/city/").json() if
-                       city["countryCode"] in countries], key=lambda i: i["cityName"])
+                       city["countryCode"] in COUNTRIES], key=lambda i: i["cityName"])
     except Exception:
         return []
 

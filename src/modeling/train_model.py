@@ -8,8 +8,8 @@ from threading import Thread
 from pandas import DataFrame, read_csv, Series
 from sklearn.model_selection import RandomizedSearchCV
 
-from api.config.logger import log
-from definitions import app_dev, app_env, DATA_PROCESSED_PATH, MODELS_PATH, pollutants, regression_models, \
+from api.config.logger import logger
+from definitions import APP_DEV, APP_ENV, DATA_PROCESSED_PATH, MODELS_PATH, POLLUTANTS, REGRESSION_MODELS, \
     RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
@@ -18,7 +18,7 @@ from processing import backward_elimination, current_hour, encode_categorical_da
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
-lock_file = ".lock"
+LOCK_FILE = ".lock"
 
 
 def previous_value_overwrite(dataframe: DataFrame) -> DataFrame:
@@ -27,7 +27,7 @@ def previous_value_overwrite(dataframe: DataFrame) -> DataFrame:
 
 
 def split_dataframe(dataframe: DataFrame, target: str, selected_features: list = None) -> tuple:
-    x = dataframe.drop(columns=pollutants, errors="ignore")
+    x = dataframe.drop(columns=POLLUTANTS, errors="ignore")
     x = value_scaling(x)
     y = dataframe[target]
 
@@ -69,12 +69,12 @@ def create_paths(city_name: str, sensor_id: str, pollutant: str, model_name: str
 
 
 def check_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> bool:
-    return path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, lock_file))
+    return path.exists(path.join(MODELS_PATH, city_name, sensor_id, pollutant, LOCK_FILE))
 
 
 def create_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> None:
     makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant), exist_ok=True)
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, lock_file), "w"):
+    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, LOCK_FILE), "w"):
         pass
 
 
@@ -83,7 +83,7 @@ def hyper_parameter_tuning(model: BaseRegressionModel, x_train: DataFrame, y_tra
     model_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
     model_cv.fit(x_train, y_train)
 
-    if environ.get(app_env, app_dev) == app_dev:
+    if environ.get(APP_ENV, APP_DEV) == APP_DEV:
         with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, type(model).__name__,
                             "HyperparameterOptimization.pkl"), "wb") as out_file:
             dump(model_cv.best_params_, out_file, HIGHEST_PROTOCOL)
@@ -93,7 +93,7 @@ def hyper_parameter_tuning(model: BaseRegressionModel, x_train: DataFrame, y_tra
 
 def remove_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> None:
     try:
-        remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, lock_file))
+        remove(path.join(MODELS_PATH, city_name, sensor_id, pollutant, LOCK_FILE))
     except OSError:
         pass
 
@@ -129,8 +129,8 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
 
     best_model_error = inf
     best_model = None
-    for model_name in regression_models:
-        if (env_var := environ.get(app_env, app_dev)) == app_dev and path.exists(
+    for model_name in REGRESSION_MODELS:
+        if (env_var := environ.get(APP_ENV, APP_DEV)) == APP_DEV and path.exists(
                 path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name, f"{model_name}.mdl")):
             create_models_path(city_name, sensor_id, pollutant, model_name)
             model, model_error = read_model(city_name, sensor_id, pollutant, model_name, "Mean Absolute Error")
@@ -144,11 +144,12 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
         try:
             model = setup_model(model_name, x_train, y_train, city_name, sensor_id, pollutant)
         except Exception:
-            log.error(f"Error occurred while training regression model for {city_name} - {sensor_id} - {pollutant} - "
-                      f"{model_name}", exc_info=True)
+            logger.error(
+                f"Error occurred while training regression model for {city_name} - {sensor_id} - {pollutant} - "
+                f"{model_name}", exc_info=True)
             continue
 
-        if env_var == app_dev:
+        if env_var == APP_DEV:
             model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name))
 
         y_predicted = model.predict(x_test)
@@ -169,8 +170,8 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
     try:
         best_model = setup_model(type(best_model).__name__, x_train, y_train, city_name, sensor_id, pollutant)
     except Exception:
-        log.error(f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
-                  f"{pollutant} - {type(best_model).__name__}", exc_info=True)
+        logger.error(f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
+                     f"{pollutant} - {type(best_model).__name__}", exc_info=True)
     best_model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
 
 
@@ -197,8 +198,8 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
     except Exception:
-        log.error(f"Error occurred while training regression model for {city['cityName']} - {sensor['sensorId']} - "
-                  f"{pollutant}", exc_info=True)
+        logger.error(f"Error occurred while training regression model for {city['cityName']} - {sensor['sensorId']} - "
+                     f"{pollutant}", exc_info=True)
     finally:
         remove_pollutant_lock(city["cityName"], sensor["sensorId"], pollutant)
 

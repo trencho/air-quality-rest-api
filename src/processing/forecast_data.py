@@ -8,7 +8,7 @@ from typing import Optional
 from pandas import concat, DataFrame, date_range, Series
 
 from api.config.cache import cache
-from definitions import DATA_PROCESSED_PATH, MODELS_PATH, pollutants
+from definitions import DATA_PROCESSED_PATH, MODELS_PATH, POLLUTANTS
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
 from preparation import location_timezone
@@ -23,7 +23,7 @@ FORECAST_STEPS = 25
 
 def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     forecast_result = {}
-    for pollutant in pollutants:
+    for pollutant in POLLUTANTS:
         if (predictions := forecast_city_sensor(city["cityName"], sensor["sensorId"], pollutant)) is None:
             continue
 

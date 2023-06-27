@@ -1,38 +1,42 @@
 from os import environ, path
 
-app_env = "APP_ENV"
+APP_ENV = "APP_ENV"
 
-dark_sky_token = "DARK_SKY_TOKEN"
+DARK_SKY_TOKEN = "DARK_SKY_TOKEN"
 
-github_token = "GITHUB_TOKEN"
+GITHUB_TOKEN = "GITHUB_TOKEN"
 
-mongo_database = "MONGO_DATABASE"
-mongo_password = "MONGO_PASSWORD"
-mongo_username = "MONGO_USERNAME"
-mongodb_connection = "MONGODB_CONNECTION"
-mongodb_hostname = "MONGODB_HOSTNAME"
+MONGO_DATABASE = "MONGO_DATABASE"
+MONGO_PASSWORD = "MONGO_PASSWORD"
+MONGO_USERNAME = "MONGO_USERNAME"
+MONGODB_CONNECTION = "MONGODB_CONNECTION"
+MONGODB_HOSTNAME = "MONGODB_HOSTNAME"
 
-open_weather_token = "OPEN_WEATHER_TOKEN"
+OPEN_WEATHER_TOKEN = "OPEN_WEATHER_TOKEN"
 
-repo_name = "REPO_NAME"
+REPO_NAME = "REPO_NAME"
 
-volume_path = "VOLUME_PATH"
+USER_ID = "USER_ID"
+USER_GID = "USER_GID"
 
-environment_variables = [
-    app_env,
-    dark_sky_token,
-    github_token,
-    mongo_database,
-    mongo_password,
-    mongo_username,
-    mongodb_connection,
-    mongodb_hostname,
-    open_weather_token,
-    repo_name
+VOLUME_PATH = "VOLUME_PATH"
+
+ENVIRONMENT_VARIABLES = [
+    APP_ENV,
+    DARK_SKY_TOKEN,
+    GITHUB_TOKEN,
+    MONGO_DATABASE,
+    MONGO_PASSWORD,
+    MONGO_USERNAME,
+    MONGODB_CONNECTION,
+    MONGODB_HOSTNAME,
+    OPEN_WEATHER_TOKEN,
+    REPO_NAME,
+    USER_ID,
+    USER_GID
 ]
 
-VOLUME_PATH = environ.get(volume_path, "")
-ROOT_PATH = VOLUME_PATH or path.dirname(path.abspath(__file__))
+ROOT_PATH = environ.get(VOLUME_PATH, "") or path.dirname(path.abspath(__file__))
 
 DATA_PATH = path.join(ROOT_PATH, "data")
 DATA_EXTERNAL_PATH = path.join(DATA_PATH, "external")
@@ -47,18 +51,18 @@ RESULTS_PATH = path.join(ROOT_PATH, "results")
 RESULTS_ERRORS_PATH = path.join(RESULTS_PATH, "errors")
 RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, "predictions")
 
-app_dev = "development"
-app_prod = "production"
+APP_DEV = "development"
+APP_PROD = "production"
 
-collections = ["weather", "pollution"]
+COLLECTIONS = ["weather", "pollution"]
 
-chunk_size = 15000
+CHUNK_SIZE = 15000
 
-countries = {
+COUNTRIES = {
     "MK": "Macedonia"
 }
 
-pollutants = {
+POLLUTANTS = {
     "aqi": "AQI",
     "co": "CO",
     "nh3": "NH3",
@@ -70,7 +74,7 @@ pollutants = {
     "so2": "SO2"
 }
 
-regression_models = {
+REGRESSION_MODELS = {
     "DecisionTreeRegressionModel": "Decision Tree",
     "LightGBMRegressionModel": "LightGBM",
     "LinearRegressionModel": "Linear",

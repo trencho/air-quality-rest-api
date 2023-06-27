@@ -4,7 +4,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
 from api.config.cache import cache
-from definitions import pollutants
+from definitions import POLLUTANTS
 from preparation import calculate_nearest_sensor, check_city, check_sensor
 
 pollutants_blueprint = Blueprint("pollutants", __name__)
@@ -15,8 +15,8 @@ def fetch_measurements(city_name: str, sensor_id: str) -> Response:
     if isinstance(dataframe := fetch_dataframe(city_name, sensor_id, "pollution"), Response):
         return dataframe
 
-    measurements = [{"name": pollutants[pollutant], "value": pollutant}
-                    for pollutant in pollutants if pollutant in dataframe.columns]
+    measurements = [{"name": POLLUTANTS[pollutant], "value": pollutant}
+                    for pollutant in POLLUTANTS if pollutant in dataframe.columns]
 
     return make_response(jsonify(measurements))
 

@@ -8,8 +8,8 @@ from pytz import timezone
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
-from api.config.logger import log
-from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, pollutants
+from api.config.logger import logger
+from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, POLLUTANTS
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
     calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
 from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_in_chunks, rename_features, \
@@ -116,7 +116,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             if dataframe[column].isna().any():
                 dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
 
-        pollutants_wo_aqi = pollutants.copy()
+        pollutants_wo_aqi = POLLUTANTS.copy()
         pollutants_wo_aqi.pop("aqi")
         columns = pollutants_wo_aqi.copy()
         for column in columns:
@@ -136,4 +136,4 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
     except Exception:
-        log.error(f"Error occurred while processing {collection} data for {city_name} - {sensor_id}", exc_info=True)
+        logger.error(f"Error occurred while processing {collection} data for {city_name} - {sensor_id}", exc_info=True)
