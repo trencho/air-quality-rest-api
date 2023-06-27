@@ -3,13 +3,14 @@
 ###### Initialize single node kubernetes cluster
 
 ```
-kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=[cluster-endpoint]
+kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=[cluster-endpoint/kubeadm.feit.ukim.edu.mk] \
+--cri-socket /run/cri-dockerd.sock
 ```
 
 ###### Taint master node with control plane in order to deploy pods
 
 ```
-kubectl taint nodes --all node-role.kubernetes.io/master-
+kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
 ```
 
 ###### Generate single yml files for applying all necessary kubernetes resources
