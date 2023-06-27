@@ -2,11 +2,10 @@ from os import environ
 
 from flask import Flask
 
-from definitions import app_dev, app_env, app_prod
+from definitions import APP_DEV, APP_ENV, APP_PROD
 from .blueprints import register_blueprints
 from .cache import configure_cache
 from .cors import configure_cors
-from .database import configure_database
 from .environment import check_environment_variables, fetch_data, init_system_paths
 from .health import configure_healthcheck
 from .logger import configure_logger
@@ -19,7 +18,7 @@ def create_app() -> Flask:
 
     app = Flask(__name__)
 
-    if environ.get(app_env, app_dev) == app_prod:
+    if environ.get(APP_ENV, APP_DEV) == APP_PROD:
         check_environment_variables()
         schedule_jobs(app)
 
@@ -27,12 +26,6 @@ def create_app() -> Flask:
 
     configure_cache(app)
     configure_cors(app)
-
-    try:
-        configure_database(app)
-    except Exception:
-        pass
-
     configure_healthcheck(app)
     configure_logger()
     configure_swagger(app)

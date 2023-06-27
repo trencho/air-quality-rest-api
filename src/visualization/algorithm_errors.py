@@ -4,7 +4,7 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame, read_csv
 
-from definitions import pollutants, regression_models, RESULTS_ERRORS_PATH
+from definitions import POLLUTANTS, REGRESSION_MODELS, RESULTS_ERRORS_PATH
 from .handle_plot import save_plot
 
 
@@ -16,7 +16,7 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         "Root Mean Squared Error"
     ]
 
-    large, med, small = 22, 16, 12
+    large, med = 22, 16
     params = {
         "legend.fontsize": med,
         "figure.figsize": (16, 10),
@@ -33,11 +33,11 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
 
     for error_type in error_types:
         data = []
-        for model_name in regression_models:
+        for model_name in REGRESSION_MODELS:
             dataframe_errors = read_csv(
                 path.join(RESULTS_ERRORS_PATH, "data", city["cityName"], sensor["sensorId"], pollutant, model_name,
                           "error.csv"))
-            data.append([regression_models[model_name], dataframe_errors.iloc[0][error_type]])
+            data.append([REGRESSION_MODELS[model_name], dataframe_errors.iloc[0][error_type]])
 
         dataframe_algorithms = DataFrame(data, columns=["algorithm", pollutant]).dropna()
         if len(dataframe_algorithms.index) == 0:
@@ -48,7 +48,7 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
 
         fig, ax = pyplot.subplots(figsize=(16, 10), facecolor="white", dpi=80)
         ax.vlines(x=dataframe_algorithms.index, ymin=0, ymax=dataframe_algorithms[pollutant], color="firebrick",
-                  alpha=0.7, linewidth=40, label=pollutants[pollutant])
+                  alpha=0.7, linewidth=40, label=POLLUTANTS[pollutant])
         ax.legend()
 
         for i, value in enumerate(dataframe_algorithms[pollutant]):
