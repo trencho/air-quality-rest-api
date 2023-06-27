@@ -40,15 +40,15 @@ jobs:
           password: ${{ env.OPENVPN_PASSWORD }}
           client_key: ${{ env.USER_KEY }}
 
-      - name: Checkout/Update repo
+      - name: Checkout/Update repository
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
           key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
-            sudo mkdir -p ${{ env.GIT_REPO_PATH }}
-            sudo chown ${{ env.SSH_USERNAME }}:${{ env.SSH_USERNAME }} ${{ env.GIT_REPO_PATH }}
+            mkdir -p ${{ env.GIT_REPO_PATH }}
+            chown ${{ env.SSH_USERNAME }}:${{ env.SSH_USERNAME }} ${{ env.GIT_REPO_PATH }}
             if [ ! -d ${{ env.GIT_REPO_PATH }}/.git ]; then
               git clone https://${{ env.ACCESS_TOKEN }}@github.com/${{ env.GIT_REPO_USERNAME }}/${{ env.GIT_REPO_NAME }}.git ${{ env.GIT_REPO_PATH }}
             fi
