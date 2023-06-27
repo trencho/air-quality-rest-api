@@ -2,6 +2,10 @@ version: "3.8"
 services:
   flask:
     build:
+      args:
+        - USER_ID=${USER_ID:-$(id -u)}
+        - USER_GID=${USER_ID:-$(id -g)}
+        - USER_NAME=${USER_NAME:-$(whoami)}
       context: ../..
       dockerfile: docker/single/Dockerfile
     container_name: flask
@@ -37,6 +41,10 @@ services:
 
   mongo:
     build:
+      args:
+        - USER_ID=${USER_ID:-$(id -u)}
+        - USER_GID=${USER_GID:-$(id -g)}
+        - USER_NAME=${USER_NAME:-$(whoami)}
       context: ../..
       dockerfile: docker/mongo/Dockerfile
     container_name: mongo
