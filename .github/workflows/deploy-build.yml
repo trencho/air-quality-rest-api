@@ -40,7 +40,7 @@ jobs:
           password: ${{ env.OPENVPN_PASSWORD }}
           client_key: ${{ env.USER_KEY }}
 
-      - name: SSH into remote server and execute commands
+      - name: Checkout/Update repo
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ env.SERVER_HOST }}
@@ -55,6 +55,14 @@ jobs:
             cd $GIT_REPO_PATH
             git fetch origin
             git reset --hard origin/main
+
+      - name: Build and deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
+          script: |
             docker-compose -f docker/single/docker-compose.yml build
             kubectl apply -f kubernetes/mongo-deployment.yml
             kubectl apply -f kubernetes/single/resources/flask-deployment.yml
