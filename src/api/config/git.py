@@ -4,15 +4,33 @@ from os import environ, path, sep
 from shutil import make_archive, move
 
 from github import Github, GithubException, GitRef, GitTree, InputGitTreeElement, Repository
+from github.Auth import Token
 from pandas import concat
 from requests import ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
-from definitions import github_token, ROOT_PATH
+from definitions import GITHUB_TOKEN, ROOT_PATH
 from processing import read_csv_in_chunks, trim_dataframe
-from .logger import log
+from .logger import logger
 
-g = Github(environ.get(github_token))
+
+class GithubSingleton:
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if not GithubSingleton._instance:
+            GithubSingleton._instance = GithubSingleton()
+        return GithubSingleton._instance
+
+    def __init__(self):
+        if (token := environ.get(GITHUB_TOKEN)) is not None:
+            GithubSingleton._instance = Github(auth=Token(token))
+        else:
+            GithubSingleton._instance = None
+
+
+g = GithubSingleton.get_instance()
 
 
 def append_commit_files(file_list: list, data: [bytes, str], root: str, file: str, file_names: list) -> None:
@@ -35,7 +53,7 @@ def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base
                              element_list[:len(element_list) // 2])
             commit_git_files(repo, master_ref, master_sha, base_tree, commit_message,
                              element_list[len(element_list) // 2:])
-        log.error("Error occurred while committing files to GitHub", exc_info=True)
+        logger.error("Error occurred while committing files to GitHub", exc_info=True)
 
 
 def create_archive(source, destination):
@@ -50,14 +68,18 @@ def create_archive(source, destination):
 
 def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
     try:
-        local_file_content = read_csv_in_chunks(StringIO(data))
+        string_io_data = StringIO(data)
+        string_io_data.seek(0)
+        local_file_content = read_csv_in_chunks(string_io_data.getvalue())
         repo_file = repo.get_contents(file_name)
-        repo_file_content = read_csv_in_chunks(BytesIO(repo_file.decoded_content))
+        bytes_io_data = BytesIO(repo_file.decoded_content)
+        bytes_io_data.seek(0)
+        repo_file_content = read_csv_in_chunks(bytes_io_data.getvalue().decode("utf-8"))
         local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
         trim_dataframe(local_file_content, "time")
         return local_file_content.to_csv(index=False)
     except Exception:
-        log.error("Error occurred while merging local files with files from GitHub repository", exc_info=True)
+        logger.error("Error occurred while merging local files with files from GitHub repository", exc_info=True)
 
 
 def update_git_files(file_list: list, file_names: list, repo_name: str, branch: str,

@@ -6,12 +6,13 @@ from flask import Blueprint, jsonify, make_response, Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
-from api.config.database import mongo
+from api.config.repository import RepositorySingleton
 from definitions import DATA_PROCESSED_PATH
 from preparation import calculate_nearest_sensor, check_city, check_sensor, location_timezone, read_cities
 from processing import current_hour, next_hour
 
 forecast_blueprint = Blueprint("forecast", __name__)
+repository = RepositorySingleton.get_instance().get_repository()
 
 
 @forecast_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/forecast/",
@@ -57,8 +58,8 @@ def return_forecast_results(latitude: float, longitude: float, city: dict, senso
     except Exception:
         pass
 
-    forecast_result = mongo.db["predictions"].find_one(
-        {"cityName": city["cityName"], "sensorId": sensor["sensorId"]})
+    forecast_result = repository.get(collection_name="predictions",
+                                     filter={"cityName": city["cityName"], "sensorId": sensor["sensorId"]})
     if forecast_result is not None and forecast_result["data"]:
         forecast_results["data"] = forecast_result["data"]
 

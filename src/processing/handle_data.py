@@ -4,9 +4,11 @@ from typing import Optional
 
 from pandas import concat, DataFrame, read_csv, to_datetime
 
-from api.config.database import mongo
-from api.config.logger import log
-from definitions import chunk_size, collections
+from api.config.logger import logger
+from api.config.repository import RepositorySingleton
+from definitions import CHUNK_SIZE, COLLECTIONS
+
+repository = RepositorySingleton.get_instance().get_repository()
 
 
 def convert_dtype(x: object) -> str:
@@ -38,7 +40,7 @@ def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column
 
 
 def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFrame]:
-    chunks = [chunk for chunk in read_csv(data_path, index_col=index_col, chunksize=chunk_size) if len(chunk.index) > 0]
+    chunks = [chunk for chunk in read_csv(data_path, index_col=index_col, chunksize=CHUNK_SIZE) if len(chunk.index) > 0]
     dataframe = concat(chunks)
     dataframe.index = to_datetime(dataframe.index, errors="ignore", unit="s")
     return dataframe.sort_index() if len(dataframe.index) > 0 else None
@@ -56,7 +58,7 @@ def rename_features(dataframe: DataFrame) -> None:
 
 def fetch_summary_dataframe(data_path: str, index_col: str):
     dataframe_list = [read_csv_in_chunks(path.join(data_path, f"{collection}.csv"), index_col=index_col) for collection
-                      in collections]
+                      in COLLECTIONS]
     return concat(dataframe_list, axis=1, join="inner")
 
 
@@ -64,7 +66,8 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
     rename_features(dataframe)
     drop_unnecessary_features(dataframe)
 
-    db_records = DataFrame(list(mongo.db[collection].find({"sensorId": sensor_id}, projection={"_id": False})))
+    db_records = DataFrame(
+        repository.get_many(collection_name=collection, filter={"sensorId": sensor_id}, projection={"_id": False}))
     if len(db_records.index) > 0:
         dataframe = find_missing_data(dataframe, db_records, "time")
 
@@ -73,13 +76,13 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
         return
 
     dataframe.loc[:, "sensorId"] = sensor_id
-    mongo.db[collection].insert_many(dataframe.to_dict("records"))
+    repository.save_many(collection_name=collection, items=dataframe.to_dict("records"))
 
     try:
         df = read_csv_in_chunks(collection_path)
         dataframe = find_missing_data(dataframe, df, "time")
     except Exception:
-        log.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=True)
+        logger.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=True)
     dataframe.drop(columns="sensorId", inplace=True, errors="ignore")
     dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
