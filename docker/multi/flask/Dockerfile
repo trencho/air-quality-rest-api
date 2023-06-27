@@ -16,13 +16,15 @@ COPY ./requirements.txt /requirements.txt
 
 # Install the dependencies
 RUN pip3 install --upgrade pip
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements/prod.txt
 
 # Copy the current directory contents into the container
 COPY . /
 
 RUN chmod 777 /run -R && \
     chmod 777 /root -R
+
+EXPOSE 5000
 
 # Run the command to start gunicorn
 ENTRYPOINT ["gunicorn", "-c", "/docker/gunicorn.conf.py"]

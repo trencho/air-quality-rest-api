@@ -29,8 +29,8 @@ fi
 
 if [ -e /debug1 ]; then
   echo "Running app in debug mode!"
-  python3 /src/api/app.py
+  python3 /app/src/api/app.py
 else
   echo "Running app in production mode!"
-  nginx && gunicorn -c /docker/gunicorn.conf.py
+  nginx && gunicorn -c /app/docker/gunicorn.conf.py
 fi

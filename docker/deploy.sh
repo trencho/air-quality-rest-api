@@ -13,13 +13,13 @@ else
   username=$2
 fi
 if [ -z "$3" ]; then
-  echo "Missing tag name, setting to "prototype""
+  echo "Missing tag name, setting to \"prototype\""
   tag_name=prototype
 else
   tag_name=$3
 fi
 if [ -z "$4" ]; then
-  echo "Missing tag number, setting to "latest""
+  echo "Missing tag number, setting to \"latest\""
   tag_number=latest
 else
   tag_number=$4
