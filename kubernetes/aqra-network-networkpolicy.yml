@@ -1,14 +1,14 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: network
+  name: aqra-network
   namespace: aqra
 spec:
   ingress:
     - from:
         - podSelector:
             matchLabels:
-              io.kompose.network/network: "true"
+              io.kompose.network/aqra-network: "true"
   podSelector:
     matchLabels:
-      io.kompose.network/network: "true"
+      io.kompose.network/aqra-network: "true"
