@@ -47,6 +47,8 @@ spec:
           volumeMounts:
             - mountPath: /data/db
               name: mongodata
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: ""
       volumes:
         - name: mongodata
