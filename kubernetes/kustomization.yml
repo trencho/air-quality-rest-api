@@ -1,13 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - aqra-network-networkpolicy.yml
   - cluster-issuers/prod-issuer.yml
   - cluster-issuers/staging-issuer.yml
   - cronjob/cronjob.yml
   - mongo-deployment.yml
   - mongo-service.yml
   - namespace.yml
-  - network-networkpolicy.yml
   - persistent-volume-claims/flaskdata-persistentvolumeclaim.yml
   - persistent-volume-claims/mongodata-persistentvolumeclaim.yml
   - persistent-volumes/flaskdata-persistentvolume.yml
