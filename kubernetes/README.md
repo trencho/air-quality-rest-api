@@ -13,13 +13,6 @@ kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=[cluster-
 kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
 ```
 
-###### Generate single yml files for applying all necessary kubernetes resources
-
-```
-kubectl kustomize kubernetes > kubernetes/resources.yml
-kubectl kustomize kubernetes/single/resources > kubernetes/single/resources.yml
-```
-
 ###### Apply flannel network for kubernetes pods
 
 ```
@@ -59,6 +52,13 @@ kubeseal < kubernetes/secrets/mongo-secret.yml -o yaml > kubernetes/sealed-secre
 ```
 kubectl apply -f kubernetes/sealed-secrets/flask-sealed-secret.yml
 kubectl apply -f kubernetes/sealed-secrets/mongo-sealed-secret.yml
+```
+
+###### Generate single yml files for applying all necessary kubernetes resources
+
+```
+kubectl kustomize kubernetes > kubernetes/resources.yml
+kubectl kustomize kubernetes/single/resources > kubernetes/single/resources.yml
 ```
 
 ###### Apply all system resources
