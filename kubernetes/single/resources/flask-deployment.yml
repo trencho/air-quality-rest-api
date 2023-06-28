@@ -45,6 +45,8 @@ spec:
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: ""
       volumes:
         - name: flaskdata
