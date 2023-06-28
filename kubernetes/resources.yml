@@ -41,7 +41,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-    kompose.version: 1.26.1 (a9d05d509)
+    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: mongo
   name: mongo
@@ -127,7 +127,7 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-    kompose.version: 1.26.1 (a9d05d509)
+    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: mongo
   name: mongo
@@ -143,9 +143,9 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-        kompose.version: 1.26.1 (a9d05d509)
+        kompose.version: 1.28.0 (c4137012e)
       labels:
-        io.kompose.network/network: "true"
+        io.kompose.network/aqra-network: "true"
         io.kompose.service: mongo
     spec:
       containers:
@@ -171,6 +171,8 @@ spec:
           volumeMounts:
             - mountPath: /data/db
               name: mongodata
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: ""
       volumes:
         - name: mongodata
@@ -278,14 +280,14 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: network
+  name: aqra-network
   namespace: aqra
 spec:
   ingress:
     - from:
         - podSelector:
             matchLabels:
-              io.kompose.network/network: "true"
+              io.kompose.network/aqra-network: "true"
   podSelector:
     matchLabels:
-      io.kompose.network/network: "true"
+      io.kompose.network/aqra-network: "true"

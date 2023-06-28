@@ -3,7 +3,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.26.1 (a9d05d509)
+    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: flask
   name: flask
@@ -21,7 +21,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.26.1 (a9d05d509)
+    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: nginx
   name: nginx
@@ -39,7 +39,7 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.26.1 (a9d05d509)
+    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: flask
   name: flask
@@ -55,16 +55,15 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-        kompose.version: 1.26.1 (a9d05d509)
+        kompose.version: 1.28.0 (c4137012e)
       labels:
-        io.kompose.network/network: "true"
+        io.kompose.network/aqra-network: "true"
         io.kompose.service: flask
     spec:
       containers:
         - envFrom:
             - secretRef:
-                name:
-                  flask-secret
+                name: flask-secret
           image: aqra_flask
           imagePullPolicy: Never
           livenessProbe:
@@ -82,6 +81,8 @@ spec:
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: ""
       volumes:
         - name: flaskdata
@@ -93,7 +94,7 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.26.1 (a9d05d509)
+    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: nginx
   name: nginx
@@ -109,9 +110,9 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-        kompose.version: 1.26.1 (a9d05d509)
+        kompose.version: 1.28.0 (c4137012e)
       labels:
-        io.kompose.network/network: "true"
+        io.kompose.network/aqra-network: "true"
         io.kompose.service: nginx
     spec:
       containers:
@@ -132,6 +133,8 @@ spec:
           volumeMounts:
             - mountPath: /var/log/nginx
               name: nginxdata
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: ""
       volumes:
         - name: nginxdata

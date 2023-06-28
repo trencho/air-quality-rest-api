@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-    kompose.version: 1.26.1 (a9d05d509)
+    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: flask
   name: flask
@@ -19,9 +19,9 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-        kompose.version: 1.26.1 (a9d05d509)
+        kompose.version: 1.28.0 (c4137012e)
       labels:
-        io.kompose.network/network: "true"
+        io.kompose.network/aqra-network: "true"
         io.kompose.service: flask
     spec:
       containers:
