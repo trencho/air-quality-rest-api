@@ -94,51 +94,46 @@ def next_hour(t: datetime, tz: tzinfo = None) -> datetime:
 
 def process_data(city_name: str, sensor_id: str, collection: str) -> None:
     try:
-        dataframe_raw = read_csv_in_chunks(path.join(DATA_RAW_PATH, city_name, sensor_id, f"{collection}.csv"))
+        dataframe = read_csv_in_chunks(path.join(DATA_RAW_PATH, city_name, sensor_id, f"{collection}.csv"))
 
         if path.exists(collection_path := path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f"{collection}.csv")):
-            dataframe_processed = read_csv_in_chunks(collection_path)
-            dataframe_raw = find_missing_data(dataframe_raw, dataframe_processed, "time")
-            dataframe_raw = concat([dataframe_processed, dataframe_raw])
+            dataframe = find_missing_data(dataframe, read_csv_in_chunks(collection_path), "time")
 
-        rename_features(dataframe_raw)
-        drop_unnecessary_features(dataframe_raw)
-        trim_dataframe(dataframe_raw, "time")
-        if len(dataframe_raw.index) == 0:
+        rename_features(dataframe)
+        drop_unnecessary_features(dataframe)
+        trim_dataframe(dataframe, "time")
+        if len(dataframe.index) == 0:
             return
 
-        df_columns = dataframe_raw.columns.copy()
+        df_columns = dataframe.columns.copy()
         df_columns = df_columns.drop(["aqi", "icon", "precipType", "summary"], errors="ignore")
 
         imp = KNNImputer()
-        dataframe_raw[df_columns] = dataframe_raw[df_columns].apply(to_numeric, axis="columns", errors="coerce")
+        dataframe[df_columns] = dataframe[df_columns].apply(to_numeric, axis="columns", errors="coerce")
         for column in df_columns:
-            if dataframe_raw[column].isna().all():
-                dataframe_raw.drop(columns=column, inplace=True, errors="ignore")
-            if dataframe_raw[column].isna().any():
-                dataframe_raw[column] = imp.fit_transform(dataframe_raw[column].values.reshape(-1, 1))
+            if dataframe[column].isna().all():
+                dataframe.drop(columns=column, inplace=True, errors="ignore")
+            if dataframe[column].isna().any():
+                dataframe[column] = imp.fit_transform(dataframe[column].values.reshape(-1, 1))
 
         pollutants_wo_aqi = POLLUTANTS.copy()
         pollutants_wo_aqi.pop("aqi")
         columns = pollutants_wo_aqi.copy()
         for column in columns:
-            if column not in dataframe_raw.columns:
+            if column not in dataframe.columns:
                 pollutants_wo_aqi.pop(column)
 
-        drop_columns_std = dataframe_raw[list(pollutants_wo_aqi)].std()[
-            dataframe_raw[list(pollutants_wo_aqi)].std() == 0].index.values
-        dataframe_raw.drop(columns=drop_columns_std, inplace=True, errors="ignore")
+        drop_columns_std = dataframe[list(pollutants_wo_aqi)].std()[
+            dataframe[list(pollutants_wo_aqi)].std() == 0].index.values
+        dataframe.drop(columns=drop_columns_std, inplace=True, errors="ignore")
 
         if collection != "weather":
-            dataframe_raw["aqi"] = dataframe_raw[list(POLLUTANTS)].apply(calculate_index, axis=1)
+            dataframe["aqi"] = dataframe[list(POLLUTANTS)].apply(calculate_index, axis=1)
 
-        # dataframe_raw = drop_numerical_outliers_with_z_score(dataframe_raw)
+        # dataframe = drop_numerical_outliers_with_z_score(dataframe)
 
-        if path.exists(collection_path):
-            dataframe_raw = find_missing_data(dataframe_raw, read_csv_in_chunks(collection_path), "time")
-
-        if len(dataframe_raw.index) > 0:
-            dataframe_raw.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
+        if len(dataframe.index) > 0:
+            dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
     except Exception:
         logger.error(f"Error occurred while processing {collection} data for {city_name} - {sensor_id}", exc_info=True)
