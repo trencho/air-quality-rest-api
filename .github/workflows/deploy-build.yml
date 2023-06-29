@@ -39,7 +39,7 @@ jobs:
           password: ${{ env.OPENVPN_PASSWORD }}
           client_key: ${{ env.USER_KEY }}
 
-      - name: Checkout/Update repository
+      - name: SSH commands for checkout/update git repo, build and deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ env.SERVER_HOST }}
@@ -54,14 +54,6 @@ jobs:
             cd ${{ env.GIT_REPO_PATH }}
             git fetch origin
             git reset --hard origin/master
-
-#      - name: Build and deploy
-#        uses: appleboy/ssh-action@v0.1.10
-#        with:
-#          host: ${{ env.SERVER_HOST }}
-#          username: ${{ env.SSH_USERNAME }}
-#          key: ${{ env.SSH_PRIVATE_KEY }}
-#          script: |
 #            cd ${{ env.GIT_REPO_PATH }}
 #            docker-compose -f docker/single/docker-compose.yml build
 #            kubectl apply -f kubernetes/mongo-deployment.yml

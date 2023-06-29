@@ -29,7 +29,7 @@ kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/downlo
 
 ```
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace --values \
-kubernetes/ingress-nginx.yml
+kubernetes/custom-ingress-values.yml
 ```
 
 ###### Apply MetalLB resources for deploying a load balancer
