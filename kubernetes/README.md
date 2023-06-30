@@ -57,15 +57,16 @@ kubectl apply -f kubernetes/sealed-secrets/mongo-sealed-secret.yml
 ###### Generate single yml files for applying all necessary kubernetes resources
 
 ```
-kubectl kustomize kubernetes > kubernetes/resources.yml
 kubectl kustomize kubernetes/single/resources > kubernetes/single/resources.yml
+kubectl kustomize kubernetes > kubernetes/resources.yml
 ```
 
 ###### Apply all system resources
 
 ```
 kubectl apply -f kubernetes/resources.yml
-kubectl apply -f kubernetes/single/resources.yml
+kubectl apply -f kubernetes/mongo-deployment.yml
+kubectl apply -f kubernetes/single/resources/flask-deployment.yml
 ```
 
 ###### Get deployed pods in namespace aqra
