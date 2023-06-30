@@ -5,7 +5,6 @@ resources:
   - cluster-issuers/prod-issuer.yml
   - cluster-issuers/staging-issuer.yml
   - cronjob/cronjob.yml
-  - mongo-deployment.yml
   - mongo-service.yml
   - namespace.yml
   - persistent-volume-claims/flaskdata-persistentvolumeclaim.yml
@@ -14,3 +13,4 @@ resources:
   - persistent-volumes/mongodata-persistentvolume.yml
   - sealed-secrets/flask-sealed-secret.yml
   - sealed-secrets/mongo-sealed-secret.yml
+  - single/resources.yml
