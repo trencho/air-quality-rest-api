@@ -243,10 +243,10 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/ingress.class: nginx
   name: flask-ingress
   namespace: aqra
 spec:
+  ingressClassName: nginx
   rules:
     - host: aqra.feit.ukim.edu.mk
       http:
