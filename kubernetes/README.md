@@ -79,7 +79,13 @@ kubectl get pods -n aqra
 
 ```
 kubectl logs -f [pod-name] -n aqra
+```
+
+```
 kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
+```
+
+```
 kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
 ```
 
@@ -87,7 +93,13 @@ kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs ku
 
 ```
 kubectl exec -n aqra --stdin --tty [pod-name] -- /bin/bash
+```
+
+```
 kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
+```
+
+```
 kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
 ```
 
