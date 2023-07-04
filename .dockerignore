@@ -215,4 +215,5 @@ cython_debug/
 data/
 kubernetes/
 models/
+requirements/dev.txt
 results/
