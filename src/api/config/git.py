@@ -56,7 +56,7 @@ def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base
         logger.error("Error occurred while committing files to GitHub", exc_info=True)
 
 
-def create_archive(source, destination):
+def create_archive(source, destination) -> None:
     base = path.basename(destination)
     name = base.split(".")[0]
     fmt = base.split(".")[1]
