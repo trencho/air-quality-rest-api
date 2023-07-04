@@ -54,9 +54,7 @@ jobs:
             cd ${{ env.GIT_REPO_PATH }}
             git fetch origin
             git reset --hard origin/master
+            docker system prune -a --volumes --force
             docker-compose -f docker/single/docker-compose.yml build
             kubectl apply -f kubernetes/mongo-deployment.yml
             kubectl apply -f kubernetes/single/resources/flask-deployment.yml
-            echo Sleeping for 30 seconds for the flask and mongo deployments to pull the new images
-            sleep 30
-            docker system prune -a --volumes --force
