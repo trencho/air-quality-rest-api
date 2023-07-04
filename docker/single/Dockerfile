@@ -27,8 +27,12 @@ COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 # Set ownership and permissions for the app and var folder
 RUN adduser --disabled-password --gecos '' nginx && \
     chown -R nginx:nginx /app && \
-    chmod 777 /run -R && \
-    chmod 777 /root -R
+    chown -R nginx:nginx /var/lib/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chmod -R 777 /run && \
+    chmod -R 777 /root && \
+    chmod -R 755 /var/lib/nginx/body && \
+    chmod -R 755 /var/log/nginx
 
 # Set the user for subsequent instructions
 USER nginx
