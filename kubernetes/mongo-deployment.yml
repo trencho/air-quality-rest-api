@@ -49,6 +49,8 @@ spec:
               name: mongodata
       securityContext:
         runAsNonRoot: true
+        runAsUser: 1002
+        runAsGroup: 1002
       serviceAccountName: ""
       volumes:
         - name: mongodata
