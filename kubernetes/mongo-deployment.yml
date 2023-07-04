@@ -29,7 +29,7 @@ spec:
             - secretRef:
                 name: mongo-secret
           image: aqra_mongo
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             exec:
               command:
