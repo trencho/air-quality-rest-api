@@ -15,7 +15,7 @@ RUN apt-get update && \
 # Set the working directory to /app
 WORKDIR /app
 
-COPY requirements .
+COPY requirements ./requirements
 # Install the dependencies
 RUN pip3 install --upgrade pip
 RUN pip3 install --no-cache-dir -r requirements/prod.txt
@@ -23,8 +23,6 @@ RUN pip3 install --no-cache-dir -r requirements/prod.txt
 # Copy the current directory contents into the container
 COPY . .
 COPY ./docker/nginx.conf /etc/nginx/nginx.conf
-
-
 
 # Set ownership and permissions for the app and var folder
 RUN adduser --disabled-password --gecos '' nginx && \
