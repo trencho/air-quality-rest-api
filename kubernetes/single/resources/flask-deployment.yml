@@ -29,7 +29,7 @@ spec:
             - secretRef:
                 name: flask-secret
           image: aqra_flask
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 1
             httpGet:
