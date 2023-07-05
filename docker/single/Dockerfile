@@ -24,11 +24,9 @@ RUN pip3 install --no-cache-dir -r requirements/prod.txt
 COPY . .
 COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 
-# Set ownership and permissions for the app and var folder
+# Set ownership and permissions for the system folders
 RUN adduser --disabled-password --gecos '' nginx && \
     chown -R nginx:nginx /app && \
-    chmod 777 /var/lib/nginx -R && \
-    chmod 777 /var/log/nginx -R && \
     chmod 777 /run -R && \
     chmod 777 /root -R
 
