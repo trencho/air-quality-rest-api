@@ -46,7 +46,7 @@ services:
       VOLUME_PATH: ${VOLUME_PATH}
     expose:
       - 5000
-    image: aqra_flask:latest
+    image: aqra-flask:latest
     networks:
       network:
         aliases:
@@ -73,7 +73,7 @@ services:
       MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
     expose:
       - 27017
-    image: aqra_mongo:latest
+    image: aqra-mongo:latest
     networks:
       - network
     volumes:

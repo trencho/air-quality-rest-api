@@ -64,7 +64,7 @@ spec:
         - envFrom:
             - secretRef:
                 name: flask-secret
-          image: aqra_flask
+          image: aqra-flask
           imagePullPolicy: Never
           livenessProbe:
             failureThreshold: 1
