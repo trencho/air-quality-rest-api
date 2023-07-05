@@ -1,19 +1,21 @@
 from flasgger import Swagger
 from flask import Flask
 
+from definitions import URL_PREFIX
+
 config = {
-    "favicon": "/favicon.ico/",
+    "favicon": f"{URL_PREFIX}/favicon.ico/",
     "openapi": "3.0.3",
     "specs": [
         {
             "endpoint": "apispec_1",
-            "route": "/api/v1/apispec_1.json",
+            "route": f"{URL_PREFIX}/apispec_1.json",
             "rule_filter": lambda rule: True,
             "model_filter": lambda tag: True,
         }
     ],
-    "static_url_path": "/api/v1/flasgger_static",
-    "specs_route": "/api/v1/apidocs/",
+    "static_url_path": f"{URL_PREFIX}/flasgger_static",
+    "specs_route": f"{URL_PREFIX}/apidocs/",
     "title": "AQRA"
 }
 swagger = Swagger(config=config, merge=True)

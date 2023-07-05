@@ -118,7 +118,7 @@ class InMemoryRepository(Repository):
             else:
                 # Update existing item or insert new item if no match found
                 existing_item = next((existing_item for existing_item in collection.values()
-                                      if all(existing_item.get(k) == v for k, v in filter.items())))
+                                      if all(existing_item.get(k) == v for k, v in filter.items())), None)
                 if existing_item:
                     existing_item.update(item)
                 else:
@@ -135,7 +135,7 @@ class InMemoryRepository(Repository):
             else:
                 # Update existing item or insert new item if no match found
                 existing_item = next((existing_item for existing_item in collection.values()
-                                      if all(existing_item.__dict__.get(k) == v for k, v in filter.items())))
+                                      if all(existing_item.__dict__.get(k) == v for k, v in filter.items())), None)
                 if existing_item:
                     existing_item.__dict__.update(item.__dict__)
                 else:
