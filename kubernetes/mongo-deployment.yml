@@ -28,8 +28,8 @@ spec:
         - envFrom:
             - secretRef:
                 name: mongo-secret
-          image: aqra_mongo
-          imagePullPolicy: IfNotPresent
+          image: aqra-mongo
+          imagePullPolicy: Never
           livenessProbe:
             exec:
               command:
