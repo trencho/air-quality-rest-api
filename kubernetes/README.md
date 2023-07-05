@@ -75,6 +75,20 @@ kubectl apply -f kubernetes/single/resources/flask-deployment.yml
 kubectl get pods -n aqra
 ```
 
+###### Describe deployed pods
+
+```
+kubectl describe pod [pod-name] -n aqra
+```
+
+```
+kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl describe pod -n aqra
+```
+
+```
+kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl describe pod -n aqra
+```
+
 ###### Follow logs of deployed pod
 
 ```
