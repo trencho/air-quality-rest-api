@@ -31,6 +31,8 @@ ENVIRONMENT_VARIABLES = [
     REPO_NAME
 ]
 
+URL_PREFIX = "/api/v1"
+
 ROOT_PATH = environ.get(VOLUME_PATH, "") or path.dirname(path.abspath(__file__))
 
 DATA_PATH = path.join(ROOT_PATH, "data")

@@ -8,6 +8,7 @@ from api.blueprints.history import history_blueprint
 from api.blueprints.icon import icon_blueprint
 from api.blueprints.pollutants import pollutants_blueprint
 from api.blueprints.sensors import sensors_blueprint
+from definitions import URL_PREFIX
 
 __all__ = [
     "cities_blueprint",
@@ -23,4 +24,4 @@ __all__ = [
 
 def register_blueprints(app: Flask) -> None:
     for blueprint in __all__:
-        app.register_blueprint(globals()[blueprint], url_prefix="/api/v1")
+        app.register_blueprint(globals()[blueprint], url_prefix=URL_PREFIX)
