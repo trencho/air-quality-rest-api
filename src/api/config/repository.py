@@ -55,36 +55,28 @@ class RegularRepository(Repository):
     def save(self, collection_name, filter, item):
         collection = self.database[collection_name]
 
-        if isinstance(item, dict):
-            # Handle dictionary-based objects
-            if filter is None:
-                # Insert new item
-                result = collection.insert_one(item)
-                item['_id'] = str(result.inserted_id)
-            else:
-                # Update existing item
-                collection.replace_one(filter=filter, replacement=item, upsert=True)
+        if filter is None:
+            # Insert new item
+            collection.insert_one(item if isinstance(item, dict) else item.__dict__)
         else:
-            # Handle class instances
-            if filter is None:
-                # Insert new item
-                result = collection.insert_one(item.__dict__)
-                item.id = str(result.inserted_id)
-            else:
-                # Update existing item
-                collection.replace_one(filter=filter, replacement=item.__dict__, upsert=True)
+            # Update existing item
+            collection.replace_one(filter=filter, replacement=item if isinstance(item, dict) else item.__dict__,
+                                   upsert=True)
 
     def save_many(self, collection_name, items):
         collection = self.database[collection_name]
         documents = [item if isinstance(item, dict) else item.__dict__ for item in items]
         results = collection.insert_many(documents)
         for item, result in zip(items, results.inserted_ids):
-            item.id = str(result)
+            if isinstance(item, dict):
+                item["_id"] = str(result)
+            else:
+                item.id = str(result)
 
     def delete(self, collection_name, item):
         collection = self.database[collection_name]
         if item.id is not None:
-            collection.delete_one({'_id': ObjectId(item.id)})
+            collection.delete_one({"_id": ObjectId(item.id)})
 
 
 class InMemoryRepository(Repository):
@@ -112,8 +104,8 @@ class InMemoryRepository(Repository):
             # Handle dictionary-based objects
             if filter is None:
                 # Insert new item
-                item_id = item.get('_id') or str(uuid4())
-                item['_id'] = item_id
+                item_id = item.get("_id") or str(uuid4())
+                item["_id"] = item_id
                 collection[item_id] = item
             else:
                 # Update existing item or insert new item if no match found
@@ -122,8 +114,8 @@ class InMemoryRepository(Repository):
                 if existing_item:
                     existing_item.update(item)
                 else:
-                    item_id = item.get('_id') or str(uuid4())
-                    item['_id'] = item_id
+                    item_id = item.get("_id") or str(uuid4())
+                    item["_id"] = item_id
                     collection[item_id] = item
         else:
             # Handle class instances
@@ -149,8 +141,12 @@ class InMemoryRepository(Repository):
 
     def delete(self, collection_name, item):
         collection = self.collections.get(collection_name, {})
-        if item.id in collection:
-            del collection[item.id]
+        if isinstance(item, dict):
+            if item["_id"] in collection:
+                del collection[item["_id"]]
+        else:
+            if item.id in collection:
+                del collection[item.id]
 
     @staticmethod
     def _matches_filter(item, filter):
