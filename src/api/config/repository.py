@@ -77,8 +77,8 @@ class RegularRepository(Repository):
     def save_many(self, collection_name, items):
         collection = self.database[collection_name]
         documents = [item if isinstance(item, dict) else item.__dict__ for item in items]
-        collection.insert_many(documents)
-        for item, result in zip(items, collection.inserted_ids):
+        results = collection.insert_many(documents)
+        for item, result in zip(items, results.inserted_ids):
             item.id = str(result)
 
     def delete(self, collection_name, item):
