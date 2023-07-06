@@ -8,7 +8,7 @@ from src.api.app import app
 
 class TestAPI(TestCase):
     def create_app(self):
-        app.config['TESTING'] = True
+        app.config["TESTING"] = True
         return app
 
     def test_get_cities(self):
