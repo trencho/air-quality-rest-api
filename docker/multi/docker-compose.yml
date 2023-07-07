@@ -9,7 +9,7 @@ services:
       - flask
     deploy:
       replicas: 1
-    image: aqra_nginx:latest
+    image: aqra-nginx:latest
     networks:
       network:
         aliases:
