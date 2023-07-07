@@ -116,7 +116,7 @@ spec:
         io.kompose.service: nginx
     spec:
       containers:
-        - image: aqra_nginx
+        - image: aqra-nginx
           imagePullPolicy: Never
           livenessProbe:
             failureThreshold: 1
