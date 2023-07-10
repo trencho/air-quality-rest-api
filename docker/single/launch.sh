@@ -6,8 +6,8 @@ if [ ! -f /debug0 ]; then
   if [ -e requirements_os.txt ]; then
     apt-get install -y "$(cat requirements_os.txt)"
   fi
-  if [ -e requirements.txt ]; then
-    pip3 install --no-cache-dir -r requirements.txt
+  if [ -e requirements/prod.txt ]; then
+    pip3 install --no-cache-dir -r requirements/prod.txt
   fi
 
   while getopts 'hd' flag; do

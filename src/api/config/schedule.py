@@ -4,6 +4,7 @@ from json import dump, load
 from os import environ, makedirs, path, remove, rmdir, walk
 from shutil import unpack_archive
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from flask import Flask
 from flask_apscheduler import APScheduler
 
@@ -18,7 +19,7 @@ from .git import append_commit_files, create_archive, update_git_files
 from .logger import logger
 from .repository import RepositorySingleton
 
-scheduler = APScheduler()
+scheduler = APScheduler(scheduler=AsyncIOScheduler())
 repository = RepositorySingleton.get_instance().get_repository()
 
 
