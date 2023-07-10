@@ -2,7 +2,7 @@ from pandas import DataFrame
 from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 
-async def value_scaling(dataframe: DataFrame, scale: str = "robust") -> DataFrame:
+def value_scaling(dataframe: DataFrame, scale: str = "robust") -> DataFrame:
     if scale == "min_max":
         scaler = MinMaxScaler()
     elif scale == "standard":

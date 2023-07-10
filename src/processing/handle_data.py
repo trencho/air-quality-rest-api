@@ -56,7 +56,7 @@ def rename_features(dataframe: DataFrame) -> None:
         errors="ignore")
 
 
-async def fetch_summary_dataframe(data_path: str, index_col: str) -> DataFrame:
+def fetch_summary_dataframe(data_path: str, index_col: str) -> DataFrame:
     dataframe_list = [read_csv_in_chunks(path.join(data_path, f"{collection}.csv"), index_col=index_col) for collection
                       in COLLECTIONS]
     return concat(dataframe_list, axis=1, join="inner")
