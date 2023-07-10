@@ -51,7 +51,7 @@ async def fetch_hourly_data() -> None:
 
 
 @scheduler.task(trigger="cron", hour=0)
-def fetch_locations() -> None:
+async def fetch_locations() -> None:
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, "cities.json"), "w") as out_file:
         dump(cities, out_file, indent=4)
