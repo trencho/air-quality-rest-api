@@ -21,10 +21,10 @@ FORECAST_PERIOD = "1H"
 FORECAST_STEPS = 25
 
 
-def fetch_forecast_result(city: dict, sensor: dict) -> dict:
+async def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     forecast_result = {}
     for pollutant in POLLUTANTS:
-        if (predictions := forecast_city_sensor(city["cityName"], sensor["sensorId"], pollutant)) is None:
+        if (predictions := await forecast_city_sensor(city["cityName"], sensor["sensorId"], pollutant)) is None:
             continue
 
         for index, value in predictions.items():
@@ -38,17 +38,17 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
 
 
 @cache.memoize(timeout=3600)
-def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Optional[Series]:
-    if (load_model := load_regression_model(city_name, sensor_id, pollutant)) is None:
+async def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Optional[Series]:
+    if (load_model := await load_regression_model(city_name, sensor_id, pollutant)) is None:
         return None
 
     model, model_features = load_model
 
-    return recursive_forecast(city_name, sensor_id, pollutant, model, model_features)
+    return await recursive_forecast(city_name, sensor_id, pollutant, model, model_features)
 
 
 @cache.memoize(timeout=3600)
-def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
+async def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
     dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, "weather.csv"))
     dataframe = dataframe.loc[dataframe["time"] == timestamp]
     if len(dataframe.index) > 0:
@@ -58,13 +58,13 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 
 @cache.memoize(timeout=3600)
-def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
+async def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
     files = glob(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "*.mdl"))
     if not files:
         return None
 
-    model = make_model(path.splitext(path.split(files[0])[1])[0])
-    model.load(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
+    model = await make_model(path.splitext(path.split(files[0])[1])[0])
+    await model.load(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
 
     with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "selected_features.pkl"), "rb") as in_file:
         model_features = load(in_file)
@@ -73,8 +73,8 @@ def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Opt
 
 
 @cache.memoize(timeout=3600)
-def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
-                    step: str = FORECAST_PERIOD) -> Series:
+async def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_STEPS,
+                          n_steps: int = FORECAST_STEPS, step: str = FORECAST_PERIOD) -> Series:
     """Multistep direct forecasting using a machine learning model to forecast each time period ahead
 
     Parameters
@@ -90,9 +90,9 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
     forecast_values: pd.Series with forecasted values indexed by forecast horizon dates
     """
 
-    def one_step_features(date, step: int):
+    async def one_step_features(date, step: int):
         tmp = y[y.index <= date]
-        features = generate_features(tmp, lags)
+        features = await generate_features(tmp, lags)
 
         target = y[y.index >= features.index[0] + timedelta(hours=step)]
         assert len(features.index) == len(target.index)
@@ -101,24 +101,24 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
 
     forecast_values = []
     forecast_range = date_range(y.index[-1] + timedelta(hours=1), periods=n_steps, freq=step)
-    forecast_features, _ = one_step_features(y.index[-1], 0)
+    forecast_features, _ = await one_step_features(y.index[-1], 0)
 
     for s in range(1, n_steps + 1):
         last_date = y.index[-1] - timedelta(hours=s)
-        features, target = one_step_features(last_date, s)
+        features, target = await one_step_features(last_date, s)
 
-        model.train(features, target)
+        await model.train(features, target)
 
-        predictions = model.predict(forecast_features)
+        predictions = await model.predict(forecast_features)
         forecast_values.append(predictions[-1])
 
     return Series(forecast_values, forecast_range)
 
 
 @cache.memoize(timeout=3600)
-def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: BaseRegressionModel, model_features: list,
-                       lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
-                       step: str = FORECAST_PERIOD) -> Series:
+async def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: BaseRegressionModel,
+                             model_features: list, lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
+                             step: str = FORECAST_PERIOD) -> Series:
     """Multistep recursive forecasting using the input time series data and a pre-trained machine learning model
 
     Parameters
@@ -141,7 +141,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     upcoming_hour = next_hour(current_hour())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
-    dataframe = fetch_summary_dataframe(path.join(DATA_PROCESSED_PATH, city_name, sensor_id), index_col="time")
+    dataframe = await fetch_summary_dataframe(path.join(DATA_PROCESSED_PATH, city_name, sensor_id), index_col="time")
     if len(dataframe.index) == 0:
         return Series()
 
@@ -156,15 +156,15 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
 
         timestamp = int((date - timedelta(hours=1)).timestamp())
         try:
-            data = forecast_sensor(city_name, sensor_id, timestamp)
+            data = await forecast_sensor(city_name, sensor_id, timestamp)
             features = DataFrame(data, index=[date])
             features = concat([dataframe, features])
-            features = features.join(generate_features(target, lags), how="inner")
+            features = features.join(await generate_features(target, lags), how="inner")
             features = features[model_features]
-            encode_categorical_data(features)
-            features = value_scaling(features)
+            await encode_categorical_data(features)
+            features = await value_scaling(features)
             features = features.tail(1)
-            predictions = model.predict(features)
+            predictions = await model.predict(features)
             prediction = predictions[-1]
             forecasted_values.append(prediction if prediction >= 0 else nan)
         except Exception:

@@ -19,8 +19,8 @@ class XGBoostRegressionModel(BaseRegressionModel):
         }
         super().__init__(reg, param_grid)
 
-    def save(self, file_path: str) -> None:
+    async def save(self, file_path: str) -> None:
         self.reg.save_model(path.join(file_path, f"{type(self).__name__}.mdl"))
 
-    def load(self, file_path: str) -> None:
+    async def load(self, file_path: str) -> None:
         self.reg.load_model(path.join(file_path, f"{type(self).__name__}.mdl"))

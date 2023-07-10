@@ -1,5 +1,5 @@
 from flasgger import swag_from
-from flask import Blueprint, jsonify, make_response, Response
+from flask import Blueprint, jsonify, Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
@@ -18,29 +18,32 @@ def fetch_measurements(city_name: str, sensor_id: str) -> Response:
     measurements = [{"name": POLLUTANTS[pollutant], "value": pollutant}
                     for pollutant in POLLUTANTS if pollutant in dataframe.columns]
 
-    return make_response(jsonify(measurements))
+    return jsonify(measurements)
 
 
 @pollutants_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/pollutants/", endpoint="city_sensor")
 @cache.memoize(timeout=3600)
 @swag_from("pollutants_city_sensor.yml", endpoint="pollutants.city_sensor", methods=["GET"])
-def fetch_city_sensor_pollutants(city_name: str, sensor_id: str) -> Response:
+def fetch_city_sensor_pollutants(city_name: str, sensor_id: str) -> Response | tuple[Response, int]:
     if check_city(city_name) is None:
-        message = "Cannot return available pollutants because the city is not found or is invalid."
-        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
+        return jsonify(
+            error_message="Cannot return available pollutants because the city is not found or is invalid."), \
+            HTTP_404_NOT_FOUND
 
     if (sensor := check_sensor(city_name, sensor_id)) is None:
-        message = "Cannot return available pollutants because the sensor is not found or is invalid."
-        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
+        return jsonify(
+            error_message="Cannot return available pollutants because the sensor is not found or is invalid."), \
+            HTTP_404_NOT_FOUND
 
     return fetch_measurements(sensor["cityName"], sensor["sensorId"])
 
 
 @pollutants_blueprint.get("/coordinates/<float:latitude>,<float:longitude>/pollutants/", endpoint="coordinates")
 @swag_from("pollutants_coordinates.yml", endpoint="pollutants.coordinates", methods=["GET"])
-def fetch_coordinates_pollutants(latitude: float, longitude: float) -> Response:
+def fetch_coordinates_pollutants(latitude: float, longitude: float) -> Response | tuple[Response, int]:
     if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:
-        message = "Cannot return available pollutants because the coordinates are far away from all available sensors."
-        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
+        return jsonify(
+            error_message="Cannot return available pollutants because the coordinates are far away from all available "
+                          "sensors."), HTTP_404_NOT_FOUND
 
     return fetch_measurements(sensor["cityName"], sensor["sensorId"])
