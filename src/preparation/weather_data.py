@@ -1,4 +1,4 @@
-from os import environ, path, remove
+from os import environ, path
 from time import sleep
 
 from pandas import DataFrame, json_normalize
@@ -98,11 +98,3 @@ def increment_counter(counter_name: str):
             counter += 1
     with open(onecall_path, "w") as out_file:
         out_file.write(str(counter))
-
-
-def reset_counters():
-    try:
-        remove(path.join(DATA_PATH, "onecall_counter.txt"))
-        remove(path.join(DATA_PATH, "forecast_counter.txt"))
-    except OSError:
-        pass

@@ -41,7 +41,8 @@ def current_hour(tz: tzinfo = None) -> datetime:
     return datetime.now().replace(minute=0, second=0, microsecond=0)
 
 
-def drop_numerical_outliers_with_iqr_score(dataframe: DataFrame, low: float = .05, high: float = .95) -> DataFrame:
+async def drop_numerical_outliers_with_iqr_score(dataframe: DataFrame, low: float = .05,
+                                                 high: float = .95) -> DataFrame:
     df = dataframe.loc[:, dataframe.columns != "time"]
     quant_df = df.quantile([low, high])
     df = df.apply(lambda x: x[(x > quant_df.loc[low, x.name]) & (x < quant_df.loc[high, x.name])], axis=0)
@@ -49,7 +50,7 @@ def drop_numerical_outliers_with_iqr_score(dataframe: DataFrame, low: float = .0
     return df.dropna()
 
 
-def drop_numerical_outliers_with_z_score(dataframe: DataFrame, z_thresh: int = 3) -> DataFrame:
+async def drop_numerical_outliers_with_z_score(dataframe: DataFrame, z_thresh: int = 3) -> DataFrame:
     df = dataframe.loc[:, dataframe.columns != "time"]
     constrains = (abs(zscore(df)) < z_thresh).all(axis=1)
     df.drop(index=df.index[~constrains], inplace=True)
@@ -92,7 +93,7 @@ def next_hour(t: datetime, tz: tzinfo = None) -> datetime:
     return t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
 
-def process_data(city_name: str, sensor_id: str, collection: str) -> None:
+async def process_data(city_name: str, sensor_id: str, collection: str) -> None:
     try:
         dataframe = read_csv_in_chunks(path.join(DATA_RAW_PATH, city_name, sensor_id, f"{collection}.csv"))
 
