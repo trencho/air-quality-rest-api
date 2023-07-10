@@ -8,7 +8,7 @@ from scipy.spatial.distance import cdist
 from scipy.stats import hmean
 
 
-def weighted_hamming(data: DataFrame):
+async def weighted_hamming(data: DataFrame):
     """ Compute weighted hamming distance on categorical variables. For one variable, it is equal to 1 if
         the values between point A and point B are different, else it is equal the relative frequency of the
         distribution of the value across the variable. For multiple variables, the harmonic mean is computed
@@ -32,8 +32,8 @@ def weighted_hamming(data: DataFrame):
     return hmean(categories_dist, axis=0)
 
 
-def distance_matrix(data: DataFrame, numeric_distance: str = "euclidean", categorical_distance: str = "jaccard") -> \
-        Optional[DataFrame]:
+async def distance_matrix(data: DataFrame, numeric_distance: str = "euclidean",
+                          categorical_distance: str = "jaccard") -> Optional[DataFrame]:
     """ Compute the pairwise distance attribute by attribute in order to account for different variables type:
         - Continuous
         - Categorical
@@ -114,13 +114,13 @@ def distance_matrix(data: DataFrame, numeric_distance: str = "euclidean", catego
         result_matrix = cdist(data, data, metric=numeric_distance)
     elif is_all_categorical:
         if categorical_distance == "weighted-hamming":
-            result_matrix = weighted_hamming(data)
+            result_matrix = await weighted_hamming(data)
         else:
             result_matrix = cdist(data, data, metric=categorical_distance)
     else:
         result_numeric = cdist(data_numeric, data_numeric, metric=numeric_distance)
         if categorical_distance == "weighted-hamming":
-            result_categorical = weighted_hamming(data_categorical)
+            result_categorical = await weighted_hamming(data_categorical)
         else:
             result_categorical = cdist(data_categorical, data_categorical, metric=categorical_distance)
         result_matrix = array([[1.0 * (result_numeric[i, j] * number_of_numeric_var + result_categorical[i, j] *
@@ -132,9 +132,9 @@ def distance_matrix(data: DataFrame, numeric_distance: str = "euclidean", catego
     return DataFrame(result_matrix)
 
 
-def knn_impute(target, attributes, k_neighbors: int, aggregation_method: str = "mean",
-               numeric_distance: str = "euclidean", categorical_distance: str = "jaccard",
-               missing_neighbors_threshold: float = 0.5) -> Optional[DataFrame]:
+async def knn_impute(target, attributes, k_neighbors: int, aggregation_method: str = "mean",
+                     numeric_distance: str = "euclidean", categorical_distance: str = "jaccard",
+                     missing_neighbors_threshold: float = 0.5) -> Optional[DataFrame]:
     """ Replace the missing values within the target variable based on its k nearest neighbors identified with the
         attributes variables. If more than 50% of its neighbors are also missing values, the value is not modified and
         remains missing. If there is a problem in the parameters provided, returns None.
@@ -187,7 +187,7 @@ def knn_impute(target, attributes, k_neighbors: int, aggregation_method: str = "
     attributes = DataFrame(attributes)
 
     # Get the distance matrix and check whether no error was triggered when computing it
-    distances = distance_matrix(attributes, numeric_distance, categorical_distance)
+    distances = await distance_matrix(attributes, numeric_distance, categorical_distance)
     if distances is None:
         return None
 

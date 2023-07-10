@@ -2,7 +2,7 @@ from json import load
 from os import path
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, make_response, Response
+from flask import Blueprint, jsonify, Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
@@ -19,15 +19,15 @@ repository = RepositorySingleton.get_instance().get_repository()
                         endpoint="forecast_city_sensor")
 @cache.memoize(timeout=3600)
 @swag_from("forecast_city_sensor.yml", endpoint="forecast.forecast_city_sensor", methods=["GET"])
-def fetch_city_sensor_forecast(city_name: str, sensor_id: str) -> Response:
+def fetch_city_sensor_forecast(city_name: str, sensor_id: str) -> Response | tuple[Response, int]:
     if (city := check_city(city_name)) is None:
-        message = "Value cannot be predicted because the city is not found or is invalid."
-        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
+        return jsonify(
+            error_message="Value cannot be predicted because the city is not found or is invalid."), HTTP_404_NOT_FOUND
 
     sensor = check_sensor(city_name, sensor_id)
     if sensor is None:
-        message = "Value cannot be predicted because the sensor is not found or inactive."
-        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
+        return jsonify(
+            error_message="Value cannot be predicted because the sensor is not found or inactive."), HTTP_404_NOT_FOUND
 
     sensor_position = sensor["position"].split(",")
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
@@ -36,10 +36,10 @@ def fetch_city_sensor_forecast(city_name: str, sensor_id: str) -> Response:
 
 @forecast_blueprint.get("/coordinates/<float:latitude>,<float:longitude>/forecast/", endpoint="coordinates")
 @swag_from("forecast_coordinates.yml", endpoint="forecast.coordinates", methods=["GET"])
-def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response:
+def fetch_coordinates_forecast(latitude: float, longitude: float) -> Response | tuple[Response, int]:
     if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:
-        message = "Value cannot be predicted because the coordinates are far away from all available sensors."
-        return make_response(jsonify(error_message=message), HTTP_404_NOT_FOUND)
+        return jsonify(error_message="Value cannot be predicted because the coordinates are far away from all "
+                                     "available sensors."), HTTP_404_NOT_FOUND
 
     for city in cache.get("cities") or read_cities():
         if city["cityName"] == sensor["cityName"]:
@@ -54,7 +54,7 @@ def return_forecast_results(latitude: float, longitude: float, city: dict, senso
             data = load(in_file)
             if data[0]["time"] == next_hour(current_hour(tz=location_timezone(city["countryCode"]))):
                 forecast_results["data"] = data
-                return make_response(forecast_results)
+                return jsonify(forecast_results)
     except Exception:
         pass
 
@@ -63,4 +63,4 @@ def return_forecast_results(latitude: float, longitude: float, city: dict, senso
     if forecast_result is not None and forecast_result["data"]:
         forecast_results["data"] = forecast_result["data"]
 
-    return make_response(forecast_results)
+    return jsonify(forecast_results)

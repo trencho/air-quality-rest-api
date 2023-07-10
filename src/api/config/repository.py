@@ -19,15 +19,15 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    def save(self, collection_name, filter, item):
+    def save(self, collection_name, filter, item) -> None:
         pass
 
     @abstractmethod
-    def save_many(self, collection_name, items):
+    def save_many(self, collection_name, items) -> None:
         pass
 
     @abstractmethod
-    def delete(self, collection_name, item):
+    def delete(self, collection_name, item) -> None:
         pass
 
 
@@ -52,7 +52,7 @@ class RegularRepository(Repository):
         documents = collection.find(filter, **kwargs)
         return list(documents)
 
-    def save(self, collection_name, filter, item):
+    def save(self, collection_name, filter, item) -> None:
         collection = self.database[collection_name]
 
         if filter is None:
@@ -63,7 +63,7 @@ class RegularRepository(Repository):
             collection.replace_one(filter=filter, replacement=item if isinstance(item, dict) else item.__dict__,
                                    upsert=True)
 
-    def save_many(self, collection_name, items):
+    def save_many(self, collection_name, items) -> None:
         collection = self.database[collection_name]
         documents = [item if isinstance(item, dict) else item.__dict__ for item in items]
         results = collection.insert_many(documents)
@@ -73,7 +73,7 @@ class RegularRepository(Repository):
             else:
                 item.id = str(result)
 
-    def delete(self, collection_name, item):
+    def delete(self, collection_name, item) -> None:
         collection = self.database[collection_name]
         if item.id is not None:
             collection.delete_one({"_id": ObjectId(item.id)})
@@ -97,7 +97,7 @@ class InMemoryRepository(Repository):
             return [item for item in collection.values() if self._matches_filter(item, filter)]
         return list(collection.values())
 
-    def save(self, collection_name, filter, item):
+    def save(self, collection_name, filter, item) -> None:
         collection = self.collections.setdefault(collection_name, {})
 
         if isinstance(item, dict):
@@ -135,11 +135,11 @@ class InMemoryRepository(Repository):
                     item.id = item_id
                     collection[item_id] = item
 
-    def save_many(self, collection_name, items):
+    def save_many(self, collection_name, items) -> None:
         for item in items:
             self.save(collection_name=collection_name, filter=None, item=item)
 
-    def delete(self, collection_name, item):
+    def delete(self, collection_name, item) -> None:
         collection = self.collections.get(collection_name, {})
         if isinstance(item, dict):
             if item["_id"] in collection:
@@ -149,7 +149,7 @@ class InMemoryRepository(Repository):
                 del collection[item.id]
 
     @staticmethod
-    def _matches_filter(item, filter):
+    def _matches_filter(item, filter) -> bool:
         for key, value in filter.items():
             if key not in item.__dict__ or item.__dict__[key] != value:
                 return False
