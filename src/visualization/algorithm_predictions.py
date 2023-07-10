@@ -7,7 +7,7 @@ from definitions import POLLUTANTS, REGRESSION_MODELS, RESULTS_ERRORS_PATH, RESU
 from .handle_plot import save_plot
 
 
-async def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
+def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
     data = []
     for model_name in REGRESSION_MODELS:
         dataframe_errors = read_csv(
@@ -40,6 +40,6 @@ async def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
 
     pyplot.gcf().autofmt_xdate()
 
-    await save_plot(fig, pyplot,
-                    path.join(RESULTS_PREDICTIONS_PATH, "plots", city["cityName"], sensor["sensorId"], pollutant),
-                    "prediction")
+    save_plot(fig, pyplot,
+              path.join(RESULTS_PREDICTIONS_PATH, "plots", city["cityName"], sensor["sensorId"], pollutant),
+              "prediction")

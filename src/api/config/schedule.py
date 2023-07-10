@@ -4,7 +4,6 @@ from json import dump, load
 from os import environ, makedirs, path, remove, rmdir, walk
 from shutil import unpack_archive
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from flask import Flask
 from flask_apscheduler import APScheduler
 
@@ -19,39 +18,38 @@ from .git import append_commit_files, create_archive, update_git_files
 from .logger import logger
 from .repository import RepositorySingleton
 
-scheduler = APScheduler(scheduler=AsyncIOScheduler())
+scheduler = APScheduler()
 repository = RepositorySingleton.get_instance().get_repository()
 
 
 @scheduler.task(trigger="cron", day="*/15")
-async def dump_data() -> None:
+def dump_data() -> None:
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
         if not directories and files:
             file_path = f"{root}.zip"
-            await create_archive(source=root, destination=file_path)
+            create_archive(source=root, destination=file_path)
             with open(file_path, "rb") as in_file:
                 data = b64encode(in_file.read())
-            await append_commit_files(file_list, data, path.dirname(path.abspath(root)), path.basename(file_path),
-                                      file_names)
+            append_commit_files(file_list, data, path.dirname(path.abspath(root)), path.basename(file_path), file_names)
             remove(file_path)
 
     if file_list:
-        await update_git_files(file_list, file_names, environ[REPO_NAME], "master",
-                               f"Scheduled data dump - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}")
+        update_git_files(file_list, file_names, environ[REPO_NAME], "master",
+                         f"Scheduled data dump - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}")
 
 
 @scheduler.task(trigger="cron", hour="*/2")
-async def fetch_hourly_data() -> None:
+def fetch_hourly_data() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             fetch_city_data(city["cityName"], sensor)
             for collection in COLLECTIONS:
-                await process_data(city["cityName"], sensor["sensorId"], collection)
+                process_data(city["cityName"], sensor["sensorId"], collection)
 
 
 @scheduler.task(trigger="cron", hour=0)
-async def fetch_locations() -> None:
+def fetch_locations() -> None:
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, "cities.json"), "w") as out_file:
         dump(cities, out_file, indent=4)
@@ -85,7 +83,7 @@ async def fetch_locations() -> None:
 
 
 @scheduler.task(trigger="cron", hour=0)
-async def import_data() -> None:
+def import_data() -> None:
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
             file_path = path.join(root, file)
@@ -116,7 +114,7 @@ async def import_data() -> None:
 
 
 @scheduler.task(trigger="cron", minute=0)
-async def model_training() -> None:
+def model_training() -> None:
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith(".lock")]:
         remove(path.join(MODELS_PATH, file))
@@ -124,11 +122,11 @@ async def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             for pollutant in POLLUTANTS:
-                await train_regression_model(city, sensor, pollutant)
+                train_regression_model(city, sensor, pollutant)
 
 
 @scheduler.task(trigger="cron", minute=0)
-async def predict_locations() -> None:
+def predict_locations() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             try:
@@ -144,7 +142,7 @@ async def predict_locations() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             try:
-                forecast_result = await fetch_forecast_result(city, sensor)
+                forecast_result = fetch_forecast_result(city, sensor)
                 with open(path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"], "predictions.json"),
                           "w") as out_file:
                     dump(list(forecast_result.values()), out_file, indent=4, default=str)
@@ -155,7 +153,7 @@ async def predict_locations() -> None:
 
 
 @scheduler.task(trigger="cron", hour=0)
-async def reset_api_counter() -> None:
+def reset_api_counter() -> None:
     try:
         remove(path.join(DATA_PATH, "onecall_counter.txt"))
         remove(path.join(DATA_PATH, "forecast_counter.txt"))
