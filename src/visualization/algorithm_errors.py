@@ -8,7 +8,7 @@ from definitions import POLLUTANTS, REGRESSION_MODELS, RESULTS_ERRORS_PATH
 from .handle_plot import save_plot
 
 
-async def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
+def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
     error_types = [
         "Mean Absolute Error",
         "Mean Absolute Percentage Error",
@@ -61,6 +61,5 @@ async def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         pyplot.xticks(dataframe_algorithms.index, dataframe_algorithms["algorithm"], horizontalalignment="center",
                       fontsize=22, rotation=30)
 
-        await save_plot(fig, pyplot,
-                        path.join(RESULTS_ERRORS_PATH, "plots", city["cityName"], sensor["sensorId"], pollutant),
-                        error_type)
+        save_plot(fig, pyplot, path.join(RESULTS_ERRORS_PATH, "plots", city["cityName"], sensor["sensorId"], pollutant),
+                  error_type)
