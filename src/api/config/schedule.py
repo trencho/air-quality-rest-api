@@ -8,8 +8,8 @@ from flask import Flask
 from flask_apscheduler import APScheduler
 
 from api.blueprints import fetch_city_data
-from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, MODELS_PATH, \
-    POLLUTANTS, REPO_NAME
+from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
+    FORECAST_COUNTER, MODELS_PATH, ONECALL_COUNTER, POLLUTANTS, REPO_NAME
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
 from processing import fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
@@ -155,8 +155,8 @@ def predict_locations() -> None:
 @scheduler.task(trigger="cron", hour=0)
 def reset_api_counter() -> None:
     try:
-        remove(path.join(DATA_PATH, "onecall_counter.txt"))
-        remove(path.join(DATA_PATH, "forecast_counter.txt"))
+        remove(path.join(DATA_PATH, f"{FORECAST_COUNTER}.txt"))
+        remove(path.join(DATA_PATH, f"{ONECALL_COUNTER}.txt"))
     except OSError:
         pass
 

@@ -79,3 +79,7 @@ REGRESSION_MODELS = {
     "SupportVectorRegressionModel": "Support Vector",
     "XGBoostRegressionModel": "XGBoost"
 }
+
+FORECAST_COUNTER = "forecast_counter"
+ONECALL_COUNTER = "onecall_counter"
+REQUESTS_LIMIT = 1000
