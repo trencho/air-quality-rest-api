@@ -5,8 +5,19 @@ from pandas import DataFrame, json_normalize
 from requests import get
 
 from api.config.logger import logger
-from definitions import DARK_SKY_TOKEN, DATA_PATH, DATA_RAW_PATH, OPEN_WEATHER_TOKEN
+from definitions import DARK_SKY_TOKEN, DATA_PATH, DATA_RAW_PATH, FORECAST_COUNTER, ONECALL_COUNTER, OPEN_WEATHER_TOKEN, \
+    REQUESTS_LIMIT
 from processing import flatten_json, save_dataframe
+
+
+def check_counter(counter_name: str) -> bool:
+    try:
+        with open(path.join(DATA_PATH, f"{counter_name}.txt"), "r") as in_file:
+            if int(next(in_file)) < REQUESTS_LIMIT:
+                return True
+            return False
+    except OSError:
+        return True
 
 
 def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
@@ -81,20 +92,25 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
 
 
 def fetch_weather_data(city_name: str, sensor: dict) -> None:
-    fetch_open_weather_data(city_name, sensor)
-    increment_counter("onecall_counter")
+    if check_counter(ONECALL_COUNTER):
+        fetch_open_weather_data(city_name, sensor)
+        increment_counter(ONECALL_COUNTER)
 
-    fetch_pollution_data(city_name, sensor)
-    increment_counter("forecast_counter")
+    if check_counter(FORECAST_COUNTER):
+        fetch_pollution_data(city_name, sensor)
+        increment_counter(FORECAST_COUNTER)
 
     sleep(1)
 
 
 def increment_counter(counter_name: str):
     counter = 0
-    if path.exists(onecall_path := path.join(DATA_PATH, f"{counter_name}.txt")):
+    onecall_path = path.join(DATA_PATH, f"{counter_name}.txt")
+    try:
         with open(onecall_path, "r") as in_file:
             counter = int(next(in_file))
             counter += 1
+    except OSError:
+        pass
     with open(onecall_path, "w") as out_file:
         out_file.write(str(counter))
