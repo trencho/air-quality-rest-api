@@ -155,12 +155,13 @@ def predict_locations() -> None:
 @scheduler.task(trigger="cron", hour=0)
 def reset_api_counter() -> None:
     try:
-        remove(path.join(DATA_PATH, f"{FORECAST_COUNTER}.txt"))
-        remove(path.join(DATA_PATH, f"{ONECALL_COUNTER}.txt"))
+        with open(path.join(DATA_PATH, f"{FORECAST_COUNTER}.txt"), "w") as out_file:
+            out_file.write(str(0))
+        with open(path.join(DATA_PATH, f"{ONECALL_COUNTER}.txt"), "w") as out_file:
+            out_file.write(str(0))
     except OSError:
         pass
 
 
 def schedule_jobs(app: Flask) -> None:
-    scheduler.api_enabled = True
     scheduler.init_app(app)
