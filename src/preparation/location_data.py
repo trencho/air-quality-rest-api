@@ -14,8 +14,18 @@ from api.config.cache import cache
 from definitions import COUNTRIES, DATA_RAW_PATH
 
 
+def calculate_nearest_city(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
+    cities = cache.get("cities") or read_cities()
+    distances = haversine_vector(coordinates, [
+        tuple(map(float, [city["cityLocation"]["latitude"], city["cityLocation"]["longitute"]])) for city in cities],
+                                 comb=True)
+    min_distance = min(distances)
+    return cities[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None
+
+
 def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
-    sensors = [sensor for sensor_list in [read_sensors(city["cityName"]) for city in read_cities()] for sensor in
+    sensors = [sensor for sensor_list in
+               [read_sensors(city["cityName"]) for city in cache.get("cities") or read_cities()] for sensor in
                sensor_list]
     distances = haversine_vector(coordinates, [tuple(map(float, sensor["position"].split(","))) for sensor in sensors],
                                  comb=True)
@@ -23,6 +33,7 @@ def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> O
     return sensors[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None
 
 
+@cache.memoize(timeout=3600)
 def check_city(city_name: str) -> Optional[dict]:
     for city in cache.get("cities") or read_cities():
         if city["cityName"] == city_name:
@@ -31,6 +42,7 @@ def check_city(city_name: str) -> Optional[dict]:
     return None
 
 
+@cache.memoize(timeout=3600)
 def check_country(country_code: str) -> Optional[dict]:
     for country in cache.get("countries") or read_countries():
         if country["countryCode"] == country_code.upper():
@@ -39,6 +51,7 @@ def check_country(country_code: str) -> Optional[dict]:
     return None
 
 
+@cache.memoize(timeout=3600)
 def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
     for sensor in read_sensors(city_name):
         if sensor["sensorId"] == sensor_id:

@@ -21,8 +21,6 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-max-age: "86400"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
   name: flask-ingress
   namespace: aqra
 spec:
