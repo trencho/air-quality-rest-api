@@ -1,0 +1,27 @@
+tags:
+  - forecast
+#    description: Forecast values for a specified pollutant
+summary: Returns data containing forecasts of all pollutants for the specified city coordinates
+description: "Fetches forecast data for all available pollutants for specific city's latitude and longitude coordinates
+converted to degrees. The forecast is based upon 24 hours from the moment the request is sent."
+parameters:
+  - in: path
+    name: latitude
+    description: Value of the geographic latitude
+    required: true
+    schema:
+      type: number
+  - in: path
+    name: longitude
+    description: Value of the geographic longitude
+    required: true
+    schema:
+      type: number
+responses:
+  200:
+    description: Returned data of the predicted pollutant for specific coordinates.
+  400:
+    description: Value cannot be predicted because some of the parameters are invalid.
+  404:
+    description: "Value cannot be predicted because the coordinates are either too far of the nearest available city or 
+    are invalid."
