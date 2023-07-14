@@ -78,8 +78,9 @@ jobs:
             KUBERNETES_DIR_SHA_FILE="kubernetes_dir_sha"
             if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
               stored_sha=$(cat "${KUBERNETES_DIR_SHA_FILE}")
-            
+              echo "${stored_sha}"
               current_sha=$(hash_directory "${KUBERNETES_DIR}")
+              echo "${current_sha}"
             
               if [ "${stored_sha}" = "${current_sha}" ]; then
                 echo "SHA values match: The Kubernetes directory has not changed."
@@ -111,7 +112,7 @@ jobs:
               fi
             else
               current_sha=$(hash_directory "${SOURCE_DIR} "${EXCLUDE_KUBERNETES_DIR}")
-            
+              echo "${current_sha}"
               echo "${current_sha}" >"${SOURCE_DIR_SHA_FILE}"
               echo "File '${SOURCE_DIR_SHA_FILE}' created with the current SHA value."
               docker-compose -f docker/single/docker-compose.yml build
