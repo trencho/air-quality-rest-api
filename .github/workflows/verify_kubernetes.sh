@@ -22,11 +22,11 @@ if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
   fi
 else
   # Calculate the SHA value of the Kubernetes directory
-  current_sha=$(find "${}" -type d -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
+  current_sha=$(find "${KUBERNETES_DIR}" -type d -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
 
   # Create the file and store the SHA value
   echo "${current_sha}" >"${KUBERNETES_DIR_SHA_FILE}"
-  echo "File 'kubernetes_dir_sha' created with the current SHA value."
+  echo "File '${KUBERNETES_DIR_SHA_FILE}' created with the current SHA value."
   # Apply the changed kubernetes resources
   kubectl apply -f kubernetes/resources.yml
 fi
