@@ -46,46 +46,44 @@ jobs:
           username: ${{ env.SSH_USERNAME }}
           key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
-            mkdir -p ${{ env.GIT_REPO_PATH  }}
-            chown ${{ env.SSH_USERNAME  }}:${{ env.SSH_USERNAME  }} ${{ env.GIT_REPO_PATH  }}
+            mkdir -p ${{ env.GIT_REPO_PATH }}
+            chown ${{ env.SSH_USERNAME }}:${{ env.SSH_USERNAME }} ${{ env.GIT_REPO_PATH }}
             if [ ! -d ${{ env.GIT_REPO_PATH  }}/.git ]; then
-              git clone https://${{ env.ACCESS_TOKEN  }}@github.com/${{ env.GIT_REPO_USERNAME  }}/${{ env.GIT_REPO_NAME  }}.git ${{ env.GIT_REPO_PATH  }}
+              git clone https://${{ env.ACCESS_TOKEN }}@github.com/${{ env.GIT_REPO_USERNAME }}/${{ env.GIT_REPO_NAME }}.git ${{ env.GIT_REPO_PATH }}
             fi
-            cd ${{ env.GIT_REPO_PATH  }}
+            cd ${{ env.GIT_REPO_PATH }}
             git fetch origin
             git reset --hard origin/master
 
-            cd ${{ env.GIT_REPO_PATH  }}
             KUBERNETES_DIR="kubernetes"
             KUBERNETES_DIR_SHA_FILE="kubernetes_dir_sha"
+            if [ -f ${{ env.KUBERNETES_DIR_SHA_FILE }} ]; then
+              stored_sha=$(cat "${KUBERNETES_DIR_SHA_FILE}")
             
-            if [ -f ${{ env.KUBERNETES_DIR_SHA_FILE  }} ]; then
-              stored_sha=$(cat ${{ env.KUBERNETES_DIR_SHA_FILE  }})
+              current_sha=$(find "${KUBERNETES_DIR_SHA_FILE}" -type d -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
             
-              current_sha=$(find ${{ env.KUBERNETES_DIR  }} -type d -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
-            
-              if [ ${{ env.stored_sha  }} = ${{ env.current_sha  }} ]; then
+              if [ ${{ env.stored_sha }} = ${{ env.current_sha }} ]; then
                 echo "SHA values match: The Kubernetes directory has not changed."
               else
                 echo "SHA values differ: The Kubernetes directory has been modified."
                 kubectl apply -f kubernetes/resources.yml
               fi
             else
-              current_sha=$(find ${{ env.  }} -type d -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
+              current_sha=$(find "${KUBERNETES_DIR_SHA_FILE}" -type d -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
             
-              echo ${{ env.current_sha  }} >${{ env.KUBERNETES_DIR_SHA_FILE  }}
-              echo "File 'kubernetes_dir_sha' created with the current SHA value."
+              echo ${{ env.current_sha  }} >"${KUBERNETES_DIR_SHA_FILE}"
+              echo "File '${KUBERNETES_DIR_SHA_FILE}' created with the current SHA value."
               kubectl apply -f kubernetes/resources.yml
             fi
 
-            SOURCE_DIR=${{ env.GIT_REPO_PATH }}
+            SOURCE_DIR="${GIT_REPO_PATH}"
             EXCLUDE_KUBERNETES_DIR="kubernetes"
             SOURCE_DIR_SHA_FILE="source_dir_sha"
             
-            if [ -f ${{ env.SOURCE_DIR_SHA_FILE }} ]; then
-              stored_sha=$(cat ${{ env.SOURCE_DIR_SHA_FILE }})
+            if [ -f "${SOURCE_DIR_SHA_FILE}" ]; then
+              stored_sha=$(cat "${SOURCE_DIR_SHA_FILE}")
             
-              current_sha=$(find ${{ env.SOURCE_DIR }} -type d -not -path ${{ env.EXCLUDE_KUBERNETES_DIR}/*" -not -name "*dir_sha" -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
+              current_sha=$(find "${SOURCE_DIR_SHA_FILE}" -type d -not -path "${EXCLUDE_KUBERNETES_DIR}"/*" -not -name "*dir_sha" -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
             
               if [ "$stored_sha" = "$current_sha" ]; then
                 echo "SHA values match: The source directory has not changed."
@@ -94,10 +92,10 @@ jobs:
                 docker-compose -f docker/single/docker-compose.yml build
               fi
             else
-              current_sha=$(find ${{ env.SOURCE_DIR }} -type d -not -path ${{ env.EXCLUDE_KUBERNETES_DIR}/*" -not -name "*dir_sha" -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
+              current_sha=$(find "${SOURCE_DIR_SHA_FILE}" -type d -not -path "${EXCLUDE_KUBERNETES_DIR}"/*" -not -name "*dir_sha" -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
             
-              echo ${{ env.current_sha }} >${{ env.SOURCE_DIR_SHA_FILE }}
-              echo "File 'source_dir_sha' created with the current SHA value."
+              echo "${current_sha}" >"${SOURCE_DIR_SHA_FILE}"
+              echo "File '${SOURCE_DIR_SHA_FILE}' created with the current SHA value."
               docker-compose -f docker/single/docker-compose.yml build
             fi
             kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl delete pod -n aqra
