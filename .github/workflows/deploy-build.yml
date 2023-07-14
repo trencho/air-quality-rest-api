@@ -79,9 +79,6 @@ jobs:
             current_sha=$(hash_directory "${KUBERNETES_DIR}")
             if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
               stored_sha=$(cat "${KUBERNETES_DIR_SHA_FILE}")
-              echo "${stored_sha}"
-              echo "${current_sha}"
-            
               if [ "${stored_sha}" = "${current_sha}" ]; then
                 echo "SHA values match: The Kubernetes directory has not changed."
               else
@@ -90,7 +87,6 @@ jobs:
               fi
             else
               current_sha=$(hash_directory "${KUBERNETES_DIR}")
-            
               echo "File '${KUBERNETES_DIR_SHA_FILE}' created with the current SHA value."
               kubectl apply -f kubernetes/resources.yml
             fi
@@ -99,10 +95,9 @@ jobs:
             SOURCE_DIR="${GIT_REPO_PATH}"
             EXCLUDE_KUBERNETES_DIR="kubernetes"
             SOURCE_DIR_SHA_FILE="source_dir_sha"
-            current_sha=$(hash_directory "${SOURCE_DIR} "${EXCLUDE_KUBERNETES_DIR}")
+            current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
             if [ -f "${SOURCE_DIR_SHA_FILE}" ]; then
               stored_sha=$(cat "${SOURCE_DIR_SHA_FILE}")
-            
               if [ "${stored_sha}" = "${current_sha}" ]; then
                 echo "SHA values match: The source directory has not changed."
               else
@@ -110,8 +105,7 @@ jobs:
                 docker-compose -f docker/single/docker-compose.yml build
               fi
             else
-              current_sha=$(hash_directory "${SOURCE_DIR} "${EXCLUDE_KUBERNETES_DIR}")
-              echo "${current_sha}"
+              current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
               echo "File '${SOURCE_DIR_SHA_FILE}' created with the current SHA value."
               docker-compose -f docker/single/docker-compose.yml build
             fi
