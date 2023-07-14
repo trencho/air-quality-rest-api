@@ -76,10 +76,10 @@ jobs:
 
             KUBERNETES_DIR="kubernetes"
             KUBERNETES_DIR_SHA_FILE="kubernetes_dir_sha"
+            current_sha=$(hash_directory "${KUBERNETES_DIR}")
             if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
               stored_sha=$(cat "${KUBERNETES_DIR_SHA_FILE}")
               echo "${stored_sha}"
-              current_sha=$(hash_directory "${KUBERNETES_DIR}")
               echo "${current_sha}"
             
               if [ "${stored_sha}" = "${current_sha}" ]; then
@@ -91,20 +91,19 @@ jobs:
             else
               current_sha=$(hash_directory "${KUBERNETES_DIR}")
             
-              echo "${current_sha}" >"${KUBERNETES_DIR_SHA_FILE}"
               echo "File '${KUBERNETES_DIR_SHA_FILE}' created with the current SHA value."
               kubectl apply -f kubernetes/resources.yml
             fi
+            echo "${current_sha}" >"${KUBERNETES_DIR_SHA_FILE}"
 
             SOURCE_DIR="${GIT_REPO_PATH}"
             EXCLUDE_KUBERNETES_DIR="kubernetes"
             SOURCE_DIR_SHA_FILE="source_dir_sha"
+            current_sha=$(hash_directory "${SOURCE_DIR} "${EXCLUDE_KUBERNETES_DIR}")
             if [ -f "${SOURCE_DIR_SHA_FILE}" ]; then
               stored_sha=$(cat "${SOURCE_DIR_SHA_FILE}")
             
-              current_sha=$(hash_directory "${SOURCE_DIR} "${EXCLUDE_KUBERNETES_DIR}")
-            
-              if [ "$stored_sha" = "$current_sha" ]; then
+              if [ "${stored_sha}" = "${current_sha}" ]; then
                 echo "SHA values match: The source directory has not changed."
               else
                 echo "SHA values differ: The source directory has been modified."
@@ -113,10 +112,11 @@ jobs:
             else
               current_sha=$(hash_directory "${SOURCE_DIR} "${EXCLUDE_KUBERNETES_DIR}")
               echo "${current_sha}"
-              echo "${current_sha}" >"${SOURCE_DIR_SHA_FILE}"
               echo "File '${SOURCE_DIR_SHA_FILE}' created with the current SHA value."
               docker-compose -f docker/single/docker-compose.yml build
             fi
+            echo "${current_sha}" >"${SOURCE_DIR_SHA_FILE}"
+
             kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl delete pod -n aqra
             kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl delete pod -n aqra
             echo Sleeping for 30 seconds for the deployments to pull the new images
