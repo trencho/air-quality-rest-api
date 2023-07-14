@@ -74,7 +74,8 @@ jobs:
               echo -n "$hash" | sha256sum | awk '{print $1}'
             }
 
-            KUBERNETES_DIR="kubernetes"
+            cd ..
+            KUBERNETES_DIR="${{ env.GIT_REPO_PATH }}/kubernetes"
             KUBERNETES_DIR_SHA_FILE="kubernetes_dir_sha"
             current_sha=$(hash_directory "${KUBERNETES_DIR}")
             if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
@@ -83,17 +84,17 @@ jobs:
                 echo "SHA values match: The Kubernetes directory has not changed."
               else
                 echo "SHA values differ: The Kubernetes directory has been modified."
-                kubectl apply -f kubernetes/resources.yml
+                kubectl apply -f ${KUBERNETES_DIR}/resources.yml
               fi
             else
               current_sha=$(hash_directory "${KUBERNETES_DIR}")
               echo "File '${KUBERNETES_DIR_SHA_FILE}' created with the current SHA value."
-              kubectl apply -f kubernetes/resources.yml
+              kubectl apply -f ${KUBERNETES_DIR}/resources.yml
             fi
             echo "${current_sha}" >"${KUBERNETES_DIR_SHA_FILE}"
 
             SOURCE_DIR="${GIT_REPO_PATH}"
-            EXCLUDE_KUBERNETES_DIR="kubernetes"
+            EXCLUDE_KUBERNETES_DIR="${SOURCE_DIR}/kubernetes"
             SOURCE_DIR_SHA_FILE="source_dir_sha"
             current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
             if [ -f "${SOURCE_DIR_SHA_FILE}" ]; then

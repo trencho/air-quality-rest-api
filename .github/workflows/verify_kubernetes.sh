@@ -9,7 +9,7 @@ if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
     echo "SHA values match: The Kubernetes directory has not changed."
   else
     echo "SHA values differ: The Kubernetes directory has been modified."
-    kubectl apply -f kubernetes/resources.yml
+    kubectl apply -f "${KUBERNETES_DIR}"/resources.yml
   fi
 else
   current_sha=$(hash_directory "${KUBERNETES_DIR}")
