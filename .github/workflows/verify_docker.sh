@@ -25,6 +25,6 @@ else
 
   # Create the file and store the SHA value
   echo "${current_sha}" >"${SOURCE_DIR_SHA_FILE}"
-  echo "File 'source_dir_sha' created with the current SHA value."
+  echo "File '${SOURCE_DIR_SHA_FILE}' created with the current SHA value."
   docker-compose -f docker/single/docker-compose.yml build
 fi
