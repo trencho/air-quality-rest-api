@@ -45,16 +45,11 @@ jobs:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
           key: ${{ env.SSH_PRIVATE_KEY }}
+          envs: ACCESS_TOKEN,GIT_REPO_NAME,GIT_REPO_PATH,GIT_REPO_USERNAME,SSH_USERNAME
           script: |
-            mkdir -p ${{ env.GIT_REPO_PATH }}
-            chown ${{ env.SSH_USERNAME }}:${{ env.SSH_USERNAME }} ${{ env.GIT_REPO_PATH }}
-            if [ ! -d ${{ env.GIT_REPO_PATH }}/.git ]; then
-            git clone https://${{ env.ACCESS_TOKEN }}@github.com/${{ env.GIT_REPO_USERNAME }}/${{ env.GIT_REPO_NAME }}.git ${{ env.GIT_REPO_PATH }}
-            fi
-            cd ${{ env.GIT_REPO_PATH }}
-            git fetch origin
-            git reset --hard origin/master
-            docker-compose -f docker/single/docker-compose.yml build
+            .github/workflows/checkout_repo.sh
+            .github/workflows/verify_kubernetes.sh
+            .github/workflows/verify_docker.sh
             kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl delete pod -n aqra
             kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl delete pod -n aqra
             echo Sleeping for 30 seconds for the deployments to pull the new images

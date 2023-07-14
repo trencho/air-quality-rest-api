@@ -97,3 +97,5 @@ def return_sensor_forecast_results(city: dict, sensor: dict) -> dict:
                                      filter={"cityName": city["cityName"], "sensorId": sensor["sensorId"]})
     if forecast_result is not None and forecast_result["data"]:
         return {"data": forecast_result["data"]}
+
+    return {"data": []}
