@@ -81,7 +81,7 @@ jobs:
             if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
               stored_sha=$(cat "${KUBERNETES_DIR_SHA_FILE}")
               if [ "${stored_sha}" = "${current_sha}" ]; then
-                echo "SHA values match: The Kubernetes directory has not changed."
+                echo "SHA values match: The kubernetes directory has not changed."
               else
                 echo "SHA values differ: The Kubernetes directory has been modified."
                 kubectl apply -f ${KUBERNETES_DIR}/resources.yml
@@ -93,7 +93,7 @@ jobs:
             fi
             echo "${current_sha}" >"${KUBERNETES_DIR_SHA_FILE}"
 
-            SOURCE_DIR="${GIT_REPO_PATH}"
+            SOURCE_DIR="${{ env.GIT_REPO_PATH }}"
             EXCLUDE_KUBERNETES_DIR="kubernetes"
             SOURCE_DIR_SHA_FILE="source_dir_sha"
             current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
