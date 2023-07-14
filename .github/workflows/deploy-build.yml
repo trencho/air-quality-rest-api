@@ -55,12 +55,31 @@ jobs:
             git fetch origin
             git reset --hard origin/master
 
+            hash_directory() {
+              directory="$1"
+              exclude_directory="$2"
+              hash=""
+            
+              while IFS= read -r -d '' file; do
+                # Exclude the specified directory if provided
+                if [[ -n "$exclude_directory" && "$file" == *"$exclude_directory"* ]]; then
+                  continue
+                fi
+            
+                # Calculate hash of each file
+                file_hash=$(sha256sum "$file" | awk '{print $1}')
+                hash="$hash$file_hash"
+              done < <(find "$directory" -type f -print0 | LC_ALL=C sort -z)
+            
+              echo -n "$hash" | sha256sum | awk '{print $1}'
+            }
+
             KUBERNETES_DIR="kubernetes"
             KUBERNETES_DIR_SHA_FILE="kubernetes_dir_sha"
             if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
               stored_sha=$(cat "${KUBERNETES_DIR_SHA_FILE}")
             
-              current_sha=$(find "${KUBERNETES_DIR}" -type d -exec sha1sum {} + | awk '{print $1}' | sort | sha1sum | awk '{print $1}')
+              current_sha=$(hash_directory "${KUBERNETES_DIR}")
             
               if [ "${stored_sha}" = "${current_sha}" ]; then
                 echo "SHA values match: The Kubernetes directory has not changed."
