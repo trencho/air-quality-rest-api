@@ -46,74 +46,15 @@ jobs:
           username: ${{ env.SSH_USERNAME }}
           key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
-            mkdir -p ${{ env.GIT_REPO_PATH }}
-            chown ${{ env.SSH_USERNAME }}:${{ env.SSH_USERNAME }} ${{ env.GIT_REPO_PATH }}
-            if [ ! -d ${{ env.GIT_REPO_PATH  }}/.git ]; then
-              git clone https://${{ env.ACCESS_TOKEN }}@github.com/${{ env.GIT_REPO_USERNAME }}/${{ env.GIT_REPO_NAME }}.git ${{ env.GIT_REPO_PATH }}
-            fi
-            cd ${{ env.GIT_REPO_PATH }}
-            git fetch origin
-            git reset --hard origin/master
+            export ACCESS_TOKEN=${{ env.ACCESS_TOKEN }}
+            export GIT_REPO_NAME=${{ env.GIT_REPO_NAME }}
+            export GIT_REPO_PATH=${{ env.GIT_REPO_PATH }}
+            export GIT_REPO_USERNAME=${{ env.GIT_REPO_USERNAME }}
+            export SSH_USERNAME=${{ env.SSH_USERNAME }}
 
-            hash_directory() {
-              directory="$1"
-              exclude_directory="$2"
-              hash=""
-            
-              while IFS= read -r -d '' file; do
-                # Exclude the specified directory if provided
-                if [[ -n "$exclude_directory" && "$file" == *"$exclude_directory"* ]]; then
-                  continue
-                fi
-            
-                # Calculate hash of each file
-                file_hash=$(sha256sum "$file" | awk '{print $1}')
-                hash="$hash$file_hash"
-              done < <(find "$directory" -type f -print0 | LC_ALL=C sort -z)
-            
-              echo -n "$hash" | sha256sum | awk '{print $1}'
-            }
-
-            cd ..
-            KUBERNETES_DIR="${{ env.GIT_REPO_PATH }}/kubernetes"
-            KUBERNETES_DIR_SHA_FILE="kubernetes_dir_sha"
-            current_sha=$(hash_directory "${KUBERNETES_DIR}")
-            if [ -f "${KUBERNETES_DIR_SHA_FILE}" ]; then
-              stored_sha=$(cat "${KUBERNETES_DIR_SHA_FILE}")
-              if [ "${stored_sha}" = "${current_sha}" ]; then
-                echo "SHA values match: The kubernetes directory has not changed."
-              else
-                echo "SHA values differ: The Kubernetes directory has been modified."
-                kubectl apply -f ${KUBERNETES_DIR}/resources.yml
-              fi
-            else
-              current_sha=$(hash_directory "${KUBERNETES_DIR}")
-              echo "File '${KUBERNETES_DIR_SHA_FILE}' created with the current SHA value."
-              kubectl apply -f ${KUBERNETES_DIR}/resources.yml
-            fi
-            echo "${current_sha}" >"${KUBERNETES_DIR_SHA_FILE}"
-
-            SOURCE_DIR="${{ env.GIT_REPO_PATH }}"
-            EXCLUDE_KUBERNETES_DIR="kubernetes"
-            SOURCE_DIR_SHA_FILE="source_dir_sha"
-            current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
-            if [ -f "${SOURCE_DIR_SHA_FILE}" ]; then
-              stored_sha=$(cat "${SOURCE_DIR_SHA_FILE}")
-              if [ "${stored_sha}" = "${current_sha}" ]; then
-                echo "SHA values match: The source directory has not changed."
-              else
-                echo "SHA values differ: The source directory has been modified."
-                docker-compose -f ${SOURCE_DIR}/docker/single/docker-compose.yml build
-              fi
-            else
-              current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
-              echo "File '${SOURCE_DIR_SHA_FILE}' created with the current SHA value."
-              docker-compose -f ${SOURCE_DIR}/docker/single/docker-compose.yml build
-            fi
-            echo "${current_sha}" >"${SOURCE_DIR_SHA_FILE}"
-
-            kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl delete pod -n aqra
-            kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl delete pod -n aqra
-            echo Sleeping for 30 seconds for the deployments to pull the new images
-            sleep 30
-            docker system prune -a --volumes --force
+            {
+              ${{ env.GIT_REPO_PATH }}/.github/workflows/checkout_repo.sh
+              ${{ env.GIT_REPO_PATH }}/.github/workflows/verify_kubernetes.sh
+              ${{ env.GIT_REPO_PATH }}/.github/workflows/verify_docker.sh
+              ${{ env.GIT_REPO_PATH }}/.github/workflows/reload_pods.sh
+            } 2>&1

@@ -19,6 +19,12 @@ kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
 kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 ```
 
+###### Apply metrics server for cluster
+
+```
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
 ###### Apply cert-manager resources
 
 ```
@@ -82,11 +88,11 @@ kubectl describe pod [pod-name] -n aqra
 ```
 
 ```
-kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl describe pod -n aqra
+kubectl get pods -n aqra | grep -E 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl describe pod -n aqra
 ```
 
 ```
-kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl describe pod -n aqra
+kubectl get pods -n aqra | grep -E 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl describe pod -n aqra
 ```
 
 ###### Follow logs of deployed pod
@@ -96,11 +102,11 @@ kubectl logs -f [pod-name] -n aqra
 ```
 
 ```
-kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
+kubectl get pods -n aqra | grep -E 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
 ```
 
 ```
-kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
+kubectl get pods -n aqra | grep -E 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
 ```
 
 ###### Enter bash of deployed pod
@@ -110,11 +116,11 @@ kubectl exec -n aqra --stdin --tty [pod-name] -- /bin/bash
 ```
 
 ```
-kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | egrep 'flask[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
+kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | grep -E 'flask[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
 ```
 
 ```
-kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | egrep 'mongo[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
+kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | grep -E 'mongo[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
 ```
 
 ###### Delete and reapply deployments if changes are made to the Docker images
