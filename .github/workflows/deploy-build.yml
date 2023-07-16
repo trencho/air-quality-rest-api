@@ -60,7 +60,7 @@ jobs:
             cd "${GIT_REPO_PATH}" || exit
             git fetch origin
             git reset --hard origin/master
-
+            find .github/workflows -type f -name "*.sh" -exec chmod +x {} +
             {
               .github/workflows/verify_kubernetes.sh
               .github/workflows/verify_docker.sh
