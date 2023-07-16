@@ -62,7 +62,7 @@ jobs:
             git reset --hard origin/master
 
             {
-              ${{ env.GIT_REPO_PATH }}/.github/workflows/verify_kubernetes.sh
-              ${{ env.GIT_REPO_PATH }}/.github/workflows/verify_docker.sh
-              ${{ env.GIT_REPO_PATH }}/.github/workflows/reload_pods.sh
+              .github/workflows/verify_kubernetes.sh
+              .github/workflows/verify_docker.sh
+              .github/workflows/reload_pods.sh
             } 2>&1
