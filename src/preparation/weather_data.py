@@ -103,7 +103,7 @@ def fetch_weather_data(city_name: str, sensor: dict) -> None:
     sleep(1)
 
 
-def increment_counter(counter_name: str):
+def increment_counter(counter_name: str) -> None:
     counter = 0
     onecall_path = path.join(DATA_PATH, f"{counter_name}.txt")
     try:

@@ -8,6 +8,7 @@ from preparation import read_cities, read_sensors
 from processing import find_missing_data, read_csv_in_chunks, save_dataframe
 from .logger import logger
 from .repository import RepositorySingleton
+from .schedule import fetch_locations
 
 SYSTEM_PATHS = [
     DATA_EXTERNAL_PATH,
@@ -65,6 +66,7 @@ def fetch_db_data() -> None:
 
 def fetch_data() -> None:
     fetch_db_data()
+    fetch_locations()
 
 
 def init_system_paths() -> None:
