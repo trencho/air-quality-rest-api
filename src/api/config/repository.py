@@ -178,5 +178,5 @@ class RepositorySingleton:
                 RepositorySingleton._repository = InMemoryRepository()
 
     @staticmethod
-    def get_repository() -> property:
+    def get_repository() -> Repository:
         return RepositorySingleton._repository
