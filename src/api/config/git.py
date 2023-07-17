@@ -25,9 +25,12 @@ class GithubSingleton:
 
     def __init__(self):
         if (token := environ.get(GITHUB_TOKEN)) is not None:
-            GithubSingleton._instance = Github(auth=Token(token))
+            self.github_instance = Github(auth=Token(token))
         else:
-            GithubSingleton._instance = None
+            self.github_instance = None
+
+    def get_repository(self, repo_name: str) -> Repository:
+        return self.github_instance.get_user().get_repo(repo_name)
 
 
 g = GithubSingleton.get_instance()
@@ -84,7 +87,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
 
 def update_git_files(file_list: list, file_names: list, repo_name: str, branch: str,
                      commit_message: str = f"Data Updated - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}") -> None:
-    repo = g.get_user().get_repo(repo_name)
+    repo = g.get_repository(repo_name)
     master_ref = repo.get_git_ref(f"heads/{branch}")
     master_sha = master_ref.object.sha
     base_tree = repo.get_git_tree(master_sha)

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-source "${GIT_REPO_PATH}"/.github/workflows//hash_directory.sh
+source "${GIT_REPO_PATH}"/.github/workflows/hash_directory.sh
 
 SOURCE_DIR="${GIT_REPO_PATH}"
 EXCLUDE_KUBERNETES_DIR="kubernetes"
-SOURCE_DIR_SHA_FILE="source_dir_sha"
+FLASK_SOURCE_DIR_SHA_FILE="flask_source_dir_sha"
 current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
-if [ -f "${SOURCE_DIR_SHA_FILE}" ]; then
-  stored_sha=$(cat "${SOURCE_DIR_SHA_FILE}")
+if [ -f "${FLASK_SOURCE_DIR_SHA_FILE}" ]; then
+  stored_sha=$(cat "${FLASK_SOURCE_DIR_SHA_FILE}")
   if [ "${stored_sha}" = "${current_sha}" ]; then
     echo "SHA values match: The source directory has not changed."
   else
@@ -16,7 +16,7 @@ if [ -f "${SOURCE_DIR_SHA_FILE}" ]; then
   fi
 else
   current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
-  echo "File '${SOURCE_DIR_SHA_FILE}' created with the current SHA value."
+  echo "File '${FLASK_SOURCE_DIR_SHA_FILE}' created with the current SHA value."
   docker-compose -f "${SOURCE_DIR}"/docker/single/docker-compose.yml build
 fi
-echo "${current_sha}" >"${SOURCE_DIR_SHA_FILE}"
+echo "${current_sha}" >"${FLASK_SOURCE_DIR_SHA_FILE}"
