@@ -12,7 +12,7 @@ from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESS
     FORECAST_COUNTER, MODELS_PATH, ONECALL_COUNTER, POLLUTANTS, REPO_NAME
 from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
-from processing import fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
+from processing import current_hour, fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
 from .cache import cache
 from .git import append_commit_files, create_archive, update_git_files
 from .logger import logger
@@ -113,12 +113,8 @@ def import_data() -> None:
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
 
 
-@scheduler.task(trigger="cron", minute=0)
+@scheduler.task(trigger="cron", minute=0, max_instances=2)
 def model_training() -> None:
-    for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
-                 file.endswith(".lock")]:
-        remove(path.join(MODELS_PATH, file))
-
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             for pollutant in POLLUTANTS:
@@ -161,6 +157,16 @@ def reset_api_counter() -> None:
             out_file.write(str(0))
     except OSError:
         pass
+
+
+@scheduler.task(trigger="cron", hour=0)
+def reset_model_lock() -> None:
+    for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
+                 file.endswith(".lock")]:
+        last_modified = int(path.getmtime(file))
+        hour_in_seconds = 3600
+        if last_modified < int(datetime.timestamp(current_hour())) - hour_in_seconds:
+            remove(path.join(MODELS_PATH, file))
 
 
 def schedule_jobs(app: Flask) -> None:
