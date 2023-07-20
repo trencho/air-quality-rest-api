@@ -156,7 +156,7 @@ def reset_api_counter() -> None:
         with open(path.join(DATA_PATH, f"{ONECALL_COUNTER}.txt"), "w") as out_file:
             out_file.write(str(0))
     except OSError:
-        pass
+        logger.error("Error occurred while resetting the API counter", exc_info=True)
 
 
 @scheduler.task(trigger="cron", hour=0)

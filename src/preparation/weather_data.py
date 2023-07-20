@@ -111,6 +111,6 @@ def increment_counter(counter_name: str) -> None:
             counter = int(next(in_file))
             counter += 1
     except OSError:
-        pass
+        logger.error("Error occurred while incrementing the API counter", exc_info=True)
     with open(onecall_path, "w") as out_file:
         out_file.write(str(counter))
