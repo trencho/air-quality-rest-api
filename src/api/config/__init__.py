@@ -9,7 +9,7 @@ from .cors import configure_cors
 from .environment import check_environment_variables, fetch_data, init_system_paths
 from .health import configure_healthcheck
 from .logger import configure_logger
-from .schedule import model_training, schedule_jobs
+from .schedule import model_training
 from .swagger import configure_swagger
 
 
@@ -20,7 +20,6 @@ def create_app() -> Flask:
 
     if environ.get(APP_ENV, APP_DEV) == APP_PROD:
         check_environment_variables()
-        schedule_jobs(app)
 
     register_blueprints(app)
 

@@ -4,8 +4,7 @@ from json import dump, load
 from os import environ, makedirs, path, remove, rmdir, walk
 from shutil import unpack_archive
 
-from flask import Flask
-from flask_apscheduler import APScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from api.blueprints import fetch_city_data
 from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
@@ -18,11 +17,11 @@ from .git import append_commit_files, create_archive, update_git_files
 from .logger import logger
 from .repository import RepositorySingleton
 
-scheduler = APScheduler()
+scheduler = BackgroundScheduler()
 repository = RepositorySingleton.get_instance().get_repository()
 
 
-@scheduler.task(trigger="cron", day="*/15")
+@scheduler.scheduled_job(trigger="cron", day="*/15")
 def dump_data() -> None:
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
@@ -39,7 +38,7 @@ def dump_data() -> None:
                          f"Scheduled data dump - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}")
 
 
-@scheduler.task(trigger="cron", hour="*/2")
+@scheduler.scheduled_job(trigger="cron", hour="*/2")
 def fetch_hourly_data() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -48,7 +47,7 @@ def fetch_hourly_data() -> None:
                 process_data(city["cityName"], sensor["sensorId"], collection)
 
 
-@scheduler.task(trigger="cron", hour=0)
+@scheduler.scheduled_job(trigger="cron", hour=0)
 def fetch_locations() -> None:
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, "cities.json"), "w") as out_file:
@@ -82,7 +81,7 @@ def fetch_locations() -> None:
             dump(sensors[city["cityName"]], out_file, indent=4)
 
 
-@scheduler.task(trigger="cron", hour=0)
+@scheduler.scheduled_job(trigger="cron", hour=0)
 def import_data() -> None:
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
@@ -113,7 +112,7 @@ def import_data() -> None:
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
 
 
-@scheduler.task(trigger="cron", minute=0, max_instances=2)
+@scheduler.scheduled_job(trigger="cron", minute=0, max_instances=2)
 def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -121,7 +120,7 @@ def model_training() -> None:
                 train_regression_model(city, sensor, pollutant)
 
 
-@scheduler.task(trigger="cron", minute=0)
+@scheduler.scheduled_job(trigger="cron", minute=0)
 def predict_locations() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -148,7 +147,7 @@ def predict_locations() -> None:
                     exc_info=True)
 
 
-@scheduler.task(trigger="cron", hour=0)
+@scheduler.scheduled_job(trigger="cron", hour=0)
 def reset_api_counter() -> None:
     try:
         with open(path.join(DATA_PATH, f"{FORECAST_COUNTER}.txt"), "w") as out_file:
@@ -159,7 +158,7 @@ def reset_api_counter() -> None:
         logger.error("Error occurred while resetting the API counter", exc_info=True)
 
 
-@scheduler.task(trigger="cron", hour=0)
+@scheduler.scheduled_job(trigger="cron", hour=0)
 def reset_model_lock() -> None:
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith(".lock")]:
@@ -167,7 +166,3 @@ def reset_model_lock() -> None:
         hour_in_seconds = 3600
         if last_modified < int(datetime.timestamp(current_hour())) - hour_in_seconds:
             remove(path.join(MODELS_PATH, file))
-
-
-def schedule_jobs(app: Flask) -> None:
-    scheduler.init_app(app)
