@@ -33,7 +33,7 @@ spec:
           livenessProbe:
             failureThreshold: 1
             httpGet:
-              path: /healthz/live
+              path: /api/v1/healthz/live
               port: 80
             initialDelaySeconds: 60
             periodSeconds: 300

@@ -2,7 +2,7 @@ from os import environ, path
 from time import sleep
 
 from pandas import DataFrame, json_normalize
-from requests import get
+from requests import get, RequestException
 
 from api.config.logger import logger
 from definitions import DARK_SKY_TOKEN, DATA_PATH, DATA_RAW_PATH, FORECAST_COUNTER, ONECALL_COUNTER, OPEN_WEATHER_TOKEN, \
@@ -52,6 +52,8 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
 
     try:
         weather_response = get(url, params)
+        if weather_response.status_code >= 400:
+            raise RequestException(f"The weather response returned content: {weather_response.text}")
         hourly_data = weather_response.json()["hourly"]
         dataframe = json_normalize([flatten_json(hourly) for hourly in hourly_data])
 
@@ -72,6 +74,8 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
 
     try:
         pollution_response = get(url, params)
+        if pollution_response.status_code >= 400:
+            raise RequestException(f"The pollution response returned content: {pollution_response.text}")
         pollution_data = pollution_response.json()["list"]
         data = []
         for pollution in pollution_data:
