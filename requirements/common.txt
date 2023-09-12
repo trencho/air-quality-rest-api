@@ -7,8 +7,8 @@ flask-healthz==0.0.3
 Flask-Testing==0.8.1
 gunicorn==21.2.0
 haversine==2.8.0
-lightgbm==4.0.0
-matplotlib==3.7.2
+lightgbm==4.1.0
+matplotlib==3.7.3
 numpy==1.25.2
 pandas==2.1.0
 PyGithub==1.59.1
@@ -21,4 +21,4 @@ seaborn==0.12.2
 starlette==0.31.1
 statsmodels==0.14.0
 urllib3==2.0.4
-xgboost==1.7.6
+xgboost==2.0.0
