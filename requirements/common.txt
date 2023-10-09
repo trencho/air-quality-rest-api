@@ -1,7 +1,7 @@
 APScheduler==3.10.4
 flasgger==0.9.7.1
 Flask==3.0.0
-Flask-Caching==2.0.2
+Flask-Caching==2.1.0
 Flask-Cors==4.0.0
 flask-healthz==0.0.3
 Flask-Testing==0.8.1
