@@ -3,7 +3,7 @@ flasgger==0.9.7.1
 Flask==3.0.0
 Flask-Caching==2.1.0
 Flask-Cors==4.0.0
-flask-healthz==0.0.3
+flask-healthz==1.0.0
 Flask-Testing==0.8.1
 gunicorn==21.2.0
 haversine==2.8.0
