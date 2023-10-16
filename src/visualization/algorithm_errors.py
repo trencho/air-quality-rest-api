@@ -28,7 +28,7 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         "xtick.major.pad": 8
     }
     pyplot.rcParams.update(params)
-    pyplot.style.use("seaborn-whitegrid")
+    pyplot.style.use("seaborn-v0_8-whitegrid")
     seaborn.set_style("white")
 
     for error_type in error_types:
