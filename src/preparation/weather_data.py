@@ -52,6 +52,7 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
 
     try:
         weather_response = get(url, params)
+        increment_counter(ONECALL_COUNTER)
         if weather_response.status_code >= 400:
             lock_counter(ONECALL_COUNTER)
             raise RequestException(f"The weather response returned content: {weather_response.text}")
@@ -64,8 +65,8 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
     except Exception:
         logger.error(f"Error occurred while fetching Open Weather data for {city_name} - {sensor['sensorId']}",
                      exc_info=True)
+        lock_counter(ONECALL_COUNTER)
     finally:
-        increment_counter(ONECALL_COUNTER)
         sleep(1)
 
 
@@ -97,6 +98,7 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
     except Exception:
         logger.error(f"Error occurred while fetching pollution data for {city_name} - {sensor['sensorId']}",
                      exc_info=True)
+        lock_counter(FORECAST_COUNTER)
     finally:
         sleep(1)
 
