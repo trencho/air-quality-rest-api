@@ -101,7 +101,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         if path.exists(collection_path):
             dataframe_processed = read_csv_in_chunks(collection_path)
             dataframe_raw = find_missing_data(dataframe_raw, dataframe_processed, "time")
-            dataframe_raw = concat([dataframe_processed, dataframe_raw])
+            dataframe_raw = concat(df.dropna(axis=1, how='all') for df in [dataframe_processed, dataframe_raw])
 
         rename_features(dataframe_raw)
         drop_unnecessary_features(dataframe_raw)
