@@ -33,9 +33,6 @@ class GithubSingleton:
         return self.github_instance.get_user().get_repo(repo_name)
 
 
-g = GithubSingleton.get_instance()
-
-
 def append_commit_files(file_list: list, data: [bytes, str], root: str, file: str, file_names: list) -> None:
     file_list.append(data)
     rel_dir = path.relpath(root, ROOT_PATH)
@@ -87,7 +84,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
 
 def update_git_files(file_list: list, file_names: list, repo_name: str, branch: str,
                      commit_message: str = f"Data Updated - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}") -> None:
-    repo = g.get_repository(repo_name)
+    repo = GithubSingleton.get_instance().get_repository(repo_name)
     master_ref = repo.get_git_ref(f"heads/{branch}")
     master_sha = master_ref.object.sha
     base_tree = repo.get_git_tree(master_sha)

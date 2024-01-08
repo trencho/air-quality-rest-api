@@ -15,7 +15,7 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    def get_many(self, collection_name, filter=None, **kwargs):
+    def get_many(self, collection_name, filter=None, **kwargs) -> list:
         pass
 
     @abstractmethod
@@ -47,7 +47,7 @@ class RegularRepository(Repository):
         document = collection.find_one(filter=filter, **kwargs)
         return document if document else None
 
-    def get_many(self, collection_name, filter=None, **kwargs):
+    def get_many(self, collection_name, filter=None, **kwargs) -> list:
         collection = self.database[collection_name]
         documents = collection.find(filter, **kwargs)
         return list(documents)
@@ -91,7 +91,7 @@ class InMemoryRepository(Repository):
                     return item
         return None
 
-    def get_many(self, collection_name, filter=None, **kwargs):
+    def get_many(self, collection_name, filter=None, **kwargs) -> list:
         collection = self.collections.get(collection_name, {})
         if filter:
             return [item for item in collection.values() if self._matches_filter(item, filter)]
