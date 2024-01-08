@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, tzinfo
-from math import isnan
 from os import path
 
 from numpy import abs
@@ -18,12 +17,10 @@ from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_
 
 def calculate_index(row: Series) -> float:
     row = to_numeric(row, errors="coerce")
-    if not isnan(row["aqi"]):
-        return row["aqi"]
 
-    return calculate_aqi(calculate_co_index(row["co"]), calculate_no2_index(row["no2"]), calculate_o3_index(row["o3"]),
-                         calculate_pm2_5_index(row["pm2_5"]), calculate_pm10_index(row["pm10"]),
-                         calculate_so2_index(row["so2"]))
+    return calculate_aqi(calculate_co_index(row["co"]), calculate_no2_index(row["no2"]),
+                         calculate_o3_index(row["o3"]), calculate_pm2_5_index(row["pm2_5"]),
+                         calculate_pm10_index(row["pm10"]), calculate_so2_index(row["so2"]))
 
 
 def closest_hour(t: datetime, tz: tzinfo = None) -> datetime:
