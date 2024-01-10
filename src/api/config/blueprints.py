@@ -6,6 +6,7 @@ from api.blueprints.errors import errors_blueprint
 from api.blueprints.forecast import forecast_blueprint
 from api.blueprints.history import history_blueprint
 from api.blueprints.icon import icon_blueprint
+from api.blueprints.plots import plots_blueprint
 from api.blueprints.pollutants import pollutants_blueprint
 from api.blueprints.sensors import sensors_blueprint
 from definitions import URL_PREFIX
@@ -17,6 +18,7 @@ __all__ = [
     "forecast_blueprint",
     "history_blueprint",
     "icon_blueprint",
+    "plots_blueprint",
     "pollutants_blueprint",
     "sensors_blueprint"
 ]

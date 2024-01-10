@@ -45,7 +45,9 @@ MODELS_PATH = path.join(ROOT_PATH, "models")
 
 RESULTS_PATH = path.join(ROOT_PATH, "results")
 RESULTS_ERRORS_PATH = path.join(RESULTS_PATH, "errors")
+RESULTS_ERRORS_PLOTS_PATH = path.join(RESULTS_ERRORS_PATH, "plots")
 RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, "predictions")
+RESULTS_PREDICTIONS_PLOTS_PATH = path.join(RESULTS_PREDICTIONS_PATH, "plots")
 
 APP_DEV = "development"
 APP_PROD = "production"
