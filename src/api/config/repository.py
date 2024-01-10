@@ -33,14 +33,14 @@ class Repository(ABC):
 
 class RegularRepository(Repository):
     def __init__(self, uri):
-        self.client = MongoClient(host=uri, connect=False)
-        self.database = self.client.get_default_database()
-        self.client.db["cities"].create_index([("cityName", ASCENDING)])
-        self.client.db["countries"].create_index([("countryCode", ASCENDING)])
-        self.client.db["sensors"].create_index([("sensorId", ASCENDING)])
-        self.client.db["predictions"].create_index([("cityName", ASCENDING), ("sensorId", ASCENDING)])
+        self.mongo_client = MongoClient(host=uri, connect=False)
+        self.database = self.mongo_client.get_default_database()
+        self.mongo_client.db["cities"].create_index([("cityName", ASCENDING)])
+        self.mongo_client.db["countries"].create_index([("countryCode", ASCENDING)])
+        self.mongo_client.db["sensors"].create_index([("sensorId", ASCENDING)])
+        self.mongo_client.db["predictions"].create_index([("cityName", ASCENDING), ("sensorId", ASCENDING)])
         for collection in COLLECTIONS:
-            self.client.db[collection].create_index([("sensorId", ASCENDING)])
+            self.mongo_client.db[collection].create_index([("sensorId", ASCENDING)])
 
     def get(self, collection_name, filter=None, **kwargs):
         collection = self.database[collection_name]
