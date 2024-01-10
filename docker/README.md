@@ -1,4 +1,4 @@
-# Docker cheatsheet
+# Build and deploy docker containers
 
 ###### Build docker images defined in docker-compose
 
