@@ -1,4 +1,4 @@
 -r common.txt
-dnspython==2.4.2
+dnspython==2.5.0
 pytest==7.4.4
 Werkzeug==3.0.1
