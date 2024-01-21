@@ -9,6 +9,7 @@ gunicorn==21.2.0
 haversine==2.8.1
 lightgbm==4.2.0
 matplotlib==3.8.2
+numba==0.58.1
 numpy==1.26.3
 pandas==2.2.0
 PyGithub==2.1.1
