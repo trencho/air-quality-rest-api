@@ -17,7 +17,7 @@ from .feature_scaling import value_scaling
 from .handle_data import fetch_summary_dataframe, read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
 
-FORECAST_PERIOD = "1H"
+FORECAST_PERIOD = "1h"
 FORECAST_STEPS = 25
 
 
