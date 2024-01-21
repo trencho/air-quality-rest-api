@@ -67,11 +67,9 @@ def generate_time_features(target) -> DataFrame:
     features["isYearStart"] = target.index.is_year_start
     features["isYearEnd"] = target.index.is_year_end
     features["isLeapYear"] = target.index.is_leap_year
-    features["isWeekend"] = target.index.to_series().apply(lambda x: 0 if x.dayofweek in (5, 6) else 1, engine="numba",
-                                                           engine_kwargs={"parallel": True}).values
+    features["isWeekend"] = target.index.to_series().apply(lambda x: 0 if x.dayofweek in (5, 6) else 1).values
 
-    season = DataFrame(
-        target.index.to_series().apply(get_season, engine="numba", engine_kwargs={"parallel": True}).values)
+    season = DataFrame(target.index.to_series().apply(get_season).values)
     encode_categorical_data(season)
     encode_cyclic_data(features, "season", season, 4)
 
