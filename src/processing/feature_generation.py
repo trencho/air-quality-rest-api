@@ -26,7 +26,8 @@ def encode_categorical_data(dataframe: DataFrame) -> None:
     obj_columns = dataframe.select_dtypes("object").columns
     dataframe[obj_columns] = dataframe[obj_columns].astype("category")
     cat_columns = dataframe.select_dtypes("category").columns
-    dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
+    dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes, engine="numba",
+                                                          engine_kwargs={"parallel": True})
 
 
 def encode_cyclic_data(features: DataFrame, col: str, data: [DataFrame, Series], max_value: int) -> None:
@@ -66,9 +67,11 @@ def generate_time_features(target) -> DataFrame:
     features["isYearStart"] = target.index.is_year_start
     features["isYearEnd"] = target.index.is_year_end
     features["isLeapYear"] = target.index.is_leap_year
-    features["isWeekend"] = target.index.to_series().apply(lambda x: 0 if x.dayofweek in (5, 6) else 1).values
+    features["isWeekend"] = target.index.to_series().apply(lambda x: 0 if x.dayofweek in (5, 6) else 1, engine="numba",
+                                                           engine_kwargs={"parallel": True}).values
 
-    season = DataFrame(target.index.to_series().apply(get_season).values)
+    season = DataFrame(
+        target.index.to_series().apply(get_season, engine="numba", engine_kwargs={"parallel": True}).values)
     encode_categorical_data(season)
     encode_cyclic_data(features, "season", season, 4)
 
