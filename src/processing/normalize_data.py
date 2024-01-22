@@ -41,8 +41,7 @@ def current_hour(tz: tzinfo = None) -> datetime:
 def drop_numerical_outliers_with_iqr_score(dataframe: DataFrame, low: float = .05, high: float = .95) -> DataFrame:
     df = dataframe.loc[:, dataframe.columns != "time"]
     quant_df = df.quantile([low, high])
-    df = df.apply(lambda x: x[(x > quant_df.loc[low, x.name]) & (x < quant_df.loc[high, x.name])], raw=True,
-                  engine="numba", engine_kwargs={"parallel": True}, axis=0)
+    df = df.apply(lambda x: x[(x > quant_df.loc[low, x.name]) & (x < quant_df.loc[high, x.name])], axis=0)
     df = concat([dataframe.loc[:, "time"], df], axis=1)
     return df.dropna()
 
@@ -111,9 +110,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         df_columns = df_columns.drop(["aqi", "icon", "precipType", "summary"], errors="ignore")
 
         imp = KNNImputer()
-        dataframe_raw[df_columns] = dataframe_raw[df_columns].apply(to_numeric, raw=True, engine="numba",
-                                                                    engine_kwargs={"parallel": True}, axis="columns",
-                                                                    errors="coerce")
+        dataframe_raw[df_columns] = dataframe_raw[df_columns].apply(to_numeric, axis="columns", errors="coerce")
         for column in df_columns:
             if dataframe_raw[column].isna().all():
                 dataframe_raw.drop(columns=column, inplace=True, errors="ignore")
@@ -132,8 +129,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         dataframe_raw.drop(columns=drop_columns_std, inplace=True, errors="ignore")
 
         if collection != "weather":
-            dataframe_raw["aqi"] = dataframe_raw[list(POLLUTANTS)].apply(calculate_index, raw=True, engine="numba",
-                                                                         engine_kwargs={"parallel": True}, axis=1)
+            dataframe_raw["aqi"] = dataframe_raw[list(POLLUTANTS)].apply(calculate_index, axis=1)
 
         # dataframe_raw = drop_numerical_outliers_with_z_score(dataframe_raw)
 
