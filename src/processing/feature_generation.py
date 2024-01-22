@@ -26,8 +26,8 @@ def encode_categorical_data(dataframe: DataFrame) -> None:
     obj_columns = dataframe.select_dtypes("object").columns
     dataframe[obj_columns] = dataframe[obj_columns].astype("category")
     cat_columns = dataframe.select_dtypes("category").columns
-    dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes, engine="numba",
-                                                          engine_kwargs={"parallel": True, "raw": True})
+    dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes, raw=True, engine="numba",
+                                                          engine_kwargs={"parallel": True})
 
 
 def encode_cyclic_data(features: DataFrame, col: str, data: [DataFrame, Series], max_value: int) -> None:
