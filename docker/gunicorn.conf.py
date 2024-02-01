@@ -1,12 +1,14 @@
 from multiprocessing import cpu_count
 
+from gunicorn.arbiter import Arbiter
+
 from api.config.schedule import scheduler
 
 wsgi_app = "app:app"
 disable_redirect_access_to_syslog = True
 
 
-def on_starting(server):
+def on_starting(server: Arbiter) -> None:
     scheduler.start()
 
 
