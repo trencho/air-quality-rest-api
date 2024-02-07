@@ -1,12 +1,10 @@
 from atexit import register
 from json import load
-from logging import getHandlerByName, getLogger
+from logging import getHandlerByName
 from logging.config import dictConfig
 from os import path
 
 from definitions import LOG_PATH
-
-logger = getLogger(__name__)
 
 
 def configure_logger() -> None:
