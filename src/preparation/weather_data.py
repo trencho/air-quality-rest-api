@@ -1,13 +1,15 @@
+from logging import getLogger
 from os import environ, path
 from time import sleep
 
 from pandas import DataFrame, json_normalize
 from requests import get, RequestException
 
-from api.config.logger import logger
 from definitions import DARK_SKY_TOKEN, DATA_PATH, DATA_RAW_PATH, FORECAST_COUNTER, ONECALL_COUNTER, \
     OPEN_WEATHER_TOKEN, REQUESTS_LIMIT
 from processing import flatten_json, save_dataframe
+
+logger = getLogger(__name__)
 
 
 def check_counter(counter_name: str) -> bool:

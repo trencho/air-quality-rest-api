@@ -1,10 +1,14 @@
+from atexit import register
 from base64 import b64encode
 from datetime import datetime
 from json import dump, load
+from logging import getLogger
 from os import environ, makedirs, path, remove, rmdir, walk
 from shutil import unpack_archive
 
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
+from sqlalchemy import create_engine
 
 from api.blueprints import fetch_city_data
 from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
@@ -14,9 +18,9 @@ from preparation import fetch_cities, fetch_countries, fetch_sensors, read_citie
 from processing import current_hour, fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
 from .cache import cache
 from .git import append_commit_files, create_archive, update_git_files
-from .logger import logger
 from .repository import RepositorySingleton
 
+logger = getLogger(__name__)
 scheduler = BackgroundScheduler()
 repository = RepositorySingleton.get_instance().get_repository()
 
