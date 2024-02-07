@@ -1,3 +1,4 @@
+from logging import getLogger
 from os import environ, makedirs, path
 
 from pandas import DataFrame
@@ -6,9 +7,10 @@ from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DA
     LOG_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from preparation import read_cities, read_sensors
 from processing import find_missing_data, read_csv_in_chunks, save_dataframe
-from .logger import logger
 from .repository import RepositorySingleton
 from .schedule import fetch_locations
+
+logger = getLogger(__name__)
 
 SYSTEM_PATHS = [
     DATA_EXTERNAL_PATH,

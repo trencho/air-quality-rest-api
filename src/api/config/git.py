@@ -1,5 +1,6 @@
 from datetime import datetime
 from io import BytesIO, StringIO
+from logging import getLogger
 from os import environ, path, sep
 from shutil import make_archive, move
 
@@ -11,7 +12,8 @@ from urllib3.exceptions import ReadTimeoutError
 
 from definitions import GITHUB_TOKEN, ROOT_PATH
 from processing import read_csv_in_chunks, trim_dataframe
-from .logger import logger
+
+logger = getLogger(__name__)
 
 
 class GithubSingleton:

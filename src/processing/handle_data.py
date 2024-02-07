@@ -1,13 +1,14 @@
+from logging import getLogger
 from os import path
 from pickle import dump, HIGHEST_PROTOCOL, load
 from typing import Optional
 
 from pandas import concat, DataFrame, read_csv, to_datetime
 
-from api.config.logger import logger
 from api.config.repository import RepositorySingleton
 from definitions import CHUNK_SIZE, COLLECTIONS
 
+logger = getLogger(__name__)
 repository = RepositorySingleton.get_instance().get_repository()
 
 
