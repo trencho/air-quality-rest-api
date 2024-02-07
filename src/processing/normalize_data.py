@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, tzinfo
+from logging import getLogger
 from os import path
 
 from numpy import abs
@@ -7,12 +8,13 @@ from pytz import timezone
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
-from api.config.logger import logger
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, POLLUTANTS
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
     calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
 from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_in_chunks, rename_features, \
     trim_dataframe
+
+logger = getLogger(__name__)
 
 
 def calculate_index(row: Series) -> float:

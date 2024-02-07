@@ -1,5 +1,6 @@
 from datetime import datetime
 from glob import glob
+from logging import getLogger
 from math import inf
 from os import environ, makedirs, path, remove
 from pickle import dump, HIGHEST_PROTOCOL
@@ -8,7 +9,6 @@ from threading import Thread
 from pandas import DataFrame, read_csv, Series
 from sklearn.model_selection import RandomizedSearchCV
 
-from api.config.logger import logger
 from definitions import APP_DEV, APP_ENV, DATA_PROCESSED_PATH, MODELS_PATH, POLLUTANTS, REGRESSION_MODELS, \
     RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from models import make_model
@@ -18,6 +18,7 @@ from processing import backward_elimination, current_hour, encode_categorical_da
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
+logger = getLogger(__name__)
 LOCK_FILE = ".lock"
 
 
