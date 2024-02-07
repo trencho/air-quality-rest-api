@@ -4,6 +4,7 @@ from pickle import dump, HIGHEST_PROTOCOL, load
 from typing import Optional
 
 from pandas import concat, DataFrame, read_csv, to_datetime
+from pandas.errors import InvalidIndexError
 
 from api.config.repository import RepositorySingleton
 from definitions import CHUNK_SIZE, COLLECTIONS
@@ -58,9 +59,13 @@ def rename_features(dataframe: DataFrame) -> None:
 
 
 def fetch_summary_dataframe(data_path: str, index_col: str) -> DataFrame:
-    dataframe_list = [read_csv_in_chunks(path.join(data_path, f"{collection}.csv"), index_col=index_col) for collection
-                      in COLLECTIONS]
-    return concat(dataframe_list, axis=1, join="inner")
+    try:
+        dataframe_list = [read_csv_in_chunks(path.join(data_path, f"{collection}.csv"), index_col=index_col) for
+                          collection
+                          in COLLECTIONS]
+        return concat(dataframe_list, axis=1, join="inner")
+    except InvalidIndexError:
+        logger.error(f"Could not fetch summary data from data path: {data_path}", exc_info=True)
 
 
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:

@@ -176,11 +176,9 @@ def reset_model_lock() -> None:
 
 
 def configure_scheduler() -> None:
-    logger.info("Scheduling jobs")
     db_url = f"sqlite:////{DATA_PATH}/jobs.sqlite"
     engine = create_engine(db_url)
     jobstore = SQLAlchemyJobStore(engine=engine)
     scheduler.add_jobstore(jobstore=jobstore, alias=jobstore_name)
     scheduler.start()
-    scheduler.print_jobs()
     register(lambda: scheduler.shutdown(wait=False))
