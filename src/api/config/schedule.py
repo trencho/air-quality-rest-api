@@ -6,9 +6,7 @@ from logging import getLogger
 from os import environ, makedirs, path, remove, rmdir, walk
 from shutil import unpack_archive
 
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
-from sqlalchemy import create_engine
 
 from api.blueprints import fetch_city_data
 from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
