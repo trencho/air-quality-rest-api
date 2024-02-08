@@ -60,6 +60,7 @@ spec:
         io.kompose.network/aqra-network: "true"
         io.kompose.service: flask
     spec:
+      automountServiceAccountToken: false
       containers:
         - envFrom:
             - secretRef:
@@ -83,7 +84,6 @@ spec:
               name: flaskdata
       securityContext:
         runAsNonRoot: true
-      serviceAccountName: ""
       volumes:
         - name: flaskdata
           persistentVolumeClaim:
@@ -115,6 +115,7 @@ spec:
         io.kompose.network/aqra-network: "true"
         io.kompose.service: nginx
     spec:
+      automountServiceAccountToken: false
       containers:
         - image: aqra-nginx
           imagePullPolicy: Never
@@ -135,7 +136,6 @@ spec:
               name: nginxdata
       securityContext:
         runAsNonRoot: true
-      serviceAccountName: ""
       volumes:
         - name: nginxdata
           persistentVolumeClaim:

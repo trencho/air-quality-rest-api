@@ -1,16 +1,36 @@
+from logging import getLogger
+
 from flask import Flask, jsonify, make_response, Response
 from flask_healthz import Healthz
-from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_200_OK, HTTP_503_SERVICE_UNAVAILABLE
 
 from definitions import URL_PREFIX
 from .cache import cache
+from .schedule import scheduler
+
+logger = getLogger(__name__)
+
+HEALTHZ = {
+    "live": "api.config.health.liveness",
+    "ready": "api.config.health.readiness",
+}
 
 
 def configure_healthcheck(app: Flask) -> None:
-    app.config["HEALTHZ"] = {"live": "api.config.health.liveness"}
+    app.config["HEALTHZ"] = HEALTHZ
     Healthz(app, prefix=f"{URL_PREFIX}/healthz", no_log=True)
 
 
-@cache.cached(timeout=0)
+@cache.cached(timeout=180)
 def liveness() -> Response:
+    return make_response(jsonify(message="OK"), HTTP_200_OK)
+
+
+@cache.cached(timeout=180)
+def readiness() -> Response:
+    if scheduler.state != 1:
+        logger.info(f"Scheduler state: {scheduler.state}")
+        scheduler.start()
+        return make_response(jsonify(message="SERVICE_UNAVAILABLE"), HTTP_503_SERVICE_UNAVAILABLE)
+
     return make_response(jsonify(message="OK"), HTTP_200_OK)
