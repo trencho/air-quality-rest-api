@@ -30,6 +30,12 @@ docker logs -f [container-id]
 docker exec -it [container-id] bash
 ```
 
+###### Monitor docker containers and their resource usage
+
+```
+docker stats $(docker ps --filter "name=[container-name]" -q)
+```
+
 ###### Stop all docker containers defined in docker-compose
 
 ```

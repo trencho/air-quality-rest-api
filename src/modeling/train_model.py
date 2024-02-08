@@ -6,7 +6,8 @@ from os import environ, makedirs, path, remove
 from pickle import dump, HIGHEST_PROTOCOL
 from threading import Thread
 
-from pandas import DataFrame, read_csv, Series
+from pandas import DataFrame, read_csv, Series, to_datetime
+from pytz import UTC
 from sklearn.model_selection import RandomizedSearchCV
 
 from definitions import APP_DEV, APP_ENV, DATA_PROCESSED_PATH, MODELS_PATH, POLLUTANTS, REGRESSION_MODELS, \
@@ -192,15 +193,15 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
     try:
         dataframe = fetch_summary_dataframe(path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"]),
                                             index_col="time")
-        dataframe = dataframe.loc[dataframe.index <= datetime.utcnow()]
+        dataframe = dataframe.loc[dataframe.index <= to_datetime(datetime.now(UTC)).to_datetime64()]
         if pollutant in dataframe.columns:
             create_pollutant_lock(city["cityName"], sensor["sensorId"], pollutant)
             generate_regression_model(dataframe, city["cityName"], sensor["sensorId"], pollutant)
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
     except Exception:
-        logger.error(f"Error occurred while training regression model for {city['cityName']} - {sensor['sensorId']} - "
-                     f"{pollutant}", exc_info=True)
+        logger.error(f"Error occurred while training regression model for {city['cityName']} - "
+                     f"{sensor['sensorId']} - {pollutant}", exc_info=True)
     finally:
         remove_pollutant_lock(city["cityName"], sensor["sensorId"], pollutant)
 

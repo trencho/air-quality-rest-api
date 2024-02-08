@@ -1,6 +1,5 @@
 from os import cpu_count
 
-from numpy import linspace
 from sklearn.ensemble import RandomForestRegressor
 
 from .base_regression_model import BaseRegressionModel
@@ -9,15 +8,13 @@ from .base_regression_model import BaseRegressionModel
 class RandomForestRegressionModel(BaseRegressionModel):
     def __init__(self) -> None:
         reg = RandomForestRegressor()
-        max_depth = [int(x) for x in linspace(10, 110, num=11)]
-        max_depth.append(None)
         param_grid = {
-            "n_estimators": [int(x) for x in linspace(start=200, stop=2000, num=10)],
-            "max_depth": max_depth,
-            "min_samples_split": [2, 5, 10],
-            "min_samples_leaf": [1, 2, 4],
-            "max_features": ["auto", "sqrt"],
-            "bootstrap": [True, False],
+            "n_estimators": [100, 200, 300],  # Number of trees in the forest
+            "max_depth": [None, 10, 20],  # Maximum depth of the trees
+            "min_samples_split": [2, 5, 10],  # Minimum number of samples required to split an internal node
+            "min_samples_leaf": [1, 2, 4],  # Minimum number of samples required to be at a leaf node
+            "max_features": ["auto", "sqrt", "log2"],  # Number of features to consider when looking for the best split
+            "bootstrap": [True, False],  # Whether bootstrap samples are used when building trees
             "n_jobs": [cpu_count() // 2]
         }
         super().__init__(reg, param_grid)

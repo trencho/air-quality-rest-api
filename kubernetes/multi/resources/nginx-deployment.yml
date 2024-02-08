@@ -24,6 +24,7 @@ spec:
         io.kompose.network/aqra-network: "true"
         io.kompose.service: nginx
     spec:
+      automountServiceAccountToken: false
       containers:
         - image: aqra-nginx
           imagePullPolicy: Never
@@ -44,7 +45,6 @@ spec:
               name: nginxdata
       securityContext:
         runAsNonRoot: true
-      serviceAccountName: ""
       volumes:
         - name: nginxdata
           persistentVolumeClaim:

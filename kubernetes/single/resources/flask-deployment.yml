@@ -24,6 +24,7 @@ spec:
         io.kompose.network/aqra-network: "true"
         io.kompose.service: flask
     spec:
+      automountServiceAccountToken: false
       containers:
         - envFrom:
             - secretRef:
@@ -38,6 +39,14 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 300
             timeoutSeconds: 60
+          readinessProbe:
+            failureThreshold: 2
+            httpGet:
+              path: /api/v1/healthz/ready
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 300
+            timeoutSeconds: 60
           name: flask
           ports:
             - containerPort: 80
@@ -45,7 +54,6 @@ spec:
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
-      serviceAccountName: ""
       volumes:
         - name: flaskdata
           persistentVolumeClaim:
