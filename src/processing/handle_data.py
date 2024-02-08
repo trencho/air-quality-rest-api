@@ -4,10 +4,9 @@ from pickle import dump, HIGHEST_PROTOCOL, load
 from typing import Optional
 
 from pandas import concat, DataFrame, read_csv, to_datetime
-from pandas.errors import InvalidIndexError
 
 from api.config.repository import RepositorySingleton
-from definitions import CHUNK_SIZE, COLLECTIONS
+from definitions import CHUNK_SIZE, column_dtypes, COLLECTIONS
 
 logger = getLogger(__name__)
 repository = RepositorySingleton.get_instance().get_repository()
@@ -45,6 +44,7 @@ def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFr
     chunks = [chunk for chunk in read_csv(data_path, index_col=index_col, chunksize=CHUNK_SIZE) if len(chunk.index) > 0]
     dataframe = concat(chunks)
     dataframe.index = to_datetime(dataframe.index, errors="coerce", unit="s")
+    dataframe.drop_duplicates(keep="last", inplace=True)
     return dataframe.sort_index() if len(dataframe.index) > 0 else None
 
 
@@ -59,12 +59,9 @@ def rename_features(dataframe: DataFrame) -> None:
 
 
 def fetch_summary_dataframe(data_path: str, index_col: str) -> DataFrame:
-    try:
-        dataframe_list = [read_csv_in_chunks(path.join(data_path, f"{collection}.csv"), index_col=index_col) for
-                          collection in COLLECTIONS]
-        return concat(dataframe_list, axis=1, join="inner")
-    except InvalidIndexError:
-        logger.error(f"Could not fetch summary data from data path: {data_path}", exc_info=True)
+    dataframe_list = [read_csv_in_chunks(path.join(data_path, f"{collection}.csv"), index_col=index_col) for collection
+                      in COLLECTIONS]
+    return concat(dataframe_list, axis=1, join="inner")
 
 
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
@@ -89,6 +86,7 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
     except Exception:
         logger.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=True)
     dataframe.drop(columns="sensorId", inplace=True, errors="ignore")
+    dataframe = dataframe.astype(column_dtypes, errors="ignore")
     dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
 

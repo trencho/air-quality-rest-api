@@ -85,3 +85,16 @@ REGRESSION_MODELS = {
 FORECAST_COUNTER = "forecast_counter"
 ONECALL_COUNTER = "onecall_counter"
 REQUESTS_LIMIT = 1000
+
+column_dtypes = {
+    "time": int,
+    "aqi": float,
+    "co": float,
+    "no": float,
+    "no2": float,
+    "o3": float,
+    "so2": float,
+    "pm2_5": float,
+    "pm10": float,
+    "nh3": float
+}
