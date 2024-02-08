@@ -24,6 +24,7 @@ spec:
         io.kompose.network/aqra-network: "true"
         io.kompose.service: mongo
     spec:
+      automountServiceAccountToken: false
       containers:
         - envFrom:
             - secretRef:
@@ -51,7 +52,6 @@ spec:
         runAsNonRoot: true
         runAsUser: 1002
         runAsGroup: 1002
-      serviceAccountName: ""
       volumes:
         - name: mongodata
           persistentVolumeClaim:

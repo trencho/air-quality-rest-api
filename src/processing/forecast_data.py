@@ -5,7 +5,8 @@ from os import path
 from pickle import load
 from typing import Optional
 
-from pandas import concat, DataFrame, date_range, Series
+from pandas import concat, DataFrame, date_range, Series, to_datetime
+from pytz import UTC
 
 from api.config.cache import cache
 from definitions import DATA_PROCESSED_PATH, MODELS_PATH, POLLUTANTS
@@ -145,7 +146,8 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     if len(dataframe.index) == 0:
         return Series()
 
-    dataframe = dataframe.loc[datetime.utcnow() - timedelta(weeks=52): datetime.utcnow()]
+    dataframe = dataframe.loc[to_datetime(datetime.now(UTC)).to_datetime64() - timedelta(weeks=52): to_datetime(
+        datetime.now(UTC)).to_datetime64()]
     target = dataframe[pollutant].copy()
 
     forecasted_values = []

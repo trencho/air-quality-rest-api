@@ -8,9 +8,10 @@ class DecisionTreeRegressionModel(BaseRegressionModel):
         reg = DecisionTreeRegressor()
         param_grid = {
             "criterion": ["absolute_error", "squared_error"],
-            "max_depth": [2, 6, 8],
-            "min_samples_split": [10, 20, 40],
-            "min_samples_leaf": [20, 40, 100],
+            "max_depth": [5, 10, 15, None],
+            "min_samples_split": [2, 5, 10, 20],
+            "min_samples_leaf": [1, 2, 5, 10],
+            "max_features": ["auto", "sqrt", "log2", None],
             "max_leaf_nodes": [5, 20, 100]
         }
         super().__init__(reg, param_grid)
