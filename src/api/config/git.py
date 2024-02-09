@@ -10,7 +10,7 @@ from pandas import concat
 from requests import ReadTimeout
 from urllib3.exceptions import ReadTimeoutError
 
-from definitions import column_dtypes, GITHUB_TOKEN, ROOT_PATH
+from definitions import GITHUB_TOKEN, ROOT_PATH
 from processing import read_csv_in_chunks, trim_dataframe
 
 logger = getLogger(__name__)
@@ -79,7 +79,8 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
         repo_file_content = read_csv_in_chunks(bytes_io_data.getvalue().decode("utf-8"))
         local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
         trim_dataframe(local_file_content, "time")
-        local_file_content = local_file_content.astype(column_dtypes, errors="ignore")
+        # TODO: Review this line for converting column data types
+        # local_file_content = local_file_content.astype(column_dtypes, errors="ignore")
         return local_file_content.to_csv(index=False)
     except Exception:
         logger.error("Error occurred while merging local files with files from GitHub repository", exc_info=True)
