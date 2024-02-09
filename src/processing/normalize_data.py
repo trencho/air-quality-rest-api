@@ -8,7 +8,7 @@ from pytz import timezone
 from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
-from definitions import column_dtypes, DATA_PROCESSED_PATH, DATA_RAW_PATH, POLLUTANTS
+from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, POLLUTANTS
 from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
     calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
 from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_in_chunks, rename_features, \
@@ -26,11 +26,11 @@ def calculate_index(row: Series) -> float:
 
 
 def closest_hour(t: datetime, tz: tzinfo = None) -> datetime:
-    if t.tzinfo is None and tz is not None:
+    if tz is not None:
         return timezone(tz.__str__()).localize(
             t.replace(hour=t.hour + t.minute // 30, minute=0, second=0, microsecond=0))
 
-    return t.replace(hour=t.hour if t.minute < 30 else t.hour + 1, minute=0, second=0, microsecond=0)
+    return t.replace(hour=t.hour + t.minute // 30, minute=0, second=0, microsecond=0)
 
 
 def current_hour(tz: tzinfo = None) -> datetime:
@@ -86,7 +86,7 @@ def flatten_json(nested_json: dict, exclude=None) -> dict:
 
 
 def next_hour(t: datetime, tz: tzinfo = None) -> datetime:
-    if t.tzinfo is None and tz is not None:
+    if tz is not None:
         return timezone(tz.__str__()).localize(t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
 
     return t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
@@ -140,7 +140,8 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             dataframe_raw = find_missing_data(dataframe_raw, dataframe_processed, "time")
 
         if len(dataframe_raw.index) > 0:
-            dataframe_raw = dataframe_raw.astype(column_dtypes, errors="ignore")
+            # TODO: Review this line for converting column data types
+            # dataframe_raw = dataframe_raw.astype(column_dtypes, errors="ignore")
             dataframe_raw.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
     except Exception:
