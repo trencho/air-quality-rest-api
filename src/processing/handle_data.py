@@ -6,7 +6,7 @@ from typing import Optional
 from pandas import concat, DataFrame, read_csv, to_datetime
 
 from api.config.repository import RepositorySingleton
-from definitions import CHUNK_SIZE, column_dtypes, COLLECTIONS
+from definitions import CHUNK_SIZE, COLLECTIONS
 
 logger = getLogger(__name__)
 repository = RepositorySingleton.get_instance().get_repository()
@@ -86,7 +86,8 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
     except Exception:
         logger.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=True)
     dataframe.drop(columns="sensorId", inplace=True, errors="ignore")
-    dataframe = dataframe.astype(column_dtypes, errors="ignore")
+    # TODO: Review this line for converting column data types
+    # dataframe = dataframe.astype(column_dtypes, errors="ignore")
     dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
 
 
