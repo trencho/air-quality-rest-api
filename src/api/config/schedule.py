@@ -28,7 +28,7 @@ jobstore_name = "aqra"
 repository = RepositorySingleton.get_instance().get_repository()
 
 
-@scheduler.scheduled_job(trigger="cron", jobstore=jobstore_name, day="*/15")
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, day="*/15")
 def dump_data() -> None:
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
@@ -45,7 +45,7 @@ def dump_data() -> None:
                          f"Scheduled data dump - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}")
 
 
-@scheduler.scheduled_job(trigger="cron", jobstore=jobstore_name, hour="*/2")
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, hour="*/2")
 def fetch_hourly_data() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -54,7 +54,7 @@ def fetch_hourly_data() -> None:
                 process_data(city["cityName"], sensor["sensorId"], collection)
 
 
-@scheduler.scheduled_job(trigger="cron", jobstore=jobstore_name, hour=0)
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def fetch_locations() -> None:
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, "cities.json"), "w") as out_file:
@@ -88,7 +88,7 @@ def fetch_locations() -> None:
             dump(sensors[city["cityName"]], out_file, indent=4)
 
 
-@scheduler.scheduled_job(trigger="cron", jobstore=jobstore_name, hour=0)
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def import_data() -> None:
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
@@ -119,7 +119,7 @@ def import_data() -> None:
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
 
 
-@scheduler.scheduled_job(trigger="cron", jobstore=jobstore_name, minute=0)
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, minute=0)
 def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -127,7 +127,7 @@ def model_training() -> None:
                 train_regression_model(city, sensor, pollutant)
 
 
-@scheduler.scheduled_job(trigger="cron", jobstore=jobstore_name, minute=0)
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, minute=0)
 def predict_locations() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -154,7 +154,7 @@ def predict_locations() -> None:
                     exc_info=True)
 
 
-@scheduler.scheduled_job(trigger="cron", jobstore=jobstore_name, hour=0)
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def reset_api_counter() -> None:
     try:
         with open(path.join(DATA_PATH, f"{FORECAST_COUNTER}.txt"), "w") as out_file:
@@ -165,7 +165,7 @@ def reset_api_counter() -> None:
         logger.error("Error occurred while resetting the API counter", exc_info=True)
 
 
-@scheduler.scheduled_job(trigger="cron", jobstore=jobstore_name, hour=0)
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def reset_model_lock() -> None:
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith(".lock")]:

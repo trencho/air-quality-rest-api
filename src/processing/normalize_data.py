@@ -34,10 +34,11 @@ def closest_hour(t: datetime, tz: tzinfo = None) -> datetime:
 
 
 def current_hour(tz: tzinfo = None) -> datetime:
+    current_datetime = datetime.now()
     if tz is not None:
-        return timezone(tz.__str__()).localize(datetime.now().replace(minute=0, second=0, microsecond=0))
+        return timezone(tz.__str__()).localize(current_datetime.replace(minute=0, second=0, microsecond=0))
 
-    return datetime.now().replace(minute=0, second=0, microsecond=0)
+    return current_datetime.replace(minute=0, second=0, microsecond=0)
 
 
 def drop_numerical_outliers_with_iqr_score(dataframe: DataFrame, low: float = .05, high: float = .95) -> DataFrame:

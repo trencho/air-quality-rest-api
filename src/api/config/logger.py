@@ -1,24 +1,57 @@
 from atexit import register
-from json import load
 from logging import getHandlerByName
 from logging.config import dictConfig
 from os import path
 
 from definitions import LOG_PATH
 
+CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "%(asctime)s %(name)-30s [%(levelname)s] %(message)s",
+            "datefmt": "[%Y-%m-%d %H:%M:%S %z]"
+        }
+    },
+    "handlers": {
+        "stdout": {
+            "class": "logging.StreamHandler",
+            "level": "INFO",
+            "formatter": "simple",
+            "stream": "ext://sys.stdout"
+        },
+        "file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "level": "INFO",
+            "formatter": "simple",
+            "filename": f"{path.join(LOG_PATH, "app.log")}",
+            "when": "midnight",
+            "backupCount": 5
+        },
+        "queue": {
+            "class": "logging.handlers.QueueHandler",
+            "handlers": [
+                "stdout",
+                "file"
+            ],
+            "respect_handler_level": True
+        }
+    },
+    "loggers": {
+        "root": {
+            "handlers": [
+                "queue"
+            ],
+            "level": "DEBUG",
+            "propagate": True
+        }
+    }
+}
+
 
 def configure_logger() -> None:
-    config_file = path.join(path.dirname(path.abspath(__file__)), "logging_configs", "config.json")
-    with open(config_file) as in_file:
-        config_dict = load(in_file)
-
-    file_handler_config = config_dict.get("handlers", {}).get("file", {})
-    # Check if the necessary keys are present
-    if "filename" in file_handler_config:
-        # Update the filename in the configuration
-        file_handler_config["filename"] = path.join(LOG_PATH, "app.log")
-
-    dictConfig(config_dict)
+    dictConfig(CONFIG)
     queue_handler = getHandlerByName("queue")
     if queue_handler is not None:
         queue_handler.listener.start()
