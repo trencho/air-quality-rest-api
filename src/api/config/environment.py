@@ -3,7 +3,7 @@ from os import environ, makedirs, path
 
 from pandas import DataFrame
 
-from definitions import COLLECTIONS, column_dtypes, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
+from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
     ENVIRONMENT_VARIABLES, \
     LOG_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from preparation import read_cities, read_sensors
@@ -47,14 +47,16 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
     try:
         dataframe = read_csv_in_chunks(collection_path)
         new_db_records = find_missing_data(db_records, dataframe, "time")
-        new_db_records = new_db_records.astype(column_dtypes, errors="ignore")
+        # TODO: Review this line for converting column data types
+        # new_db_records = new_db_records.astype(column_dtypes, errors="ignore")
         new_db_records.to_csv(collection_path, header=False, index=False, mode="a")
 
         save_dataframe(dataframe, collection, collection_path, sensor_id)
     except Exception:
         logger.error(f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}",
                      exc_info=True)
-        db_records = db_records.astype(column_dtypes, errors="ignore")
+        # TODO: Review this line for converting column data types
+        # db_records = db_records.astype(column_dtypes, errors="ignore")
         db_records.to_csv(collection_path, index=False)
 
 
