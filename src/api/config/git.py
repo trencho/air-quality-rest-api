@@ -87,7 +87,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
 
 
 def update_git_files(file_list: list, file_names: list, repo_name: str, branch: str,
-                     commit_message: str = f"Data Updated - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}") -> None:
+                     commit_message: str = f"Data Updated - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}") -> None:
     repo = GithubSingleton.get_instance().get_repository(repo_name)
     master_ref = repo.get_git_ref(f"heads/{branch}")
     master_sha = master_ref.object.sha
