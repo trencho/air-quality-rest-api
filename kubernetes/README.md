@@ -22,7 +22,7 @@ kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/
 ###### Apply metrics server for cluster
 
 ```
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl apply -f kubernetes/metrics-server/components.yml
 ```
 
 ###### Apply cert-manager resources

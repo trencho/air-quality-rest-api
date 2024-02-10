@@ -92,6 +92,7 @@ def next_hour(t: datetime, tz: tzinfo = None) -> datetime:
     return t.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
 
+# TODO: Refactor this method to reduce number of exceptions based on missing dataset
 def process_data(city_name: str, sensor_id: str, collection: str) -> None:
     try:
         dataframe_raw = read_csv_in_chunks(path.join(DATA_RAW_PATH, city_name, sensor_id, f"{collection}.csv"))
