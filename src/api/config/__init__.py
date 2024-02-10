@@ -1,3 +1,4 @@
+from gc import DEBUG_STATS, set_debug
 from os import environ
 
 from flask import Flask
@@ -15,6 +16,7 @@ from .swagger import configure_swagger
 
 
 def create_app() -> Flask:
+    set_debug(DEBUG_STATS)
     init_system_paths()
     configure_logger()
 
