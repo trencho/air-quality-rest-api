@@ -1,7 +1,6 @@
 from atexit import register
 from base64 import b64encode
 from datetime import datetime
-from gc import collect
 from json import dump, load
 from logging import getLogger
 from os import environ, makedirs, path, remove, rmdir, walk
@@ -18,6 +17,7 @@ from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
 from processing import current_hour, fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
 from .cache import cache
+from .dump import generate_sql_dump
 from .git import append_commit_files, create_archive, update_git_files
 from .repository import RepositorySingleton
 
@@ -118,11 +118,6 @@ def import_data() -> None:
             rmdir(root)
 
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
-
-
-@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, minute="*/5")
-def garbage_collection() -> None:
-    collect()
 
 
 @scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, minute=0)
