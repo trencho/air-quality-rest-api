@@ -1,6 +1,7 @@
 from atexit import register
 from base64 import b64encode
 from datetime import datetime
+from gc import collect
 from json import dump, load
 from logging import getLogger
 from os import environ, makedirs, path, remove, rmdir, walk
@@ -117,6 +118,11 @@ def import_data() -> None:
             rmdir(root)
 
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
+
+
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, minute="*/30")
+def garbage_collection() -> None:
+    collect()
 
 
 @scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, minute=0)
