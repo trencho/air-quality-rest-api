@@ -17,7 +17,6 @@ from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
 from processing import current_hour, fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
 from .cache import cache
-from .dump import generate_sql_dump
 from .git import append_commit_files, create_archive, update_git_files
 from .repository import RepositorySingleton
 
