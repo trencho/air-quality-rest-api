@@ -36,8 +36,8 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
         dataframe = json_normalize(hourly["data"])
 
         if len(dataframe.index) > 0:
-            save_dataframe(dataframe, "weather", path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "weather.csv"),
-                           sensor["sensorId"])
+            save_dataframe(dataframe, "weather",
+                           path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "weather.csv"), sensor["sensorId"])
     except Exception:
         logger.error(f"Error occurred while fetching DarkSky data for {city_name} - {sensor['sensorId']}",
                      exc_info=True)
@@ -98,7 +98,7 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
             save_dataframe(dataframe, "pollution",
                            path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "pollution.csv"), sensor["sensorId"])
     except Exception:
-        logger.error(f"Error occurred while fetching pollution data for {city_name} - {sensor['sensorId']}",
+        logger.error(f"Error occurred while fetching pollution data for {city_name} - {sensor["sensorId"]}",
                      exc_info=True)
         lock_counter(FORECAST_COUNTER)
     finally:

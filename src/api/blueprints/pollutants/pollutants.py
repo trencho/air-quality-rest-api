@@ -1,3 +1,5 @@
+from os import path
+
 from flasgger import swag_from
 from flask import Blueprint, jsonify, Response
 from starlette.status import HTTP_404_NOT_FOUND
@@ -12,7 +14,7 @@ pollutants_blueprint = Blueprint("pollutants", __name__)
 
 @cache.memoize(timeout=3600)
 def fetch_measurements(city_name: str, sensor_id: str) -> Response:
-    if isinstance(dataframe := fetch_dataframe(city_name, sensor_id, "pollution"), Response):
+    if isinstance(dataframe := fetch_dataframe(path.join(city_name, sensor_id), "pollution"), Response):
         return dataframe
 
     measurements = [{"name": POLLUTANTS[pollutant], "value": pollutant}
@@ -30,12 +32,12 @@ def fetch_city_sensor_pollutants(city_name: str, sensor_id: str) -> Response | t
             error_message="Cannot return available pollutants because the city is not found or is invalid."), \
             HTTP_404_NOT_FOUND
 
-    if (sensor := check_sensor(city_name, sensor_id)) is None:
+    if check_sensor(city_name, sensor_id) is None:
         return jsonify(
             error_message="Cannot return available pollutants because the sensor is not found or is invalid."), \
             HTTP_404_NOT_FOUND
 
-    return fetch_measurements(sensor["cityName"], sensor["sensorId"])
+    return fetch_measurements(city_name, sensor_id)
 
 
 @pollutants_blueprint.get("/coordinates/<float:latitude>,<float:longitude>/pollutants/", endpoint="coordinates")

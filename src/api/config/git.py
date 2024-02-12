@@ -78,7 +78,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
         bytes_io_data.seek(0)
         repo_file_content = read_csv_in_chunks(bytes_io_data.getvalue().decode("utf-8"))
         local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
-        trim_dataframe(local_file_content, "time")
+        local_file_content = trim_dataframe(local_file_content, "time")
         # TODO: Review this line for converting column data types
         # local_file_content = local_file_content.astype(column_dtypes, errors="ignore")
         return local_file_content.to_csv(index=False)

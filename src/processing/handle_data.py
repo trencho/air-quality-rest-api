@@ -21,9 +21,10 @@ def convert_dtype(x: object) -> str:
         return ""
 
 
-def drop_unnecessary_features(dataframe: DataFrame) -> None:
-    dataframe.drop(columns=dataframe.filter(regex="weather").columns, axis=1, inplace=True, errors="ignore")
-    dataframe.drop(columns=["precipProbability", "precipType", "ozone", "co2"], inplace=True, errors="ignore")
+def drop_unnecessary_features(dataframe: DataFrame) -> DataFrame:
+    dataframe = dataframe.drop(columns=dataframe.filter(regex="weather").columns, axis=1, errors="ignore")
+    dataframe = dataframe.drop(columns=["precipProbability", "precipType", "ozone", "co2"], errors="ignore")
+    return dataframe
 
 
 def find_dtypes(file_path: str, collection: str) -> Optional[dict]:
@@ -44,7 +45,7 @@ def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFr
     chunks = [chunk for chunk in read_csv(data_path, index_col=index_col, chunksize=CHUNK_SIZE) if len(chunk.index) > 0]
     dataframe = concat(chunks)
     dataframe.index = to_datetime(dataframe.index, errors="coerce", unit="s")
-    dataframe.drop_duplicates(keep="last", inplace=True)
+    dataframe = dataframe.drop_duplicates(keep="last")
     return dataframe.sort_index() if len(dataframe.index) > 0 else None
 
 
@@ -66,14 +67,14 @@ def fetch_summary_dataframe(data_path: str, index_col: str) -> DataFrame:
 
 def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
     rename_features(dataframe)
-    drop_unnecessary_features(dataframe)
+    dataframe = drop_unnecessary_features(dataframe)
 
     db_records = DataFrame(
         repository.get_many(collection_name=collection, filter={"sensorId": sensor_id}, projection={"_id": False}))
     if len(db_records.index) > 0:
         dataframe = find_missing_data(dataframe, db_records, "time")
 
-    trim_dataframe(dataframe, "time")
+    dataframe = trim_dataframe(dataframe, "time")
     if len(dataframe.index) == 0:
         return
 
@@ -85,7 +86,7 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
         dataframe = find_missing_data(dataframe, df, "time")
     except Exception:
         logger.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=True)
-    dataframe.drop(columns="sensorId", inplace=True, errors="ignore")
+    dataframe = dataframe.drop(columns="sensorId", errors="ignore")
     # TODO: Review this line for converting column data types
     # dataframe = dataframe.astype(column_dtypes, errors="ignore")
     dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
@@ -96,9 +97,10 @@ def store_dtypes(file_path: str, collection: str, dtypes: dict) -> None:
         dump(dtypes, out_file, HIGHEST_PROTOCOL)
 
 
-def trim_dataframe(dataframe: DataFrame, column: str) -> None:
-    dataframe.sort_values(by=column, inplace=True)
-    dataframe.dropna(axis="columns", how="all", inplace=True)
-    dataframe.dropna(axis="index", how="all", inplace=True)
-    dataframe.drop_duplicates(subset=column, keep="last", inplace=True)
+def trim_dataframe(dataframe: DataFrame, column: str) -> DataFrame:
+    dataframe = dataframe.sort_values(by=column)
+    dataframe = dataframe.dropna(axis="columns", how="all")
+    dataframe = dataframe.dropna(axis="index", how="all")
+    dataframe = dataframe.drop_duplicates(subset=column, keep="last")
     dataframe.reset_index(drop=True, inplace=True)
+    return dataframe

@@ -26,6 +26,7 @@ def fetch_plots_predictions(city_name: str, sensor_id: str, pollutant: str) -> R
     image_path = path.join(RESULTS_PREDICTIONS_PLOTS_PATH, city_name, sensor_id, pollutant, "prediction.png")
     if not path.exists(image_path):
         return jsonify(error_message="Cannot return plot because it does not exist."), HTTP_404_NOT_FOUND
+
     return send_file(image_path, mimetype="image/png", max_age=3600)
 
 

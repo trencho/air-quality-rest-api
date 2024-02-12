@@ -17,6 +17,7 @@ from modeling import train_regression_model
 from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
 from processing import current_hour, fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
 from .cache import cache
+from .dump import generate_sql_dump
 from .git import append_commit_files, create_archive, update_git_files
 from .repository import RepositorySingleton
 
@@ -24,6 +25,7 @@ logger = getLogger(__name__)
 
 scheduler = BackgroundScheduler()
 jobstore_name = "aqra"
+DATABASE_FILE = path.join(DATA_PATH, "jobs.sqlite")
 
 repository = RepositorySingleton.get_instance().get_repository()
 
@@ -42,7 +44,18 @@ def dump_data() -> None:
 
     if file_list:
         update_git_files(file_list, file_names, environ[REPO_NAME], "master",
-                         f"Scheduled data dump - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}")
+                         f"Scheduled data dump - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}")
+
+
+@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
+def dump_jobs() -> None:
+    current_time = datetime.now().strftime("%H:%M:%S %d-%m-%Y")
+    dump_filename = f"job_dump_{current_time}.sql"
+    dump_content = generate_sql_dump(DATABASE_FILE)
+
+    dump_path = path.join(DATA_PATH, dump_filename)
+    with open(dump_path, 'w') as f:
+        f.write(dump_content)
 
 
 @scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, hour="*/2")
@@ -176,7 +189,7 @@ def reset_model_lock() -> None:
 
 
 def configure_scheduler() -> None:
-    db_url = f"sqlite:////{DATA_PATH}/jobs.sqlite"
+    db_url = f"sqlite:////{DATABASE_FILE}"
     engine = create_engine(db_url)
     jobstore = SQLAlchemyJobStore(engine=engine)
     scheduler.add_jobstore(jobstore=jobstore, alias=jobstore_name)

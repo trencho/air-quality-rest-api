@@ -114,8 +114,8 @@ def read_sensors(city_name) -> list:
 
 def recalculate_coordinate(val: tuple, _as: Optional[str] = None) -> [float, tuple]:
     """
-    Accepts a coordinate as a tuple (degree, minutes, seconds) You can give only one of them (e.g. only minutes as a
-    floating point number) and it will be duly recalculated into degrees, minutes and seconds. Return value can be
+    Accepts a coordinate as a tuple (degree, minutes, seconds) You can give only one of them (e.g., only minutes as a
+    floating point number), and it will be duly recalculated into degrees, minutes and seconds. Return value can be
     specified as "deg", "min" or "sec"; default return value is a proper coordinate tuple.
     """
     degrees, minutes, seconds = val

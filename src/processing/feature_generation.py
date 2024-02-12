@@ -39,7 +39,7 @@ def generate_lag_features(target: Series, lags: int) -> DataFrame:
     lags = list(partial[abs(partial) >= 0.2].index)
 
     if 0 in lags:
-        # Do not consider itself as lag feature
+        # Do not consider itself as a lag feature
         lags.remove(0)
 
     features = DataFrame()
