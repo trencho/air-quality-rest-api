@@ -43,7 +43,7 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         if len(dataframe_algorithms.index) == 0:
             continue
 
-        dataframe_algorithms.sort_values(by=pollutant, ascending=False, inplace=True)
+        dataframe_algorithms = dataframe_algorithms.sort_values(by=pollutant, ascending=False)
         dataframe_algorithms.reset_index(drop=True, inplace=True)
 
         fig, ax = pyplot.subplots(figsize=(16, 10), facecolor="white", dpi=80)

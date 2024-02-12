@@ -1,3 +1,5 @@
+from atexit import register
+
 from flask import Flask
 from flask_caching import Cache
 
@@ -11,4 +13,4 @@ def configure_cache(app: Flask) -> None:
         "CACHE_DIR": "/tmp/cache"
     }
     cache.init_app(app, config)
-    cache.clear()
+    register(cache.clear)

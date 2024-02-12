@@ -2,7 +2,7 @@ from logging import getLogger
 
 from flask import Flask, jsonify, make_response, Response
 from flask_healthz import Healthz
-from starlette.status import HTTP_200_OK, HTTP_503_SERVICE_UNAVAILABLE
+from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 from definitions import URL_PREFIX
 from .cache import cache
@@ -23,7 +23,7 @@ def configure_healthcheck(app: Flask) -> None:
 
 @cache.cached(timeout=180)
 def liveness() -> Response:
-    return make_response(jsonify(message="OK"), HTTP_200_OK)
+    return jsonify(message="OK")
 
 
 @cache.cached(timeout=180)
@@ -33,4 +33,4 @@ def readiness() -> Response:
         scheduler.start()
         return make_response(jsonify(message="SERVICE_UNAVAILABLE"), HTTP_503_SERVICE_UNAVAILABLE)
 
-    return make_response(jsonify(message="OK"), HTTP_200_OK)
+    return jsonify(message="OK")

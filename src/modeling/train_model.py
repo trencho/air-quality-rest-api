@@ -76,8 +76,7 @@ def check_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> bool
 
 def create_pollutant_lock(city_name: str, sensor_id: str, pollutant: str) -> None:
     makedirs(path.join(MODELS_PATH, city_name, sensor_id, pollutant), exist_ok=True)
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, LOCK_FILE), "w"):
-        pass
+    open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, LOCK_FILE), "w")
 
 
 def hyper_parameter_tuning(model: BaseRegressionModel, x_train: DataFrame, y_train: Series, city_name: str,
@@ -151,16 +150,16 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
                 f"{model_name}", exc_info=True)
             continue
 
+        MODEL_DATA_PATH = path.join(city_name, sensor_id, pollutant, model_name)
         if env_var == APP_DEV:
-            model.save(path.join(MODELS_PATH, city_name, sensor_id, pollutant, model_name))
+            model.save(path.join(MODELS_PATH, MODEL_DATA_PATH))
 
         y_predicted = model.predict(x_test)
 
         results = DataFrame({"Actual": y_test, "Predicted": y_predicted}, x_test.index)
-        save_results(city_name, sensor_id, pollutant, model_name, results)
+        save_results(MODEL_DATA_PATH, results)
 
-        if (model_error := save_errors(city_name, sensor_id, pollutant, model_name, y_test,
-                                       y_predicted)) < best_model_error:
+        if (model_error := save_errors(MODEL_DATA_PATH, y_test, y_predicted)) < best_model_error:
             best_model = model
             best_model_error = model_error
 
