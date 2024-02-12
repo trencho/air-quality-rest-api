@@ -3,7 +3,7 @@ from flask import Flask
 
 from definitions import URL_PREFIX
 
-config = {
+CONFIG = {
     "favicon": f"{URL_PREFIX}/favicon.ico/",
     "openapi": "3.0.3",
     "specs": [
@@ -18,7 +18,7 @@ config = {
     "specs_route": f"{URL_PREFIX}/apidocs/",
     "title": "AQRA"
 }
-swagger = Swagger(config=config, merge=True)
+swagger = Swagger(config=CONFIG, merge=True)
 
 
 def configure_swagger(app: Flask) -> None:

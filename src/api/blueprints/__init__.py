@@ -11,10 +11,10 @@ from processing import read_csv_in_chunks
 
 
 @cache.memoize(timeout=3600)
-def fetch_dataframe(city_name: str, sensor_id: str, collection: str) -> DataFrame | tuple[Response, int]:
+def fetch_dataframe(data_path: str, collection: str) -> DataFrame | tuple[Response, int]:
     try:
         if (dataframe := read_csv_in_chunks(
-                path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f"{collection}.csv"))) is not None:
+                path.join(DATA_PROCESSED_PATH, data_path, f"{collection}.csv"))) is not None:
             return dataframe
 
         raise Exception

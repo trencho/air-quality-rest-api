@@ -52,7 +52,7 @@ def drop_numerical_outliers_with_iqr_score(dataframe: DataFrame, low: float = .0
 def drop_numerical_outliers_with_z_score(dataframe: DataFrame, z_thresh: int = 3) -> DataFrame:
     df = dataframe.loc[:, dataframe.columns != "time"]
     constrains = (abs(zscore(df)) < z_thresh).all(axis=1)
-    df.drop(index=df.index[~constrains], inplace=True)
+    df = df.drop(index=df.index[~constrains])
     df = concat([dataframe.loc[:, "time"], df], axis=1)
     return df.dropna()
 
@@ -105,8 +105,8 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             dataframe_raw = concat(df.dropna(axis=1, how='all') for df in [dataframe_processed, dataframe_raw])
 
         rename_features(dataframe_raw)
-        drop_unnecessary_features(dataframe_raw)
-        trim_dataframe(dataframe_raw, "time")
+        dataframe_raw = drop_unnecessary_features(dataframe_raw)
+        dataframe_raw = trim_dataframe(dataframe_raw, "time")
         if len(dataframe_raw.index) == 0:
             return
 
@@ -117,7 +117,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         dataframe_raw[df_columns] = dataframe_raw[df_columns].apply(to_numeric, axis="columns", errors="coerce")
         for column in df_columns:
             if dataframe_raw[column].isna().all():
-                dataframe_raw.drop(columns=column, inplace=True, errors="ignore")
+                dataframe_raw = dataframe_raw.drop(columns=column, errors="ignore")
             if dataframe_raw[column].isna().any():
                 dataframe_raw[column] = imp.fit_transform(dataframe_raw[column].values.reshape(-1, 1))
 
@@ -130,7 +130,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
 
         drop_columns_std = dataframe_raw[list(pollutants_wo_aqi)].std()[
             dataframe_raw[list(pollutants_wo_aqi)].std() == 0].index.values
-        dataframe_raw.drop(columns=drop_columns_std, inplace=True, errors="ignore")
+        dataframe_raw = dataframe_raw.drop(columns=drop_columns_std, errors="ignore")
 
         if collection != "weather":
             dataframe_raw["aqi"] = dataframe_raw[list(POLLUTANTS)].apply(calculate_index, axis=1)

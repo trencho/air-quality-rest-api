@@ -28,9 +28,9 @@ class LightGBMRegressionModel(BaseRegressionModel):
         super().__init__(reg, param_grid)
 
     @override
-    def save(self, file_path: str) -> None:
-        self.reg.booster_.save_model(path.join(file_path, f"{type(self).__name__}.mdl"))
+    def save(self, model_path: str) -> None:
+        self.reg.booster_.save_model(path.join(model_path, f"{type(self).__name__}.mdl"))
 
     @override
-    def load(self, file_path: str) -> None:
-        self.reg._Booster = Booster(model_file=path.join(file_path, f"{type(self).__name__}.mdl"))
+    def load(self, model_path: str) -> None:
+        self.reg._Booster = Booster(model_file=path.join(model_path, f"{type(self).__name__}.mdl"))

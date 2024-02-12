@@ -19,10 +19,10 @@ class BaseRegressionModel:
     def predict(self, x):
         return self.reg.predict(x)
 
-    def save(self, file_path: str) -> None:
-        with open(path.join(file_path, f"{type(self).__name__}.mdl"), "wb") as out_file:
+    def save(self, model_path: str) -> None:
+        with open(path.join(model_path, f"{type(self).__name__}.mdl"), "wb") as out_file:
             dump(self.reg, out_file, HIGHEST_PROTOCOL)
 
-    def load(self, file_path: str) -> None:
-        with open(path.join(file_path, f"{type(self).__name__}.mdl"), "rb") as in_file:
+    def load(self, model_path: str) -> None:
+        with open(path.join(model_path, f"{type(self).__name__}.mdl"), "rb") as in_file:
             self.reg = load(in_file)
