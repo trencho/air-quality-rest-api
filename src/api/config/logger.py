@@ -10,7 +10,7 @@ CONFIG = {
     "disable_existing_loggers": False,
     "formatters": {
         "simple": {
-            "format": "%(asctime)s [%(name)]-30s [%(process)d] [%(levelname)]-10s %(message)s",
+            "format": "%(asctime)s [%(name)s] [%(process)d] [%(levelname)s] %(message)s",
             "datefmt": "[%Y-%m-%d %H:%M:%S %z]"
         }
     },
