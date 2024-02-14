@@ -64,7 +64,8 @@ def fetch_hourly_data() -> None:
         for sensor in read_sensors(city["cityName"]):
             fetch_city_data(city["cityName"], sensor)
             for collection in COLLECTIONS:
-                process_data(city["cityName"], sensor["sensorId"], collection)
+                if path.exists(path.join(DATA_RAW_PATH, city["cityName"], sensor["sensorId"], f"{collection}.csv")):
+                    process_data(city["cityName"], sensor["sensorId"], collection)
 
 
 @scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
@@ -132,7 +133,7 @@ def import_data() -> None:
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
 
 
-@scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, minute=0)
+# @scheduler.scheduled_job(trigger="cron", misfire_grace_time=None, jobstore=jobstore_name, minute=0)
 def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
