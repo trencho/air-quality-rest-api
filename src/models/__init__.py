@@ -1,3 +1,4 @@
+from .base_regression_model import BaseRegressionModel
 from .decision_tree_regression import DecisionTreeRegressionModel
 from .light_gbm_regression import LightGBMRegressionModel
 from .linear_regression import LinearRegressionModel
@@ -17,14 +18,14 @@ __all__ = [
 ]
 
 
-def get_model_class(model: str):
+def get_model_class(model: str) -> BaseRegressionModel.__class__:
     if model in __all__:
         return globals()[model]
     else:
         raise Exception(f"The agent name {model} does not exist")
 
 
-def make_model(model: str):
+def make_model(model: str) -> BaseRegressionModel:
     if model in __all__:
         return globals()[model]()
     else:
