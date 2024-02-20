@@ -3,8 +3,15 @@
 ###### Initialize single node kubernetes cluster
 
 ```
-kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=[cluster-endpoint/kubeadm.feit.ukim.edu.mk] \
---cri-socket /run/cri-dockerd.sock
+kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.feit.ukim.edu.mk --cri-socket unix:///run/docker.sock
+```
+
+```
+kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.feit.ukim.edu.mk --cri-socket unix:///run/containerd/containerd.sock
+```
+
+```
+kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.feit.ukim.edu.mk --cri-socket unix:///run/cri-dockerd.sock
 ```
 
 ###### Taint master node with control plane to deploy pods
@@ -49,7 +56,7 @@ kubectl apply -f kubernetes/metallb/l2-advertisement.yml
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
 
 ```
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.24.5/controller.yaml
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.26.0/controller.yaml
 
 kubeseal < kubernetes/secrets/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml
 kubeseal < kubernetes/secrets/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
