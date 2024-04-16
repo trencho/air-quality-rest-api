@@ -2,6 +2,8 @@ version: "3.8"
 services:
   nginx:
     build:
+      args:
+        BUILDKIT_PROGRESS: plain
       context: ../..
       dockerfile: docker/multi/nginx/Dockerfile
     container_name: nginx
@@ -21,6 +23,8 @@ services:
 
   flask:
     build:
+      args:
+        BUILDKIT_PROGRESS: plain
       context: ../..
       dockerfile: docker/multi/flask/Dockerfile
     container_name: flask
@@ -56,6 +60,8 @@ services:
 
   mongo:
     build:
+      args:
+        BUILDKIT_PROGRESS: plain
       context: ../..
       dockerfile: docker/mongo/Dockerfile
     container_name: mongo
