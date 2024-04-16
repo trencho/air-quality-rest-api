@@ -1,12 +1,10 @@
 from logging import getLogger
 
-from flask import Flask, jsonify, make_response, Response
+from flask import Flask, jsonify, Response
 from flask_healthz import Healthz
-from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 from definitions import URL_PREFIX
 from .cache import cache
-from .schedule import scheduler
 
 logger = getLogger(__name__)
 
@@ -28,9 +26,4 @@ def liveness() -> Response:
 
 @cache.cached(timeout=180)
 def readiness() -> Response:
-    logger.info(f"Scheduler state: {scheduler.state}")
-    if scheduler.state != 1:
-        scheduler.start()
-        return make_response(jsonify(message="SERVICE_UNAVAILABLE"), HTTP_503_SERVICE_UNAVAILABLE)
-
     return jsonify(message="OK")
