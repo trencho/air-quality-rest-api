@@ -3,7 +3,7 @@ services:
   flask:
     build:
       args:
-        - BUILDKIT_PROGRESS=plain
+        BUILDKIT_PROGRESS: plain
       context: ../..
       dockerfile: docker/single/Dockerfile
     container_name: flask
@@ -40,7 +40,7 @@ services:
   mongo:
     build:
       args:
-        - BUILDKIT_PROGRESS=plain
+        BUILDKIT_PROGRESS: plain
       context: ../..
       dockerfile: docker/mongo/Dockerfile
     container_name: mongo
