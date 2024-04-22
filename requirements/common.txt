@@ -20,6 +20,6 @@ scipy==1.13.0
 SQLAlchemy==2.0.29
 seaborn==0.13.2
 starlette==0.37.2
-statsmodels==0.14.1
+statsmodels==0.14.2
 urllib3==2.2.1
 xgboost==2.0.3
