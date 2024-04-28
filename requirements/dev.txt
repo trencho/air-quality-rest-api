@@ -1,4 +1,2 @@
 -r common.txt
-dnspython==2.6.1
-pytest==8.1.1
-Werkzeug==3.0.2
+pytest==8.2.0
