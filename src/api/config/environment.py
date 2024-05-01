@@ -3,8 +3,7 @@ from os import environ, makedirs, path
 
 from pandas import DataFrame
 
-from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
-    ENVIRONMENT_VARIABLES, \
+from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, ENVIRONMENT_VARIABLES, \
     LOG_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from preparation import read_cities, read_sensors
 from processing import find_missing_data, read_csv_in_chunks, save_dataframe
