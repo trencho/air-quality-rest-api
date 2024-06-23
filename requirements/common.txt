@@ -15,7 +15,7 @@ PyGithub==2.3.0
 pymongo==4.7.1
 pytz==2024.1
 requests==2.31.0
-scikit-learn==1.4.2
+scikit-learn==1.5.0
 scipy==1.13.0
 SQLAlchemy==2.0.29
 seaborn==0.13.2
