@@ -86,7 +86,7 @@ FORECAST_COUNTER = "forecast_counter"
 ONECALL_COUNTER = "onecall_counter"
 REQUESTS_LIMIT = 1000
 
-column_dtypes = {
+COLUMN_DTYPES = {
     "time": int,
     "aqi": float,
     "co": float,
