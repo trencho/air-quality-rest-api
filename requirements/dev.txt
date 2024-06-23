@@ -1,2 +1,3 @@
 -r common.txt
-pytest==8.2.0
+pytest==8.2.2
+Werkzeug==3.0.3
