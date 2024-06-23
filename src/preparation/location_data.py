@@ -1,5 +1,4 @@
 from datetime import tzinfo
-from functools import lru_cache
 from json import load
 from math import atan2, modf
 from os import path
@@ -83,7 +82,7 @@ def fetch_sensors(city_name: str) -> list:
         return []
 
 
-@lru_cache
+@cache.memoize
 def location_timezone(country_code: str) -> tzinfo:
     return timezone(country_timezones[country_code][0])
 

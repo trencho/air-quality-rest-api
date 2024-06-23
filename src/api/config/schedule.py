@@ -173,8 +173,7 @@ def reset_model_lock() -> None:
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith(".lock")]:
         last_modified = int(path.getmtime(file))
-        hour_in_seconds = 3600
-        if last_modified < int(datetime.timestamp(current_hour())) - hour_in_seconds:
+        if last_modified < int(datetime.timestamp(current_hour())) - 3600:
             remove(path.join(MODELS_PATH, file))
 
 
