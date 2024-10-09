@@ -4,19 +4,19 @@ LABEL maintainer="Aleksandar Trenchevski <atrenchevski@gmail.com>"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get dist-upgrade -y && \
-    apt-get install -y --no-install-recommends libgomp1 nginx tzdata && \
-    apt-get autoclean clean && \
-    apt-get autoremove -y && \
+RUN apt update && \
+    apt upgrade -y && \
+    apt dist-upgrade -y && \
+    apt install -y --no-install-recommends libgomp1 nginx tzdata && \
+    apt autoclean clean && \
+    apt autoremove -y && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set the working directory to /app
 WORKDIR /app
 
-COPY requirements ./requirements
 # Install the dependencies
+COPY requirements ./requirements
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir -r requirements/prod.txt
 
