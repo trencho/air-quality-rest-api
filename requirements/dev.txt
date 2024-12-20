@@ -1,3 +1,4 @@
 -r common.txt
-pytest==8.3.3
-Werkzeug==3.0.6
+Flask-Testing==0.8.1
+pytest==8.3.4
+Werkzeug==3.1.3
