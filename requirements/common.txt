@@ -8,7 +8,7 @@ gunicorn==23.0.0
 haversine==2.9.0
 lightgbm==4.5.0
 matplotlib==3.10.0
-numpy==2.2.0
+numpy==2.2.1
 pandas==2.2.3
 PyGithub==2.5.0
 pymongo==4.10.1
@@ -18,7 +18,7 @@ scikit-learn==1.6.0
 scipy==1.14.1
 SQLAlchemy==2.0.36
 seaborn==0.13.2
-starlette==0.42.0
+starlette==0.45.1
 statsmodels==0.14.4
-urllib3==2.2.3
+urllib3==2.3.0
 xgboost==2.1.3

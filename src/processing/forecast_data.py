@@ -17,8 +17,10 @@ from .feature_scaling import value_scaling
 from .handle_data import fetch_summary_dataframe, read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
 
+# Constants
 FORECAST_PERIOD = "1h"
 FORECAST_STEPS = 25
+CACHE_TIMEOUT = 3600
 
 
 def fetch_forecast_result(city: dict, sensor: dict) -> dict:
@@ -37,17 +39,16 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     return forecast_result
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUT)
 def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Optional[Series]:
     if (load_model := load_regression_model(city_name, sensor_id, pollutant)) is None:
         return None
 
     model, model_features = load_model
-
     return recursive_forecast(city_name, sensor_id, pollutant, model, model_features)
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUT)
 def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
     dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, "weather.csv"))
     dataframe = dataframe.loc[dataframe["time"] == timestamp]
@@ -57,7 +58,7 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
     return {}
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUT)
 def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
     files = glob(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "*.mdl"))
     if not files:
@@ -72,7 +73,7 @@ def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Opt
     return model, model_features
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUT)
 def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
                     step: str = FORECAST_PERIOD) -> Series:
     """Multistep direct forecasting using a machine learning model to forecast each time period ahead
@@ -93,10 +94,8 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
     def one_step_features(date, step: int):
         tmp = y[y.index <= date]
         features = generate_features(tmp, lags)
-
         target = y[y.index >= features.index[0] + timedelta(hours=step)]
         assert len(features.index) == len(target.index)
-
         return features, target
 
     forecast_values = []
@@ -106,16 +105,14 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
     for s in range(1, n_steps + 1):
         last_date = y.index[-1] - timedelta(hours=s)
         features, target = one_step_features(last_date, s)
-
         model.train(features, target)
-
         predictions = model.predict(forecast_features)
         forecast_values.append(predictions[-1])
 
     return Series(forecast_values, forecast_range)
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUT)
 def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: BaseRegressionModel, model_features: list,
                        lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
                        step: str = FORECAST_PERIOD) -> Series:

@@ -2,7 +2,7 @@ from os import environ
 
 from flask import Flask
 
-from definitions import APP_DEV, APP_ENV, APP_PROD
+from definitions import ENV_DEV, APP_ENV, ENV_PROD
 from .blueprints import register_blueprints
 from .cache import configure_cache
 from .converters import configure_converters
@@ -22,7 +22,7 @@ def create_app() -> Flask:
 
     app = Flask(__name__)
 
-    if environ.get(APP_ENV, APP_DEV) == APP_PROD:
+    if environ.get(APP_ENV, ENV_DEV) == ENV_PROD:
         check_environment_variables()
         configure_scheduler()
 

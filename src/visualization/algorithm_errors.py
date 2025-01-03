@@ -1,3 +1,4 @@
+from logging import getLogger
 from os import path
 
 import seaborn
@@ -7,44 +8,46 @@ from pandas import DataFrame, read_csv
 from definitions import POLLUTANTS, REGRESSION_MODELS, RESULTS_ERRORS_PATH
 from .handle_plot import save_plot
 
+logger = getLogger(__name__)
+
+# Constants for error types and plot parameters
+ERROR_TYPES = [
+    "Mean Absolute Error",
+    "Mean Absolute Percentage Error",
+    "Mean Squared Error",
+    "Root Mean Squared Error"
+]
+
+PLOT_PARAMS = {
+    "legend.fontsize": 16,
+    "figure.figsize": (16, 10),
+    "axes.labelsize": 16,
+    "axes.titlesize": 16,
+    "xtick.labelsize": 16,
+    "ytick.labelsize": 16,
+    "figure.titlesize": 22,
+    "xtick.major.pad": 8
+}
+
 
 def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
-    error_types = [
-        "Mean Absolute Error",
-        "Mean Absolute Percentage Error",
-        "Mean Squared Error",
-        "Root Mean Squared Error"
-    ]
-
-    large, med = 22, 16
-    params = {
-        "legend.fontsize": med,
-        "figure.figsize": (16, 10),
-        "axes.labelsize": med,
-        "axes.titlesize": med,
-        "xtick.labelsize": med,
-        "ytick.labelsize": med,
-        "figure.titlesize": large,
-        "xtick.major.pad": 8
-    }
-    pyplot.rcParams.update(params)
+    pyplot.rcParams.update(PLOT_PARAMS)
     pyplot.style.use("seaborn-v0_8-whitegrid")
     seaborn.set_style("white")
 
-    for error_type in error_types:
+    for error_type in ERROR_TYPES:
         data = []
         for model_name in REGRESSION_MODELS:
-            dataframe_errors = read_csv(
-                path.join(RESULTS_ERRORS_PATH, "data", city["cityName"], sensor["sensorId"], pollutant, model_name,
-                          "error.csv"))
+            error_file = path.join(RESULTS_ERRORS_PATH, "data", city["cityName"], sensor["sensorId"], pollutant,
+                                   model_name, "error.csv")
+            dataframe_errors = read_csv(error_file)
             data.append([REGRESSION_MODELS[model_name], dataframe_errors.iloc[0][error_type]])
 
         dataframe_algorithms = DataFrame(data, columns=["algorithm", pollutant]).dropna()
-        if len(dataframe_algorithms.index) == 0:
+        if dataframe_algorithms.empty:
             continue
 
-        dataframe_algorithms = dataframe_algorithms.sort_values(by=pollutant, ascending=False)
-        dataframe_algorithms.reset_index(drop=True, inplace=True)
+        dataframe_algorithms = dataframe_algorithms.sort_values(by=pollutant, ascending=False).reset_index(drop=True)
 
         fig, ax = pyplot.subplots(figsize=(16, 10), facecolor="white", dpi=80)
         ax.vlines(x=dataframe_algorithms.index, ymin=0, ymax=dataframe_algorithms[pollutant], color="firebrick",
@@ -63,3 +66,4 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
 
         save_plot(fig, pyplot, path.join(RESULTS_ERRORS_PATH, "plots", city["cityName"], sensor["sensorId"], pollutant),
                   error_type)
+        logger.info(f"Plot saved for {city['cityName']} - {sensor['sensorId']} - {pollutant} - {error_type}")

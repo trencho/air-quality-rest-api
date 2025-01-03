@@ -18,7 +18,7 @@ docker swarm init
 docker-compose -f docker/single/docker-compose.yml up -d
 ```
 
-###### Follow logs of deployed docker container by id
+###### Follow logs of the deployed docker container by id
 
 ```
 docker logs -f [container-id]

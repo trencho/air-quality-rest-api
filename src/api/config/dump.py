@@ -3,15 +3,12 @@ from typing import Any
 
 
 def generate_sql_dump(database_file: str) -> str:
-    conn = connect(database_file)
-    cursor = conn.cursor()
-
-    dump_content = []
-    for table_name in get_table_names(cursor):
-        dump_content.append(f"-- Table: {table_name}")
-        dump_content.append(generate_insert_statements(cursor, table_name))
-
-    conn.close()
+    with connect(database_file) as conn:
+        cursor = conn.cursor()
+        dump_content = [
+            f"-- Table: {table_name}\n{generate_insert_statements(cursor, table_name)}"
+            for table_name in get_table_names(cursor)
+        ]
     return "\n\n".join(dump_content)
 
 
@@ -23,10 +20,10 @@ def get_table_names(cursor: Cursor) -> list[str]:
 def generate_insert_statements(cursor: Cursor, table_name: str) -> str:
     cursor.execute(f"SELECT * FROM {table_name}")
     columns = [description[0] for description in cursor.description]
-    insert_statements = []
-    for row in cursor.fetchall():
-        values = [format_sql_value(value) for value in row]
-        insert_statements.append(f"INSERT INTO {table_name} ({", ".join(columns)}) VALUES ({", ".join(values)});")
+    insert_statements = [
+        f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(format_sql_value(value) for value in row)});"
+        for row in cursor.fetchall()
+    ]
     return "\n".join(insert_statements)
 
 
