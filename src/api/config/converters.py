@@ -25,12 +25,12 @@ class PollutantType(str, Enum):
     SO2 = "so2"
 
 
-class ErrorTypeConverter(BaseConverter):
+class EnumConverter(BaseConverter):
+    enum_class = None
 
     def to_python(self, value):
         try:
-            error_type = ErrorType(value)
-            return error_type
+            return self.enum_class(value)
         except ValueError as err:
             raise ValidationError(err)
 
@@ -38,17 +38,12 @@ class ErrorTypeConverter(BaseConverter):
         return obj.value
 
 
-class PollutantTypeConverter(BaseConverter):
+class ErrorTypeConverter(EnumConverter):
+    enum_class = ErrorType
 
-    def to_python(self, value):
-        try:
-            pollutant_type = PollutantType(value)
-            return pollutant_type
-        except ValueError as err:
-            raise ValidationError(err)
 
-    def to_url(self, obj):
-        return obj.value
+class PollutantTypeConverter(EnumConverter):
+    enum_class = PollutantType
 
 
 def configure_converters(app: Flask) -> None:

@@ -1,9 +1,14 @@
 from atexit import register
-from logging import getHandlerByName
+from logging import getHandlerByName, getLogger
 from logging.config import dictConfig
 from os import path
 
 from definitions import LOG_PATH
+
+# Constants for log levels and backup count
+LOG_LEVEL_INFO = "INFO"
+LOG_LEVEL_DEBUG = "DEBUG"
+BACKUP_COUNT = 5
 
 CONFIG = {
     "version": 1,
@@ -17,17 +22,17 @@ CONFIG = {
     "handlers": {
         "stdout": {
             "class": "logging.StreamHandler",
-            "level": "INFO",
+            "level": LOG_LEVEL_INFO,
             "formatter": "simple",
             "stream": "ext://sys.stdout"
         },
         "file": {
             "class": "logging.handlers.TimedRotatingFileHandler",
-            "level": "INFO",
+            "level": LOG_LEVEL_INFO,
             "formatter": "simple",
-            "filename": f"{path.join(LOG_PATH, "app.log")}",
+            "filename": f"{path.join(LOG_PATH, 'app.log')}",
             "when": "midnight",
-            "backupCount": 5
+            "backupCount": BACKUP_COUNT
         },
         "queue": {
             "class": "logging.handlers.QueueHandler",
@@ -43,7 +48,7 @@ CONFIG = {
             "handlers": [
                 "queue"
             ],
-            "level": "DEBUG",
+            "level": LOG_LEVEL_DEBUG,
             "propagate": True
         }
     }
@@ -56,3 +61,4 @@ def configure_logger() -> None:
     if queue_handler is not None:
         queue_handler.listener.start()
         register(queue_handler.listener.stop)
+    getLogger(__name__).info("Logger configured successfully")
