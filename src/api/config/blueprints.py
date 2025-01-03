@@ -11,19 +11,19 @@ from api.blueprints.pollutants import pollutants_blueprint
 from api.blueprints.sensors import sensors_blueprint
 from definitions import URL_PREFIX
 
-__all__ = [
-    "cities_blueprint",
-    "countries_blueprint",
-    "errors_blueprint",
-    "forecast_blueprint",
-    "history_blueprint",
-    "icon_blueprint",
-    "plots_blueprint",
-    "pollutants_blueprint",
-    "sensors_blueprint"
-]
-
 
 def register_blueprints(app: Flask) -> None:
-    for blueprint in __all__:
-        app.register_blueprint(globals()[blueprint], url_prefix=URL_PREFIX)
+    blueprints = [
+        cities_blueprint,
+        countries_blueprint,
+        errors_blueprint,
+        forecast_blueprint,
+        history_blueprint,
+        icon_blueprint,
+        plots_blueprint,
+        pollutants_blueprint,
+        sensors_blueprint
+    ]
+
+    for blueprint in blueprints:
+        app.register_blueprint(blueprint, url_prefix=URL_PREFIX)

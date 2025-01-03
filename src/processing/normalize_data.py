@@ -9,20 +9,19 @@ from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, POLLUTANTS
-from .calculate_index import calculate_aqi, calculate_co_index, calculate_no2_index, calculate_o3_index, \
-    calculate_pm2_5_index, calculate_pm10_index, calculate_so2_index
+from .calculate_index import calculate_aqi, calculate_index
 from .handle_data import drop_unnecessary_features, find_missing_data, read_csv_in_chunks, rename_features, \
     trim_dataframe
 
 logger = getLogger(__name__)
 
 
-def calculate_index(row: Series) -> float:
+def calculate_row_index(row: Series) -> float:
     row = to_numeric(row, errors="coerce")
 
-    return calculate_aqi(calculate_co_index(row["co"]), calculate_no2_index(row["no2"]),
-                         calculate_o3_index(row["o3"]), calculate_pm2_5_index(row["pm2_5"]),
-                         calculate_pm10_index(row["pm10"]), calculate_so2_index(row["so2"]))
+    return calculate_aqi(calculate_index("co", row["co"]), calculate_index("no2", row["no2"]),
+                         calculate_index("o3", row["o3"]), calculate_index("pm2_5", row["pm2_5"]),
+                         calculate_index("pm10", row["pm10"]), calculate_index("so2", row["so2"]))
 
 
 def closest_hour(t: datetime, tz: tzinfo = None) -> datetime:
@@ -133,7 +132,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         dataframe_raw = dataframe_raw.drop(columns=drop_columns_std, errors="ignore")
 
         if collection != "weather":
-            dataframe_raw["aqi"] = dataframe_raw[list(POLLUTANTS)].apply(calculate_index, axis=1)
+            dataframe_raw["aqi"] = dataframe_raw[list(POLLUTANTS)].apply(calculate_row_index, axis=1)
 
         # dataframe_raw = drop_numerical_outliers_with_z_score(dataframe_raw)
 

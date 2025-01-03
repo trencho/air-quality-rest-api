@@ -14,7 +14,7 @@ kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.f
 kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.feit.ukim.edu.mk --cri-socket unix:///run/cri-dockerd.sock
 ```
 
-###### Taint master node with control plane to deploy pods
+###### Taint the master node with control plane to deploy pods
 
 ```
 kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
@@ -102,7 +102,7 @@ kubectl get pods -n aqra | grep -E 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs 
 kubectl get pods -n aqra | grep -E 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl describe pod -n aqra
 ```
 
-###### Follow logs of deployed pod
+###### Follow logs of the deployed pod
 
 ```
 kubectl logs -f [pod-name] -n aqra
@@ -116,7 +116,7 @@ kubectl get pods -n aqra | grep -E 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs 
 kubectl get pods -n aqra | grep -E 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs kubectl logs -f -n aqra
 ```
 
-###### Enter bash of deployed pod
+###### Enter bash of the deployed pod
 
 ```
 kubectl exec -n aqra --stdin --tty [pod-name] -- /bin/bash

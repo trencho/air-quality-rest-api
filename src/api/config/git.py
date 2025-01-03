@@ -26,10 +26,8 @@ class GithubSingleton:
         return GithubSingleton._instance
 
     def __init__(self):
-        if (token := environ.get(GITHUB_TOKEN)) is not None:
-            self.github_instance = Github(auth=Token(token))
-        else:
-            self.github_instance = None
+        token = environ.get(GITHUB_TOKEN)
+        self.github_instance = Github(auth=Token(token)) if token else None
 
     def get_repository(self, repo_name: str) -> Repository:
         return self.github_instance.get_user().get_repo(repo_name)
@@ -60,8 +58,7 @@ def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base
 
 def create_archive(source, destination) -> None:
     base = path.basename(destination)
-    name = base.split(".")[0]
-    fmt = base.split(".")[1]
+    name, fmt = base.split(".")
     archive_from = path.dirname(source)
     archive_to = path.basename(source.strip(sep))
     make_archive(base_name=name, format=fmt, root_dir=archive_from, base_dir=archive_to)
@@ -70,37 +67,36 @@ def create_archive(source, destination) -> None:
 
 def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
     try:
-        string_io_data = StringIO(data)
-        string_io_data.seek(0)
-        local_file_content = read_csv_in_chunks(string_io_data.getvalue())
+        with StringIO(data) as string_io_data:
+            local_file_content = read_csv_in_chunks(string_io_data.getvalue())
         repo_file = repo.get_contents(file_name)
-        bytes_io_data = BytesIO(repo_file.decoded_content)
-        bytes_io_data.seek(0)
-        repo_file_content = read_csv_in_chunks(bytes_io_data.getvalue().decode("utf-8"))
-        local_file_content = concat([local_file_content, repo_file_content], ignore_index=True)
-        local_file_content = trim_dataframe(local_file_content, "time")
+        with BytesIO(repo_file.decoded_content) as bytes_io_data:
+            repo_file_content = read_csv_in_chunks(bytes_io_data.getvalue().decode("utf-8"))
+        combined_content = concat([local_file_content, repo_file_content], ignore_index=True)
+        combined_content = trim_dataframe(combined_content, "time")
         # TODO: Review this line for converting column data types
-        # local_file_content = local_file_content.astype(column_dtypes, errors="ignore")
-        return local_file_content.to_csv(index=False)
+        # combined_content = combined_content.astype(column_dtypes, errors="ignore")
+        return combined_content.to_csv(index=False)
     except Exception:
         logger.error("Error occurred while merging local files with files from GitHub repository", exc_info=True)
 
 
 def update_git_files(file_list: list, file_names: list, repo_name: str, branch: str,
-                     commit_message: str = f"Data Updated - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}") -> None:
+                     commit_message: str = f"Data Updated - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}") -> None:
     repo = GithubSingleton.get_instance().get_repository(repo_name)
     master_ref = repo.get_git_ref(f"heads/{branch}")
     master_sha = master_ref.object.sha
     base_tree = repo.get_git_tree(master_sha)
     element_list = []
-    for i in range(0, len(file_list)):
-        if (file_name := file_names[i]).endswith(".csv"):
+    element = None
+    for i, file_name in enumerate(file_names):
+        if file_name.endswith(".csv"):
             file = merge_csv_files(repo, file_name, file_list[i])
             element = InputGitTreeElement(file_name, "100644", "blob", file)
-            element_list.append(element)
         elif file_name.endswith((".png", ".zip")):
             file = repo.create_git_blob(file_list[i].decode(), "base64")
             element = InputGitTreeElement(file_name, "100644", "blob", sha=file.sha)
-            element_list.append(element)
+        element_list.append(element)
 
     commit_git_files(repo, master_ref, master_sha, base_tree, commit_message, element_list)
+    logger.info(f"Files committed to GitHub repository: {repo_name}")

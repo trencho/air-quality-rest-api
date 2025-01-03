@@ -24,6 +24,7 @@ from .repository import RepositorySingleton
 logger = getLogger(__name__)
 
 DATABASE_FILE = path.join(DATA_PATH, "jobs.sqlite")
+REPO_BRANCH = "master"
 
 repository = RepositorySingleton.get_instance().get_repository()
 
@@ -40,8 +41,8 @@ def dump_data() -> None:
             remove(file_path)
 
     if file_list:
-        update_git_files(file_list, file_names, environ[REPO_NAME], "master",
-                         f"Scheduled data dump - {datetime.now().strftime("%H:%M:%S %d-%m-%Y")}")
+        update_git_files(file_list, file_names, environ[REPO_NAME], REPO_BRANCH,
+                         f"Scheduled data dump - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}")
 
 
 def dump_jobs() -> None:
@@ -184,6 +185,7 @@ def configure_scheduler() -> None:
     scheduler = Scheduler(data_store)
     schedule_jobs(scheduler)
     scheduler.start_in_background()
+    logger.info("Scheduler configured and started in background")
 
 
 def schedule_jobs(scheduler: Scheduler) -> None:
@@ -203,3 +205,4 @@ def schedule_jobs(scheduler: Scheduler) -> None:
                            misfire_grace_time=None)
     scheduler.add_schedule(func_or_task_id=reset_model_lock, trigger=CronTrigger(hour=0), id="reset_model_lock",
                            misfire_grace_time=None)
+    logger.info("Scheduled jobs configured")
