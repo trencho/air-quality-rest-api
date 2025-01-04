@@ -4,6 +4,7 @@ from logging import getLogger
 from math import inf
 from os import environ, makedirs, path, remove
 from pickle import dump, HIGHEST_PROTOCOL
+from threading import Thread
 
 from pandas import DataFrame, read_csv, Series, to_datetime
 from pytz import UTC
@@ -194,3 +195,7 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
                      f"{sensor['sensorId']} - {pollutant}", exc_info=True)
     finally:
         remove_pollutant_lock(data_path)
+
+
+def train_city_sensors(city: dict, sensor: dict, pollutant: str) -> None:
+    Thread(target=train_regression_model, args=(city, sensor, pollutant), daemon=True).start()
