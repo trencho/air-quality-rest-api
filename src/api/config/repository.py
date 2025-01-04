@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
+from logging import getLogger
 from os import environ
 from uuid import uuid4
 
 from bson.objectid import ObjectId
 from pymongo import ASCENDING, MongoClient
 
-from definitions import APP_DEV, APP_ENV, APP_PROD, COLLECTIONS, MONGODB_CONNECTION, MONGO_DATABASE, MONGODB_HOSTNAME, \
+from definitions import APP_ENV, ENV_DEV, ENV_PROD, COLLECTIONS, MONGODB_CONNECTION, MONGO_DATABASE, MONGODB_HOSTNAME, \
     MONGO_USERNAME, MONGO_PASSWORD
+
+logger = getLogger(__name__)
 
 
 class Repository(ABC):
@@ -35,12 +38,15 @@ class RegularRepository(Repository):
     def __init__(self, uri):
         self.mongo_client = MongoClient(host=uri, connect=False)
         self.database = self.mongo_client.get_default_database()
-        self.mongo_client.db["cities"].create_index([("cityName", ASCENDING)])
-        self.mongo_client.db["countries"].create_index([("countryCode", ASCENDING)])
-        self.mongo_client.db["sensors"].create_index([("sensorId", ASCENDING)])
-        self.mongo_client.db["predictions"].create_index([("cityName", ASCENDING), ("sensorId", ASCENDING)])
+        self._create_indexes()
+
+    def _create_indexes(self):
+        self.database["cities"].create_index([("cityName", ASCENDING)])
+        self.database["countries"].create_index([("countryCode", ASCENDING)])
+        self.database["sensors"].create_index([("sensorId", ASCENDING)])
+        self.database["predictions"].create_index([("cityName", ASCENDING), ("sensorId", ASCENDING)])
         for collection in COLLECTIONS:
-            self.mongo_client.db[collection].create_index([("sensorId", ASCENDING)])
+            self.database[collection].create_index([("sensorId", ASCENDING)])
 
     def get(self, collection_name, filter=None, **kwargs):
         collection = self.database[collection_name]
@@ -54,7 +60,6 @@ class RegularRepository(Repository):
 
     def save(self, collection_name, filter, item) -> None:
         collection = self.database[collection_name]
-
         if filter is None:
             # Insert new item
             collection.insert_one(item if isinstance(item, dict) else item.__dict__)
@@ -99,41 +104,40 @@ class InMemoryRepository(Repository):
 
     def save(self, collection_name, filter, item) -> None:
         collection = self.collections.setdefault(collection_name, {})
-
         if isinstance(item, dict):
-            # Handle dictionary-based objects
-            if filter is None:
-                # Insert new item
+            self._save_dict_item(collection, filter, item)
+        else:
+            self._save_class_item(collection, filter, item)
+
+    def _save_dict_item(self, collection, filter, item):
+        if filter is None:
+            item_id = item.get("_id") or str(uuid4())
+            item["_id"] = item_id
+            collection[item_id] = item
+        else:
+            existing_item = next((existing_item for existing_item in collection.values()
+                                  if all(existing_item.get(k) == v for k, v in filter.items())), None)
+            if existing_item:
+                existing_item.update(item)
+            else:
                 item_id = item.get("_id") or str(uuid4())
                 item["_id"] = item_id
                 collection[item_id] = item
-            else:
-                # Update existing item or insert new item if no match found
-                existing_item = next((existing_item for existing_item in collection.values()
-                                      if all(existing_item.get(k) == v for k, v in filter.items())), None)
-                if existing_item:
-                    existing_item.update(item)
-                else:
-                    item_id = item.get("_id") or str(uuid4())
-                    item["_id"] = item_id
-                    collection[item_id] = item
+
+    def _save_class_item(self, collection, filter, item):
+        if filter is None:
+            item_id = item.id or str(uuid4())
+            item.id = item_id
+            collection[item_id] = item
         else:
-            # Handle class instances
-            if filter is None:
-                # Insert new item
+            existing_item = next((existing_item for existing_item in collection.values()
+                                  if all(existing_item.__dict__.get(k) == v for k, v in filter.items())), None)
+            if existing_item:
+                existing_item.__dict__.update(item.__dict__)
+            else:
                 item_id = item.id or str(uuid4())
                 item.id = item_id
                 collection[item_id] = item
-            else:
-                # Update existing item or insert new item if no match found
-                existing_item = next((existing_item for existing_item in collection.values()
-                                      if all(existing_item.__dict__.get(k) == v for k, v in filter.items())), None)
-                if existing_item:
-                    existing_item.__dict__.update(item.__dict__)
-                else:
-                    item_id = item.id or str(uuid4())
-                    item.id = item_id
-                    collection[item_id] = item
 
     def save_many(self, collection_name, items) -> None:
         for item in items:
@@ -168,8 +172,7 @@ class RepositorySingleton:
 
     def __init__(self):
         if not RepositorySingleton._repository:
-            # Choose the repository implementation based on your condition
-            if environ.get(APP_ENV, APP_DEV) == APP_PROD:
+            if environ.get(APP_ENV, ENV_DEV) == ENV_PROD:
                 RepositorySingleton._repository = RegularRepository(
                     f"{environ[MONGODB_CONNECTION]}://{environ[MONGO_USERNAME]}:{environ[MONGO_PASSWORD]}@"
                     f"{environ[MONGODB_HOSTNAME]}/{environ[MONGO_DATABASE]}"
