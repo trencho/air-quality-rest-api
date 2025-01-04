@@ -1,13 +1,21 @@
 #!/bin/bash
 
-if [ ! -f /debug0 ]; then
-  touch /debug0
+# Constants
+DEBUG_FILE="/debug0"
+DEBUG_FLAG_FILE="/debug1"
+REQUIREMENTS_OS="requirements_os.txt"
+REQUIREMENTS_PROD="requirements/prod.txt"
+APP_PATH="/app/src/api/app.py"
+GUNICORN_CONF="/app/docker/gunicorn.conf.py"
 
-  if [ -e requirements_os.txt ]; then
-    apt-get install -y "$(cat requirements_os.txt)"
+if [ ! -f $DEBUG_FILE ]; then
+  touch $DEBUG_FILE
+
+  if [ -e $REQUIREMENTS_OS ]; then
+    apt-get install -y "$(cat $REQUIREMENTS_OS)"
   fi
-  if [ -e requirements/prod.txt ]; then
-    pip3 install --no-cache-dir -r requirements/prod.txt
+  if [ -e $REQUIREMENTS_PROD ]; then
+    pip3 install --no-cache-dir -r $REQUIREMENTS_PROD
   fi
 
   while getopts 'hd' flag; do
@@ -15,22 +23,22 @@ if [ ! -f /debug0 ]; then
     h)
       echo "options:"
       echo "-h  show brief help"
-      echo "-d  debug mode, no nginx or gunicorn, direct start with 'python3 app/app.py'"
+      echo "-d  debug mode, no nginx or gunicorn, direct start with 'python3 $APP_PATH'"
       exit 0
       ;;
     d)
       echo "Debug!"
-      touch /debug1
+      touch $DEBUG_FLAG_FILE
       ;;
     *) ;;
     esac
   done
 fi
 
-if [ -e /debug1 ]; then
+if [ -e $DEBUG_FLAG_FILE ]; then
   echo "Running app in debug mode!"
-  python3 /app/src/api/app.py
+  python3 $APP_PATH
 else
   echo "Running app in production mode!"
-  nginx && gunicorn -c /app/docker/gunicorn.conf.py
+  nginx && gunicorn -c $GUNICORN_CONF
 fi
