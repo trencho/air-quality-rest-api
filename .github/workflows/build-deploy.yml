@@ -50,8 +50,10 @@ jobs:
             export GIT_REPO_NAME=${{ env.GIT_REPO_NAME }}
             export GIT_REPO_PATH=${{ env.GIT_REPO_PATH }}
             export GIT_REPO_USERNAME=${{ env.GIT_REPO_USERNAME }}
+            export SERVER_HOST=${{ env.SERVER_HOST }}
             export SSH_USERNAME=${{ env.SSH_USERNAME }}
 
+            echo SERVER_HOST: $SERVER_HOST
             mkdir -p "${GIT_REPO_PATH}"
             if [ ! -d "${GIT_REPO_PATH}"/.git ]; then
               git clone https://"${ACCESS_TOKEN}"@github.com/"${GIT_REPO_USERNAME}"/"${GIT_REPO_NAME}".git "${GIT_REPO_PATH}"

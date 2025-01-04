@@ -28,9 +28,7 @@ services:
       VOLUME_PATH: ${VOLUME_PATH}
     image: aqra-flask:latest
     networks:
-      network:
-        aliases:
-          - aqra
+      - network
     ports:
       - "80:80"
     volumes:
