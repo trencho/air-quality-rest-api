@@ -22,11 +22,13 @@ ARG UID=10001
 RUN adduser \
     --disabled-password \
     --gecos "" \
-    --home "/nonexistent" \
+    --home "/app" \
     --shell "/sbin/nologin" \
-    --no-create-home \
     --uid "${UID}" \
-    appuser
+    appuser && \
+    mkdir -p /app/log/nginx /app/run/nginx /var/api /var/lib/nginx && \
+    chown -R appuser /app /run /var/api /var/lib/nginx
+
 
 # Install system dependencies.
 RUN apt update && \
@@ -34,8 +36,7 @@ RUN apt update && \
     apt dist-upgrade -y && \
     apt install -y --no-install-recommends libgomp1 nginx tzdata && \
     apt autoclean clean && \
-    apt autoremove -y && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    apt autoremove -y
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
@@ -52,16 +53,10 @@ USER appuser
 # Copy the source code into the container.
 COPY . .
 
-# Nginx stage
-ARG NGINX_VERSION=1.27.3
-FROM nginx:${NGINX_VERSION} AS nginx
-
-COPY ./docker/nginx.conf /etc/nginx/nginx.conf
-
 # Final stage
 FROM base
 
-COPY --from=nginx /etc/nginx /etc/nginx
+COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 

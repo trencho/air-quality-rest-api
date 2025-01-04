@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Constants
-DEBUG_FILE="/debug0"
-DEBUG_FLAG_FILE="/debug1"
+DEBUG_FILE="/tmp/debug0"
+DEBUG_FLAG_FILE="/tmp/debug1"
 REQUIREMENTS_OS="requirements_os.txt"
 REQUIREMENTS_PROD="requirements/prod.txt"
 APP_PATH="/app/src/api/app.py"
