@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.4
+        uses: actions/checkout@v4.2.2
 
       - name: Install OpenVPN
         run: |
@@ -32,15 +32,16 @@ jobs:
           sudo apt install -y openvpn openvpn-systemd-resolved
 
       - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@v3.0.0
+        uses: kota65535/github-openvpn-connect-action@v3.1.0
         with:
           config_file: ${{ env.OPENVPN_CONFIG }}
+          echo_config: false
           username: ${{ env.OPENVPN_USERNAME }}
           password: ${{ env.OPENVPN_PASSWORD }}
           client_key: ${{ env.USER_KEY }}
 
       - name: SSH commands for checkout/update git repo, build and deploy
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
@@ -53,7 +54,6 @@ jobs:
             export SERVER_HOST=${{ env.SERVER_HOST }}
             export SSH_USERNAME=${{ env.SSH_USERNAME }}
 
-            echo SERVER_HOST: $SERVER_HOST
             mkdir -p "${GIT_REPO_PATH}"
             if [ ! -d "${GIT_REPO_PATH}"/.git ]; then
               git clone https://"${ACCESS_TOKEN}"@github.com/"${GIT_REPO_USERNAME}"/"${GIT_REPO_NAME}".git "${GIT_REPO_PATH}"
