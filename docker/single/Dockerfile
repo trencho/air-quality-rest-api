@@ -28,6 +28,15 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
+# Install system dependencies.
+RUN apt update && \
+    apt upgrade -y && \
+    apt dist-upgrade -y && \
+    apt install -y --no-install-recommends libgomp1 nginx tzdata && \
+    apt autoclean clean && \
+    apt autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
@@ -42,9 +51,18 @@ USER appuser
 
 # Copy the source code into the container.
 COPY . .
+
+# Nginx stage
+ARG NGINX_VERSION=1.27.3
+FROM nginx:${NGINX_VERSION} AS nginx
+
 COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 
-# Expose the port that the application listens on.
+# Final stage
+FROM base
+
+COPY --from=nginx /etc/nginx /etc/nginx
+
 EXPOSE 80
 
 # Run the application.
