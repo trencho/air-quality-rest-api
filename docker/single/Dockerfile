@@ -16,27 +16,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Create a non-privileged user that the app will run under.
-# See https://docs.docker.com/go/dockerfile-user-best-practices/
-ARG UID=10001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/app" \
-    --shell "/sbin/nologin" \
-    --uid "${UID}" \
-    appuser && \
-    mkdir -p /app/log/nginx /app/run/nginx /var/api /var/lib/nginx && \
-    chown -R appuser /app /run /var/api /var/lib/nginx
-
-
 # Install system dependencies.
 RUN apt update && \
     apt upgrade -y && \
     apt dist-upgrade -y && \
     apt install -y --no-install-recommends libgomp1 nginx tzdata && \
     apt autoclean clean && \
-    apt autoremove -y
+    apt autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
@@ -46,9 +33,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements,target=requirements \
     python -m pip install --upgrade pip && \
     python -m pip install -r requirements/prod.txt
-
-# Switch to the non-privileged user to run the application.
-USER appuser
 
 # Copy the source code into the container.
 COPY . .
