@@ -35,8 +35,8 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
         for index, value in predictions.items():
             timestamp_dict = forecast_result.get(int(index.timestamp()), {})
             tz = location_timezone(city["countryCode"])
-            date_time = datetime.fromtimestamp(int(index.timestamp()), location_timezone(city["countryCode"]))
             logger.info(f"Country code: {city['countryCode']} - Timezone: {tz}")
+            date_time = datetime.fromtimestamp(int(index.timestamp()), location_timezone(city["countryCode"]))
             timestamp_dict.update(
                 {"dateTime": date_time, "time": int(index.timestamp()), pollutant: None if isnan(value) else value})
             forecast_result.update({int(index.timestamp()): timestamp_dict})
