@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from glob import glob
+from logging import getLogger
 from math import isnan, nan
 from os import path
 from pickle import load
@@ -17,6 +18,8 @@ from .feature_scaling import value_scaling
 from .handle_data import fetch_summary_dataframe, read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
 
+logger = getLogger(__name__)
+
 # Constants
 FORECAST_PERIOD = "1h"
 FORECAST_STEPS = 25
@@ -31,7 +34,9 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
 
         for index, value in predictions.items():
             timestamp_dict = forecast_result.get(int(index.timestamp()), {})
+            tz = location_timezone(city["countryCode"])
             date_time = datetime.fromtimestamp(int(index.timestamp()), location_timezone(city["countryCode"]))
+            logger.info(f"Country code: {city['countryCode']} - Timezone: {tz}")
             timestamp_dict.update(
                 {"dateTime": date_time, "time": int(index.timestamp()), pollutant: None if isnan(value) else value})
             forecast_result.update({int(index.timestamp()): timestamp_dict})
