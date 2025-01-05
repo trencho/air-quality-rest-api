@@ -16,9 +16,9 @@ from .swagger import configure_swagger
 
 
 def create_app() -> Flask:
+    configure_logger()
     configure_gc()
     init_system_paths()
-    configure_logger()
 
     app = Flask(__name__)
 
