@@ -1,3 +1,4 @@
+from atexit import register
 from base64 import b64encode
 from datetime import datetime
 from json import dump, load
@@ -5,9 +6,8 @@ from logging import getLogger
 from os import environ, makedirs, path, remove, rmdir, walk
 from shutil import unpack_archive
 
-from apscheduler import Scheduler
-from apscheduler.datastores.sqlalchemy import SQLAlchemyDataStore
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.schedulers.background import BackgroundScheduler
 from sqlalchemy import create_engine
 
 from api.blueprints import fetch_city_data
@@ -23,12 +23,15 @@ from .repository import RepositorySingleton
 
 logger = getLogger(__name__)
 
+scheduler = BackgroundScheduler()
+jobstore_name = "aqra"
 DATABASE_FILE = path.join(DATA_PATH, "jobs.sqlite")
 REPO_BRANCH = "master"
 
 repository = RepositorySingleton.get_instance().get_repository()
 
 
+@scheduler.scheduled_job(trigger="cron", id="dump_data", misfire_grace_time=None, jobstore=jobstore_name, day="*/15")
 def dump_data() -> None:
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
@@ -45,6 +48,7 @@ def dump_data() -> None:
                          f"Scheduled data dump - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}")
 
 
+@scheduler.scheduled_job(trigger="cron", id="dump_jobs", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def dump_jobs() -> None:
     current_time = datetime.now().strftime("%H:%M:%S %d-%m-%Y")
     dump_filename = f"job_dump_{current_time}.sql"
@@ -55,6 +59,8 @@ def dump_jobs() -> None:
         f.write(dump_content)
 
 
+@scheduler.scheduled_job(trigger="cron", id="fetch_hourly_data", misfire_grace_time=None, jobstore=jobstore_name,
+                         hour="*/2")
 def fetch_hourly_data() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -64,6 +70,7 @@ def fetch_hourly_data() -> None:
                     process_data(city["cityName"], sensor["sensorId"], collection)
 
 
+@scheduler.scheduled_job(trigger="cron", id="fetch_locations", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def fetch_locations() -> None:
     cities = fetch_cities()
     with open(path.join(DATA_RAW_PATH, "cities.json"), "w") as out_file:
@@ -97,6 +104,7 @@ def fetch_locations() -> None:
             dump(sensors[city["cityName"]], out_file, indent=4)
 
 
+@scheduler.scheduled_job(trigger="cron", id="import_data", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def import_data() -> None:
     for root, directories, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
@@ -127,6 +135,7 @@ def import_data() -> None:
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
 
 
+@scheduler.scheduled_job(trigger="cron", id="model_training", misfire_grace_time=None, jobstore=jobstore_name, minute=0)
 def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -134,6 +143,8 @@ def model_training() -> None:
                 train_regression_model(city, sensor, pollutant)
 
 
+@scheduler.scheduled_job(trigger="cron", id="predict_locations", misfire_grace_time=None, jobstore=jobstore_name,
+                         minute=0)
 def predict_locations() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -160,6 +171,8 @@ def predict_locations() -> None:
                     exc_info=True)
 
 
+@scheduler.scheduled_job(trigger="cron", id="reset_api_counter", misfire_grace_time=None, jobstore=jobstore_name,
+                         hour=0)
 def reset_api_counter() -> None:
     try:
         with open(path.join(DATA_PATH, f"{FORECAST_COUNTER}.txt"), "w") as out_file:
@@ -170,6 +183,7 @@ def reset_api_counter() -> None:
         logger.error("Error occurred while resetting the API counter", exc_info=True)
 
 
+@scheduler.scheduled_job(trigger="cron", id="reset_model_lock", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def reset_model_lock() -> None:
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith(".lock")]:
@@ -181,28 +195,7 @@ def reset_model_lock() -> None:
 def configure_scheduler() -> None:
     db_url = f"sqlite:////{DATABASE_FILE}"
     engine = create_engine(db_url)
-    data_store = SQLAlchemyDataStore(engine)
-    scheduler = Scheduler(data_store)
-    schedule_jobs(scheduler)
-    scheduler.start_in_background()
-    logger.info("Scheduler configured and started in background")
-
-
-def schedule_jobs(scheduler: Scheduler) -> None:
-    scheduler.add_schedule(func_or_task_id=dump_data, trigger=CronTrigger(day="*/15"), id="dump_data",
-                           misfire_grace_time=None)
-    scheduler.add_schedule(func_or_task_id=dump_jobs, trigger=CronTrigger(hour=0), id="dump_jobs",
-                           misfire_grace_time=None)
-    scheduler.add_schedule(func_or_task_id=fetch_hourly_data, trigger=CronTrigger(hour="*/2"), id="fetch_hourly_data",
-                           misfire_grace_time=None)
-    scheduler.add_schedule(func_or_task_id=fetch_locations, trigger=CronTrigger(hour=0), id="fetch_locations",
-                           misfire_grace_time=None)
-    scheduler.add_schedule(func_or_task_id=import_data, trigger=CronTrigger(hour=0), id="import_data",
-                           misfire_grace_time=None)
-    scheduler.add_schedule(func_or_task_id=predict_locations, trigger=CronTrigger(minute=0), id="predict_locations",
-                           misfire_grace_time=None)
-    scheduler.add_schedule(func_or_task_id=reset_api_counter, trigger=CronTrigger(hour=0), id="reset_api_counter",
-                           misfire_grace_time=None)
-    scheduler.add_schedule(func_or_task_id=reset_model_lock, trigger=CronTrigger(hour=0), id="reset_model_lock",
-                           misfire_grace_time=None)
-    logger.info("Scheduled jobs configured")
+    jobstore = SQLAlchemyJobStore(engine=engine)
+    scheduler.add_jobstore(jobstore=jobstore, alias=jobstore_name)
+    scheduler.start()
+    register(lambda: scheduler.shutdown(wait=False))
