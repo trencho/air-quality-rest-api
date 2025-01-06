@@ -10,7 +10,7 @@ from pytz import country_timezones, timezone
 from requests import get
 
 from api.config.cache import cache
-from definitions import COUNTRIES, DATA_RAW_PATH
+from definitions import CACHE_TIMEOUTS, COUNTRIES, DATA_RAW_PATH
 
 
 def calculate_nearest_city(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
@@ -32,7 +32,7 @@ def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> O
     return sensors[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def check_city(city_name: str) -> Optional[dict]:
     for city in cache.get("cities") or read_cities():
         if city["cityName"] == city_name:
@@ -41,7 +41,7 @@ def check_city(city_name: str) -> Optional[dict]:
     return None
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def check_country(country_code: str) -> Optional[dict]:
     for country in cache.get("countries") or read_countries():
         if country["countryCode"] == country_code.upper():
@@ -50,7 +50,7 @@ def check_country(country_code: str) -> Optional[dict]:
     return None
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
     for sensor in read_sensors(city_name):
         if sensor["sensorId"] == sensor_id:
@@ -82,7 +82,7 @@ def fetch_sensors(city_name: str) -> list:
         return []
 
 
-@cache.memoize
+@cache.memoize(timeout=CACHE_TIMEOUTS["never"])
 def location_timezone(country_code: str) -> tzinfo:
     return timezone(country_timezones[country_code][0])
 
@@ -115,7 +115,7 @@ def recalculate_coordinate(val: tuple, _as: Optional[str] = None) -> [float, tup
     """
     Accepts a coordinate as a tuple (degree, minutes, seconds) You can give only one of them (e.g., only minutes as a
     floating point number), and it will be duly recalculated into degrees, minutes and seconds. Return value can be
-    specified as "deg", "min" or "sec"; default return value is a proper coordinate tuple.
+    specified as "deg", "min" or "sec"; the default return value is a proper coordinate tuple.
     """
     degrees, minutes, seconds = val
 

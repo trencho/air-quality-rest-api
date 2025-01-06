@@ -5,12 +5,12 @@ from pandas import DataFrame
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
-from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH
+from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH, DATA_RAW_PATH
 from preparation import fetch_weather_data
 from processing import read_csv_in_chunks
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def fetch_dataframe(data_path: str, collection: str) -> DataFrame | tuple[Response, int]:
     try:
         if (dataframe := read_csv_in_chunks(

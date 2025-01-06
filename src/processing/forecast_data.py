@@ -9,7 +9,7 @@ from typing import Optional
 from pandas import concat, DataFrame, date_range, Series
 
 from api.config.cache import cache
-from definitions import DATA_PROCESSED_PATH, MODELS_PATH, POLLUTANTS
+from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH, MODELS_PATH, POLLUTANTS
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
 from preparation import location_timezone
@@ -23,7 +23,6 @@ logger = getLogger(__name__)
 # Constants
 FORECAST_PERIOD = "1h"
 FORECAST_STEPS = 25
-CACHE_TIMEOUT = 3600
 
 
 def fetch_forecast_result(city: dict, sensor: dict) -> dict:
@@ -44,7 +43,7 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     return forecast_result
 
 
-@cache.memoize(timeout=CACHE_TIMEOUT)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Optional[Series]:
     if (load_model := load_regression_model(city_name, sensor_id, pollutant)) is None:
         return None
@@ -53,7 +52,7 @@ def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Opti
     return recursive_forecast(city_name, sensor_id, pollutant, model, model_features)
 
 
-@cache.memoize(timeout=CACHE_TIMEOUT)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
     dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, "weather.csv"))
     dataframe = dataframe.loc[dataframe["time"] == timestamp]
@@ -63,7 +62,7 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
     return {}
 
 
-@cache.memoize(timeout=CACHE_TIMEOUT)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
     files = glob(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "*.mdl"))
     if not files:
@@ -78,7 +77,7 @@ def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Opt
     return model, model_features
 
 
-@cache.memoize(timeout=CACHE_TIMEOUT)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
                     step: str = FORECAST_PERIOD) -> Series:
     """Multistep direct forecasting using a machine learning model to forecast each time period ahead
@@ -117,7 +116,7 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
     return Series(forecast_values, forecast_range)
 
 
-@cache.memoize(timeout=CACHE_TIMEOUT)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: BaseRegressionModel, model_features: list,
                        lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
                        step: str = FORECAST_PERIOD) -> Series:

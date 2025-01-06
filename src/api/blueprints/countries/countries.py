@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
+from definitions import CACHE_TIMEOUTS
 from preparation import check_country, read_countries
 
 countries_blueprint = Blueprint("countries", __name__)
@@ -10,7 +11,7 @@ countries_blueprint = Blueprint("countries", __name__)
 
 @countries_blueprint.get("/countries/", endpoint="countries")
 @countries_blueprint.get("/countries/<string:country_code>/", endpoint="countries_code")
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 @swag_from("countries.yml", endpoint="countries.countries", methods=["GET"])
 @swag_from("countries_code.yml", endpoint="countries.countries_code", methods=["GET"])
 def fetch_country(country_code: str = None) -> Response | tuple[Response, int]:

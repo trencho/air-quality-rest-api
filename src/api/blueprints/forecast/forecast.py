@@ -7,7 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
 from api.config.repository import RepositorySingleton
-from definitions import DATA_PROCESSED_PATH
+from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH
 from preparation import calculate_nearest_city, calculate_nearest_sensor, check_city, check_sensor, location_timezone, \
     read_sensors
 from processing import current_hour, next_hour
@@ -17,7 +17,7 @@ repository = RepositorySingleton.get_instance().get_repository()
 
 
 @forecast_blueprint.get("/cities/<string:city_name>/forecast/", endpoint="forecast_city")
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 @swag_from("forecast_city.yml", endpoint="forecast.forecast_city", methods=["GET"])
 def fetch_city_forecast(city_name: str) -> Response | tuple[Response, int]:
     if (city := check_city(city_name)) is None:
@@ -41,7 +41,7 @@ def fetch_city_coordinates_forecast(latitude: float, longitude: float) -> Respon
 
 @forecast_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/forecast/",
                         endpoint="forecast_city_sensor")
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 @swag_from("forecast_sensor.yml", endpoint="forecast.forecast_city_sensor", methods=["GET"])
 def fetch_sensor_forecast(city_name: str, sensor_id: str) -> Response | tuple[Response, int]:
     if (city := check_city(city_name)) is None:
