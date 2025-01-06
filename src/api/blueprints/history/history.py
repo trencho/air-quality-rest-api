@@ -8,6 +8,7 @@ from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
 from api.config.cache import cache
+from definitions import CACHE_TIMEOUTS
 from preparation import calculate_nearest_sensor, check_city, check_sensor
 from processing import current_hour
 
@@ -78,7 +79,7 @@ def retrieve_history_timestamps() -> tuple[int, int] | tuple[Response, int]:
     return start_time, end_time
 
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def return_historical_data(city_name: str, sensor: dict, data_type: str, start_time: int, end_time: int) -> Response:
     if isinstance(dataframe := fetch_dataframe(path.join(city_name, sensor["sensorId"]), data_type), Response):
         return dataframe

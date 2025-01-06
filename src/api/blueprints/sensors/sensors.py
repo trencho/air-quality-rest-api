@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, Response
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
+from definitions import CACHE_TIMEOUTS
 from preparation import check_city, check_sensor, read_sensors
 
 sensors_blueprint = Blueprint("sensors", __name__)
@@ -10,7 +11,7 @@ sensors_blueprint = Blueprint("sensors", __name__)
 
 @sensors_blueprint.get("/cities/<string:city_name>/sensors/", endpoint="sensors_all")
 @sensors_blueprint.get("/cities/<string:city_name>/sensors/<string:sensor_id>/", endpoint="sensors_id")
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 @swag_from("sensors_all.yml", endpoint="sensors.sensors_all", methods=["GET"])
 @swag_from("sensors_id.yml", endpoint="sensors.sensors_id", methods=["GET"])
 def fetch_city_sensor(city_name: str, sensor_id: str = None) -> Response | tuple[Response, int]:
