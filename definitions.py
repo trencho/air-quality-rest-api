@@ -55,6 +55,14 @@ ENV_PROD = "production"
 COLLECTIONS = ["weather", "pollution"]
 CHUNK_SIZE = 15000
 
+CACHE_TIMEOUTS = {
+    "never": 0,
+    "1min": 60,
+    "3min": 180,
+    "5min": 300,
+    "1h": 3600
+}
+
 # Constants for countries and pollutants
 COUNTRIES = {"MK": "Macedonia"}
 POLLUTANTS = {
