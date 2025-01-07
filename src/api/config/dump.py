@@ -13,7 +13,7 @@ def generate_sql_dump(database_file: str) -> str:
 
 
 def get_table_names(cursor: Cursor) -> list[str]:
-    cursor.execute("SELECT NAME FROM SQLITE_MASTER WHERE TYPE='TABLE'")
+    cursor.execute("SELECT NAME FROM SQLITE_MASTER WHERE TYPE='table'")
     return [row[0] for row in cursor.fetchall()]
 
 
