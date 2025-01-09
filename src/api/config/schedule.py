@@ -141,6 +141,7 @@ def model_training() -> None:
         for sensor in read_sensors(city["cityName"]):
             for pollutant in POLLUTANTS:
                 train_regression_model(city, sensor, pollutant)
+                logger.info(f"Model training completed for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
 
 
 @scheduler.scheduled_job(trigger="cron", id="predict_locations", misfire_grace_time=None, jobstore=jobstore_name,

@@ -29,8 +29,11 @@ def generate_insert_statements(cursor: Cursor, table_name: str) -> str:
 
 def format_sql_value(value: Any) -> str:
     if isinstance(value, str):
-        return f"'{value}'"
+        escaped_value = value.replace("'", "''")
+        return f"'{escaped_value}'"
     elif value is None:
         return "NULL"
+    elif isinstance(value, (bytes, bytearray)):
+        return f"X'{value.hex()}'"
     else:
         return str(value)
