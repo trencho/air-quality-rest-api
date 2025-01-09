@@ -190,6 +190,7 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             generate_regression_model(dataframe, city["cityName"], sensor["sensorId"], pollutant)
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
+        logger.info(f"Model training completed for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
     except Exception:
         logger.error(f"Error occurred while training regression model for {city['cityName']} - "
                      f"{sensor['sensorId']} - {pollutant}", exc_info=True)
