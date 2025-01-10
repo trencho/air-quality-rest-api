@@ -140,6 +140,7 @@ def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             for pollutant in POLLUTANTS:
+                logger.info(f"Training regression model for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
                 train_regression_model(city, sensor, pollutant)
 
 
