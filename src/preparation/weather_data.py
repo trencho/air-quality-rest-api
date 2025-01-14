@@ -44,7 +44,7 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
 
 
 def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
-    url = "https://api.openweathermap.org/data/2.5/onecall"
+    url = "https://api.openweathermap.org/data/3.0/onecall"
     sensor_position = sensor["position"].split(",")
     lat, lon = float(sensor_position[0]), float(sensor_position[1])
     units = "metric"
