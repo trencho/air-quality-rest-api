@@ -8,7 +8,7 @@ gunicorn==23.0.0
 haversine==2.9.0
 lightgbm==4.5.0
 matplotlib==3.10.0
-numpy==2.2.1
+numpy==2.2.2
 pandas==2.2.3
 PyGithub==2.5.0
 pymongo==4.10.1
