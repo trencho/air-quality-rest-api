@@ -135,7 +135,8 @@ def import_data() -> None:
     makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
 
 
-@scheduler.scheduled_job(trigger="cron", id="model_training", misfire_grace_time=None, jobstore=jobstore_name, minute=0)
+@scheduler.scheduled_job(trigger="cron", id="model_training", misfire_grace_time=None, max_instances=2,
+                         jobstore=jobstore_name, minute=0)
 def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
