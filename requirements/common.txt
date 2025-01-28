@@ -18,7 +18,7 @@ scikit-learn==1.6.1
 scipy==1.15.1
 SQLAlchemy==2.0.37
 seaborn==0.13.2
-starlette==0.45.2
+starlette==0.45.3
 statsmodels==0.14.4
 urllib3==2.3.0
 xgboost==2.1.3
