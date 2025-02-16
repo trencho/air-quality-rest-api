@@ -6,12 +6,12 @@ Flask-Cors==5.0.0
 flask-healthz==1.0.1
 gunicorn==23.0.0
 haversine==2.9.0
-lightgbm==4.5.0
+lightgbm==4.6.0
 matplotlib==3.10.0
-numpy==2.2.2
+numpy==2.2.3
 pandas==2.2.3
-PyGithub==2.5.0
-pymongo==4.11
+PyGithub==2.6.0
+pymongo==4.11.1
 pytz==2025.1
 requests==2.32.3
 scikit-learn==1.6.1
