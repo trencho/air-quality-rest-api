@@ -56,7 +56,7 @@ kubectl apply -f kubernetes/metallb/l2-advertisement.yml
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
 
 ```
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.27.3/controller.yaml
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.28.0/controller.yaml
 
 kubeseal < kubernetes/secrets/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml
 kubeseal < kubernetes/secrets/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
