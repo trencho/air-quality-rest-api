@@ -1,7 +1,6 @@
 from gc import collect, freeze, get_threshold, set_threshold
 from logging import getLogger
 
-# Constants for threshold values
 THRESHOLD_0 = 100_000
 THRESHOLD_MULTIPLIER_1 = 5
 THRESHOLD_MULTIPLIER_2 = 10

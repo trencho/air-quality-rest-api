@@ -1,4 +1,4 @@
-FROM mongo:7.0.16
+FROM mongo:7.0.17
 
 LABEL maintainer="Aleksandar Trenchevski <atrenchevski@gmail.com>"
 
