@@ -4,7 +4,6 @@ from numpy import abs, cos, pi, sin
 from pandas import cut, DataFrame, Index, Series
 from statsmodels.tsa.stattools import pacf
 
-# Constants for cyclic encoding
 MONTHS_IN_YEAR = 12
 DAYS_IN_MONTH = 30
 HOURS_IN_DAY = 24
@@ -13,7 +12,6 @@ DAYS_IN_WEEK = 7
 DAYS_IN_YEAR = 365
 QUARTERS_IN_YEAR = 4
 
-# Constants for seasons
 SEASONS = [
     ("winter", (date(2000, 1, 1), date(2000, 3, 20))),
     ("spring", (date(2000, 3, 21), date(2000, 6, 20))),
@@ -22,7 +20,6 @@ SEASONS = [
     ("winter", (date(2000, 12, 21), date(2000, 12, 31)))
 ]
 
-# Constants for session bins and labels
 SESSION_BINS = [0, 4, 8, 12, 16, 20, 24]
 SESSION_LABELS = ["Late Night", "Early Morning", "Morning", "Noon", "Eve", "Night"]
 

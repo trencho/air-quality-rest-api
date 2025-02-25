@@ -61,10 +61,8 @@ class RegularRepository(Repository):
     def save(self, collection_name, filter, item) -> None:
         collection = self.database[collection_name]
         if filter is None:
-            # Insert new item
             collection.insert_one(item if isinstance(item, dict) else item.__dict__)
         else:
-            # Update existing item
             collection.replace_one(filter=filter, replacement=item if isinstance(item, dict) else item.__dict__,
                                    upsert=True)
 

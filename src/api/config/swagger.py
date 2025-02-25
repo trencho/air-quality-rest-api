@@ -7,7 +7,6 @@ from definitions import URL_PREFIX
 
 logger = getLogger(__name__)
 
-# Constants for Swagger configuration
 FAVICON_URL = f"{URL_PREFIX}/favicon.ico/"
 OPENAPI_VERSION = "3.0.3"
 SPECS_ENDPOINT = "apispec_1"

@@ -17,7 +17,6 @@ from .feature_scaling import value_scaling
 from .handle_data import fetch_summary_dataframe, read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
 
-# Constants
 FORECAST_PERIOD = "1h"
 FORECAST_STEPS = 25
 
@@ -134,7 +133,6 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     forecast_values: pd.Series with forecasted values indexed by forecast horizon dates
     """
 
-    # Get the dates to forecast
     upcoming_hour = next_hour(current_hour())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
