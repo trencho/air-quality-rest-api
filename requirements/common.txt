@@ -1,8 +1,8 @@
 APScheduler==3.11.0
 flasgger==0.9.7.1
 Flask==3.1.0
-Flask-Caching==2.3.0
-Flask-Cors==5.0.0
+Flask-Caching==2.3.1
+Flask-Cors==5.0.1
 flask-healthz==1.0.1
 gunicorn==23.0.0
 haversine==2.9.0
@@ -18,7 +18,7 @@ scikit-learn==1.6.1
 scipy==1.15.2
 SQLAlchemy==2.0.38
 seaborn==0.13.2
-starlette==0.45.3
+starlette==0.46.0
 statsmodels==0.14.4
 urllib3==2.3.0
 xgboost==2.1.4
