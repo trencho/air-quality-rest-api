@@ -1,7 +1,6 @@
 from pandas import DataFrame
 from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
-# Constants for scaler types
 SCALER_TYPES = {
     "min_max": MinMaxScaler(),
     "standard": StandardScaler(),

@@ -1,7 +1,6 @@
 from pandas import Series
 from statsmodels.api import add_constant, OLS
 
-# Constants
 SIGNIFICANCE_LEVEL = 0.05
 
 

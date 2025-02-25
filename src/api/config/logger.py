@@ -1,11 +1,10 @@
 from atexit import register
 from logging import getHandlerByName, getLogger
 from logging.config import dictConfig
-from os import path
+from os import makedirs, path
 
 from definitions import LOG_PATH
 
-# Constants for log levels and backup count
 LOG_LEVEL_INFO = "INFO"
 LOG_LEVEL_DEBUG = "DEBUG"
 BACKUP_COUNT = 5
@@ -56,6 +55,7 @@ CONFIG = {
 
 
 def configure_logger() -> None:
+    makedirs(LOG_PATH, exist_ok=True)
     dictConfig(CONFIG)
     queue_handler = getHandlerByName("queue")
     if queue_handler is not None:
