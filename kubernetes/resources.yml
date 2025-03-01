@@ -6,13 +6,20 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: cronjob-sa
+  name: certificate-renewal-sa
+  namespace: aqra
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flask-restart-sa
   namespace: aqra
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
-  name: cronjob-cert-delete
+  name: certificate-renewal
+  namespace: aqra
 rules:
   - apiGroups:
       - ""
@@ -24,16 +31,45 @@ rules:
       - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: Role
 metadata:
-  name: cronjob-crb
+  name: flask-restart-role
+  namespace: aqra
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: certificate-renewal-rolebinding
+  namespace: aqra
 roleRef:
-  apiGroup: ""
-  kind: ClusterRole
-  name: cronjob-cert-delete
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: certificate-renewal
 subjects:
   - kind: ServiceAccount
-    name: cronjob-sa
+    name: certificate-renewal-sa
+    namespace: aqra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: flask-restart-rolebinding
+  namespace: aqra
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: flask-restart-role
+subjects:
+  - kind: ServiceAccount
+    name: flask-restart-sa
     namespace: aqra
 ---
 apiVersion: v1
@@ -143,23 +179,52 @@ spec:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: cronjob
+  name: certificate-renewal
   namespace: aqra
 spec:
   jobTemplate:
     spec:
+      backoffLimit: 3
       template:
         spec:
           containers:
             - command:
                 - /bin/sh
                 - -c
-                - kubectl delete certificate aqra-tls -n aqra && kubectl delete secret aqra-tls -n aqra
+                - |
+                  set -e
+                  kubectl get certificate aqra-tls -n aqra || exit 0
+                  kubectl get secret aqra-tls -n aqra || exit 0
+                  kubectl delete certificate aqra-tls -n aqra
+                  kubectl delete secret aqra-tls -n aqra
               image: bitnami/kubectl:latest
               name: cronjob
           restartPolicy: OnFailure
-          serviceAccountName: cronjob-sa
-  schedule: 0 0 1 */2 *
+          serviceAccountName: certificate-renewal-sa
+  schedule: 0 0 1 * *
+  successfulJobsHistoryLimit: 1
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: flask-restart
+  namespace: aqra
+spec:
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          containers:
+            - command:
+                - /bin/sh
+                - -c
+                - set -e; kubectl rollout restart deployment flask -n aqra
+              image: bitnami/kubectl:latest
+              name: kubectl
+          restartPolicy: OnFailure
+          serviceAccountName: flask-restart-sa
+  schedule: 0 0 * * *
   successfulJobsHistoryLimit: 1
 ---
 apiVersion: bitnami.com/v1alpha1
