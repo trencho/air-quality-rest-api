@@ -185,7 +185,8 @@ def reset_api_counter() -> None:
         logger.error("Error occurred while resetting the API counter", exc_info=True)
 
 
-@scheduler.scheduled_job(trigger="cron", id="reset_model_lock", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
+@scheduler.scheduled_job(trigger="cron", id="reset_model_lock", misfire_grace_time=None, jobstore=jobstore_name,
+                         day="*/15")
 def reset_model_lock() -> None:
     for file in [path.join(root, file) for root, directories, files in walk(MODELS_PATH) for file in files if
                  file.endswith(".lock")]:
