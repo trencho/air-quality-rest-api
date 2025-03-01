@@ -4,7 +4,8 @@ resources:
   - aqra-network-networkpolicy.yml
   - cluster-issuers/prod-issuer.yml
   - cluster-issuers/staging-issuer.yml
-  - cronjob/cronjob.yml
+  - cronjob/certificate-cronjob.yml
+  - cronjob/flask-cronjob.yml
   - mongo-service.yml
   - namespace.yml
   - persistent-volume-claims/flaskdata-persistentvolumeclaim.yml

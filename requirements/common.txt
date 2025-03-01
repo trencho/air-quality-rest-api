@@ -7,7 +7,7 @@ flask-healthz==1.0.1
 gunicorn==23.0.0
 haversine==2.9.0
 lightgbm==4.6.0
-matplotlib==3.10.0
+matplotlib==3.10.1
 numpy==2.2.3
 pandas==2.2.3
 PyGithub==2.6.1
