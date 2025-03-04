@@ -11,7 +11,7 @@ matplotlib==3.10.1
 numpy==2.2.3
 pandas==2.2.3
 PyGithub==2.6.1
-pymongo==4.11.1
+pymongo==4.11.2
 pytz==2025.1
 requests==2.32.3
 scikit-learn==1.6.1

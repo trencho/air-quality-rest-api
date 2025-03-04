@@ -50,8 +50,7 @@ def dump_data() -> None:
 
 @scheduler.scheduled_job(trigger="cron", id="dump_jobs", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def dump_jobs() -> None:
-    current_time = datetime.now().strftime("%d-%m-%Y")
-    dump_filename = f"job_dump_{current_time}.sql"
+    dump_filename = "job_dump.sql"
     dump_content = generate_sql_dump(DATABASE_FILE)
 
     dump_path = path.join(DATA_PATH, dump_filename)
