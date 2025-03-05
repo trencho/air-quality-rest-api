@@ -47,8 +47,8 @@ spec:
           resources: { }
           volumeMounts:
             - mountPath: /var/api
-              name: flaskdata
+              name: flask-data
       volumes:
-        - name: flaskdata
+        - name: flask-data
           persistentVolumeClaim:
-            claimName: flaskdata-pvc
+            claimName: flask-data-pvc

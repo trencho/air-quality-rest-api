@@ -41,12 +41,12 @@ spec:
           resources: { }
           volumeMounts:
             - mountPath: /data/db
-              name: mongodata
+              name: mongo-data
       securityContext:
         runAsNonRoot: true
         runAsUser: 1002
         runAsGroup: 1002
       volumes:
-        - name: mongodata
+        - name: mongo-data
           persistentVolumeClaim:
-            claimName: mongodata-pvc
+            claimName: mongo-data-pvc
