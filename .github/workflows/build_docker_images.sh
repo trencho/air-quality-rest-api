@@ -12,11 +12,11 @@ if [ -f "${SOURCE_DIR_SHA_FILE}" ]; then
     echo "SHA values match: The source directory has not changed."
   else
     echo "SHA values differ: The source directory has been modified."
-    docker-compose -f "${SOURCE_DIR}"/docker/single/docker-compose.yml build
+    docker-compose -f "${SOURCE_DIR}"/docker/docker-compose.yml build
   fi
 else
   current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
   echo "File '${SOURCE_DIR_SHA_FILE}' created with the current SHA value."
-  docker-compose -f "${SOURCE_DIR}"/docker/single/docker-compose.yml build
+  docker-compose -f "${SOURCE_DIR}"/docker/docker-compose.yml build
 fi
 echo "${current_sha}" >"${SOURCE_DIR_SHA_FILE}"

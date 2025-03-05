@@ -19,14 +19,14 @@ kind: RoleBinding
 metadata:
   name: certificate-renewal-rolebinding
   namespace: aqra
-subjects:
-  - kind: ServiceAccount
-    name: certificate-renewal-sa
-    namespace: aqra
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: certificate-renewal
+subjects:
+  - kind: ServiceAccount
+    name: certificate-renewal-sa
+    namespace: aqra
 ---
 apiVersion: batch/v1
 kind: CronJob

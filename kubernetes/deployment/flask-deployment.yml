@@ -1,9 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: flask
   name: flask
@@ -17,9 +14,6 @@ spec:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f docker/multi/docker-compose.yml
-        kompose.version: 1.28.0 (c4137012e)
       labels:
         io.kompose.network/aqra-network: "true"
         io.kompose.service: flask
@@ -28,27 +22,32 @@ spec:
       containers:
         - envFrom:
             - secretRef:
-                name:
-                  flask-secret
+                name: flask-secret
           image: aqra-flask
           imagePullPolicy: Never
           livenessProbe:
             failureThreshold: 1
             httpGet:
-              path: /healthz/live
-              port: 5000
+              path: /api/v1/healthz/live
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 300
+            timeoutSeconds: 60
+          readinessProbe:
+            failureThreshold: 2
+            httpGet:
+              path: /api/v1/healthz/ready
+              port: 80
             initialDelaySeconds: 60
             periodSeconds: 300
             timeoutSeconds: 60
           name: flask
           ports:
-            - containerPort: 5000
+            - containerPort: 80
           resources: { }
           volumeMounts:
             - mountPath: /var/api
               name: flaskdata
-      securityContext:
-        runAsNonRoot: true
       volumes:
         - name: flaskdata
           persistentVolumeClaim:
