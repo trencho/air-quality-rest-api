@@ -3,7 +3,7 @@
 ###### Build docker images defined in docker-compose
 
 ```
-docker-compose -f docker/single/docker-compose.yml build
+docker-compose -f docker/docker-compose.yml build
 ```
 
 ###### Initialize docker swarm for containers that have networks defined as overlay
@@ -15,7 +15,7 @@ docker swarm init
 ###### Deploy all containers defined in docker-compose and detach from the process
 
 ```
-docker-compose -f docker/single/docker-compose.yml up -d
+docker-compose -f docker/docker-compose.yml up -d
 ```
 
 ###### Follow logs of the deployed docker container by id
@@ -39,7 +39,7 @@ docker stats $(docker ps --filter "name=[container-name]" -q)
 ###### Stop all docker containers defined in docker-compose
 
 ```
-docker-compose -f docker/single/docker-compose.yml down
+docker-compose -f docker/docker-compose.yml down
 ```
 
 ###### Cleanup all docker data and volumes

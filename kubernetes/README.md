@@ -48,9 +48,9 @@ kubernetes/custom-ingress-values.yml
 ###### Apply MetalLB resources for deploying a load balancer
 
 ```
-kubectl apply -f kubernetes/metallb/metallb-native.yml
 kubectl apply -f kubernetes/metallb/ip-address-pool.yml
 kubectl apply -f kubernetes/metallb/l2-advertisement.yml
+kubectl apply -f kubernetes/metallb/metallb-native.yml
 ```
 
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
@@ -58,19 +58,18 @@ kubectl apply -f kubernetes/metallb/l2-advertisement.yml
 ```
 kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.28.0/controller.yaml
 
-kubeseal < kubernetes/secrets/flask-secret.yml -o yaml > kubernetes/sealed-secrets/flask-sealed-secret.yml
-kubeseal < kubernetes/secrets/mongo-secret.yml -o yaml > kubernetes/sealed-secrets/mongo-sealed-secret.yml
+kubeseal < kubernetes/secret/flask-secret.yml -o yaml > kubernetes/sealed-secret/flask-sealed-secret.yml
+kubeseal < kubernetes/secret/mongo-secret.yml -o yaml > kubernetes/sealed-secret/mongo-sealed-secret.yml
 ```
 
 ```
-kubectl apply -f kubernetes/sealed-secrets/flask-sealed-secret.yml
-kubectl apply -f kubernetes/sealed-secrets/mongo-sealed-secret.yml
+kubectl apply -f kubernetes/sealed-secret/flask-sealed-secret.yml
+kubectl apply -f kubernetes/sealed-secret/mongo-sealed-secret.yml
 ```
 
 ###### Generate single yml files for applying all necessary kubernetes resources
 
 ```
-kubectl kustomize kubernetes/single/resources > kubernetes/single/resources.yml
 kubectl kustomize kubernetes > kubernetes/resources.yml
 ```
 
@@ -78,8 +77,8 @@ kubectl kustomize kubernetes > kubernetes/resources.yml
 
 ```
 kubectl apply -f kubernetes/resources.yml
-kubectl apply -f kubernetes/mongo-deployment.yml
-kubectl apply -f kubernetes/single/resources/flask-deployment.yml
+kubectl apply -f kubernetes/deployment/flask-deployment.yml
+kubectl apply -f kubernetes/deployment/mongo-deployment.yml
 ```
 
 ###### Get deployed pods in namespace aqra
@@ -133,13 +132,13 @@ kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | grep -E 'mongo[a
 ###### Delete and reapply deployments if changes are made to the Docker images
 
 ```
-kubectl delete -f kubernetes/mongo-deployment.yml
-kubectl delete -f kubernetes/single/resources/flask-deployment.yml
+kubectl delete -f kubernetes/deployment/flask-deployment.yml
+kubectl delete -f kubernetes/deployment/mongo-deployment.yml
 ```
 
 ```
-kubectl apply -f kubernetes/mongo-deployment.yml
-kubectl apply -f kubernetes/single/resources/flask-deployment.yml
+kubectl apply -f kubernetes/deployment/flask-deployment.yml
+kubectl apply -f kubernetes/deployment/mongo-deployment.yml
 ```
 
 ###### Retrieve sealed secrets from the cluster
@@ -147,10 +146,10 @@ kubectl apply -f kubernetes/single/resources/flask-deployment.yml
 ```
 kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml > kubernetes/master.key
 
-kubeseal --recovery-unseal < kubernetes/sealed-secrets/flask-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
-kubernetes/secrets/flask-secret.yml
-kubeseal --recovery-unseal < kubernetes/sealed-secrets/mongo-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
-kubernetes/secrets/mongo-secret.yml
+kubeseal --recovery-unseal < kubernetes/sealed-secret/flask-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
+kubernetes/secret/flask-secret.yml
+kubeseal --recovery-unseal < kubernetes/sealed-secret/mongo-sealed-secret.yml --recovery-private-key kubernetes/master.key -o yaml > \
+kubernetes/secret/mongo-secret.yml
 ```
 
 ###### Cleanup resources by deleting persistent volumes and used namespaces
@@ -160,7 +159,7 @@ kubectl delete namespace aqra
 kubectl delete namespace cert-manager
 kubectl delete namespace ingress-nginx
 kubectl delete namespace metallb-system
-kubectl delete pv flaskdata-pv mongodata-pv
+kubectl delete pv flask-data-pv mongo-data-pv
 ```
 
 ###### Reset kubernetes cluster

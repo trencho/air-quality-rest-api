@@ -3,16 +3,16 @@ kind: PersistentVolume
 metadata:
   labels:
     type: local
-  name: mongodata-pv
+  name: flask-data-pv
 spec:
   accessModes:
     - ReadWriteOnce
   capacity:
     storage: 10Gi
   claimRef:
-    name: mongodata-pvc
+    name: flask-data-pvc
     namespace: aqra
   hostPath:
-    path: /mnt/aqra/db
+    path: /mnt/aqra/api
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual

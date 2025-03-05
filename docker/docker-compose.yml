@@ -1,31 +1,10 @@
 services:
-  nginx:
-    build:
-      args:
-        BUILDKIT_PROGRESS: plain
-      context: ../..
-      dockerfile: docker/multi/nginx/Dockerfile
-    container_name: nginx
-    depends_on:
-      - flask
-    deploy:
-      replicas: 1
-    image: aqra-nginx:latest
-    networks:
-      network:
-        aliases:
-          - aqra
-    ports:
-      - "80:80"
-    volumes:
-      - nginxdata:/var/log/nginx
-
   flask:
     build:
       args:
         BUILDKIT_PROGRESS: plain
-      context: ../..
-      dockerfile: docker/multi/flask/Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: flask
     depends_on:
       - mongo
@@ -47,13 +26,11 @@ services:
       REPO_NAME: ${REPO_NAME}
       TZ: ${TZ}
       VOLUME_PATH: ${VOLUME_PATH}
-    expose:
-      - 5000
     image: aqra-flask:latest
     networks:
-      network:
-        aliases:
-          - aqra
+      - network
+    ports:
+      - "80:80"
     volumes:
       - flaskdata:/var/api
 
@@ -61,13 +38,11 @@ services:
     build:
       args:
         BUILDKIT_PROGRESS: plain
-      context: ../..
+      context: ..
       dockerfile: docker/mongo/Dockerfile
     container_name: mongo
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
     env_file:
       - .env
     environment:
@@ -90,8 +65,6 @@ networks:
     driver: overlay
 
 volumes:
-  nginxdata:
-    driver: local
   flaskdata:
     driver: local
   mongodata:

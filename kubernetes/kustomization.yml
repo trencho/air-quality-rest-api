@@ -1,17 +1,18 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - aqra-network-networkpolicy.yml
-  - cluster-issuers/prod-issuer.yml
-  - cluster-issuers/staging-issuer.yml
   - cronjob/certificate-cronjob.yml
   - cronjob/flask-cronjob.yml
-  - mongo-service.yml
+  - ingress/flask-ingress.yml
+  - issuer/prod-issuer.yml
+  - issuer/staging-issuer.yml
   - namespace.yml
-  - persistent-volume-claims/flaskdata-persistentvolumeclaim.yml
-  - persistent-volume-claims/mongodata-persistentvolumeclaim.yml
-  - persistent-volumes/flaskdata-persistentvolume.yml
-  - persistent-volumes/mongodata-persistentvolume.yml
-  - sealed-secrets/flask-sealed-secret.yml
-  - sealed-secrets/mongo-sealed-secret.yml
-  - single/resources.yml
+  - network-policy/network-policy.yml
+  - persistent-volume/flask-data-pv.yml
+  - persistent-volume/flask-data-pvc.yml
+  - persistent-volume/mongo-data-pv.yml
+  - persistent-volume/mongo-data-pvc.yml
+  - sealed-secret/flask-sealed-secret.yml
+  - sealed-secret/mongo-sealed-secret.yml
+  - service/flask-service.yml
+  - service/mongo-service.yml
