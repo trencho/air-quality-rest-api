@@ -129,6 +129,20 @@ kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | grep -E 'flask[a
 kubectl exec -n aqra --stdin --tty $(kubectl get pods -n aqra | grep -E 'mongo[a-z0-9\-]*' -iwo | tr -d '\n') -- /bin/bash
 ```
 
+##### Describe deployed pods
+
+```
+kubectl describe pod -f [pod-name] -n aqra
+```
+
+```
+kubectl get pods -n aqra | grep -E 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs describe pod -n aqra
+```
+
+```
+kubectl get pods -n aqra | grep -E 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs describe pod -n aqra
+```
+
 ###### Delete and reapply deployments if changes are made to the Docker images
 
 ```
