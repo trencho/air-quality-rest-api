@@ -13,26 +13,26 @@ services:
     env_file:
       - .env
     environment:
-      APP_ENV: ${APP_ENV}
-      DARK_SKY_TOKEN: ${DARK_SKY_TOKEN}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
-      MONGO_DATABASE: ${MONGO_DATABASE}
-      MONGO_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_USERNAME: ${MONGO_USERNAME}
-      MONGODB_CONNECTION: ${MONGODB_CONNECTION}
-      MONGODB_HOSTNAME: ${MONGODB_HOSTNAME}
-      OPEN_WEATHER_TOKEN: ${OPEN_WEATHER_TOKEN}
-      PYTHONPATH: ${PYTHONPATH}
-      REPO_NAME: ${REPO_NAME}
-      TZ: ${TZ}
-      VOLUME_PATH: ${VOLUME_PATH}
+      APP_ENV: ${APP_ENV:-}
+      DARK_SKY_TOKEN: ${DARK_SKY_TOKEN:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      MONGO_DATABASE: ${MONGO_DATABASE:-}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:-}
+      MONGO_USERNAME: ${MONGO_USERNAME:-}
+      MONGODB_CONNECTION: ${MONGODB_CONNECTION:-}
+      MONGODB_HOSTNAME: ${MONGODB_HOSTNAME:-}
+      OPEN_WEATHER_TOKEN: ${OPEN_WEATHER_TOKEN:-}
+      PYTHONPATH: ${PYTHONPATH:-}
+      REPO_NAME: ${REPO_NAME:-}
+      TZ: ${TZ:-}
+      VOLUME_PATH: ${VOLUME_PATH:-}
     image: aqra-flask:latest
     networks:
       - network
     ports:
       - "80:80"
     volumes:
-      - flaskdata:/var/api
+      - flask-data:/var/api
 
   mongo:
     build:
@@ -46,18 +46,18 @@ services:
     env_file:
       - .env
     environment:
-      MONDODB_LOG_DIR: ${MONDODB_LOG_DIR}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGODB_DATA_DIR: ${MONGODB_DATA_DIR}
+      MONDODB_LOG_DIR: ${MONDODB_LOG_DIR:-}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-}
+      MONGODB_DATA_DIR: ${MONGODB_DATA_DIR:-}
     expose:
       - 27017
     image: aqra-mongo:latest
     networks:
       - network
     volumes:
-      - mongodata:/data/db
+      - mongo-data:/data/db
 
 networks:
   network:
@@ -65,7 +65,7 @@ networks:
     driver: overlay
 
 volumes:
-  flaskdata:
+  flask-data:
     driver: local
-  mongodata:
+  mongo-data:
     driver: local
