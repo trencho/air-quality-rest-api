@@ -19,14 +19,14 @@ kind: RoleBinding
 metadata:
   name: flask-restart-rolebinding
   namespace: aqra
-subjects:
-  - kind: ServiceAccount
-    name: flask-restart-sa
-    namespace: aqra
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: flask-restart-role
+subjects:
+  - kind: ServiceAccount
+    name: flask-restart-sa
+    namespace: aqra
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -44,8 +44,8 @@ spec:
                 - /bin/sh
                 - -c
                 - set -e; kubectl rollout restart deployment flask -n aqra
-              name: kubectl
               image: bitnami/kubectl:latest
+              name: kubectl
           restartPolicy: OnFailure
           serviceAccountName: flask-restart-sa
   schedule: 0 0 * * *

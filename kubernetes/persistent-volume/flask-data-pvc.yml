@@ -1,9 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  labels:
-    io.kompose.service: mongodata-pvc
-  name: mongodata-pvc
+  name: flask-data-pvc
   namespace: aqra
 spec:
   accessModes:

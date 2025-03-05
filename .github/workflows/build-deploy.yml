@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@v4.2.2
 
       - name: Install OpenVPN
         run: |
@@ -35,7 +35,7 @@ jobs:
           sudo apt install -y openvpn openvpn-systemd-resolved
 
       - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@cd2ed8a90cc7b060dc4e001143e811b5f7ea0af5
+        uses: kota65535/github-openvpn-connect-action@v3.1.0
         with:
           config_file: ${{ env.OPENVPN_CONFIG }}
           echo_config: false
@@ -44,7 +44,7 @@ jobs:
           client_key: ${{ env.USER_KEY }}
 
       - name: SSH commands for checkout/update git repo, build and deploy
-        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17
+        uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}

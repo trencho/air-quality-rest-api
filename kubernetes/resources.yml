@@ -75,9 +75,6 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-    kompose.version: 1.28.0 (c4137012e)
   labels:
     io.kompose.service: flask
   name: flask
@@ -93,11 +90,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f docker/single/docker-compose.yml
-    kompose.version: 1.28.0 (c4137012e)
-  labels:
-    io.kompose.service: mongo
   name: mongo
   namespace: aqra
 spec:
@@ -113,14 +105,14 @@ kind: PersistentVolume
 metadata:
   labels:
     type: local
-  name: flaskdata-pv
+  name: flask-data-pv
 spec:
   accessModes:
     - ReadWriteOnce
   capacity:
     storage: 10Gi
   claimRef:
-    name: flaskdata-pvc
+    name: flask-data-pvc
     namespace: aqra
   hostPath:
     path: /mnt/aqra/api
@@ -132,14 +124,14 @@ kind: PersistentVolume
 metadata:
   labels:
     type: local
-  name: mongodata-pv
+  name: mongo-data-pv
 spec:
   accessModes:
     - ReadWriteOnce
   capacity:
     storage: 10Gi
   claimRef:
-    name: mongodata-pvc
+    name: mongo-data-pvc
     namespace: aqra
   hostPath:
     path: /mnt/aqra/db
@@ -149,9 +141,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  labels:
-    io.kompose.service: flaskdata-pvc
-  name: flaskdata-pvc
+  name: flask-data-pvc
   namespace: aqra
 spec:
   accessModes:
@@ -164,9 +154,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  labels:
-    io.kompose.service: mongodata-pvc
-  name: mongodata-pvc
+  name: mongo-data-pvc
   namespace: aqra
 spec:
   accessModes:
