@@ -9,8 +9,8 @@ kubectl rollout restart deployment flask -n aqra
 kubectl rollout restart deployment mongo -n aqra
 
 echo "Waiting for deployments to be ready..."
-kubectl rollout status deployment/flask -n aqra --timeout=60s
-kubectl rollout status deployment/mongo -n aqra --timeout=60s
+kubectl rollout status deployment/flask -n aqra --watch=true
+kubectl rollout status deployment/mongo -n aqra --watch=true
 
 echo "Checking pod readiness..."
 for deployment in flask mongo; do
