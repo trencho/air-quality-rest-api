@@ -50,6 +50,9 @@ jobs:
           username: ${{ env.SSH_USERNAME }}
           key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
+            set -e # Stop execution on any error
+
+            echo "Setting up environment variables..."
             export ACCESS_TOKEN=${{ env.ACCESS_TOKEN }}
             export GIT_REPO_NAME=${{ env.GIT_REPO_NAME }}
             export GIT_REPO_PATH=${{ env.GIT_REPO_PATH }}
@@ -57,6 +60,7 @@ jobs:
             export SERVER_HOST=${{ env.SERVER_HOST }}
             export SSH_USERNAME=${{ env.SSH_USERNAME }}
 
+            echo "Cloning/Updating repository..."
             mkdir -p "${GIT_REPO_PATH}"
             if [ ! -d "${GIT_REPO_PATH}"/.git ]; then
               git clone https://"${ACCESS_TOKEN}"@github.com/"${GIT_REPO_USERNAME}"/"${GIT_REPO_NAME}".git "${GIT_REPO_PATH}"
@@ -65,9 +69,15 @@ jobs:
             git fetch origin
             git reset --hard origin/master
             chown -R "${SSH_USERNAME}":"${SSH_USERNAME}" "${GIT_REPO_PATH}"
+
+            echo "Making scripts executable..."
             find .github/workflows -type f -name "*.sh" -exec chmod +x {} +
-            {
-              .github/workflows/build_docker_images.sh
-              .github/workflows/deploy_kubernetes_resources.sh
-              .github/workflows/reload_pods.sh
-            } 2>&1
+
+            echo "Executing deployment scripts..."
+            .github/workflows/build_docker_images.sh
+            .github/workflows/deploy_kubernetes_resources.sh
+
+            echo "Restarting Kubernetes Deployments..."
+            .github/workflows/reload_pods.sh
+
+            echo "Deployment successful!"
