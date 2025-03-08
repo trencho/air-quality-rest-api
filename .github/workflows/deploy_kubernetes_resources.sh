@@ -8,8 +8,8 @@ kubectl apply -f "${KUBERNETES_DIR}/resources.yml"
 
 echo "Deploying MongoDB first to avoid dependency issues..."
 kubectl apply -f "${KUBERNETES_DIR}/deployment/mongo-deployment.yml"
-#kubectl rollout status deployment/mongo -n aqra --watch=true
+kubectl rollout status deployment/mongo -n aqra --watch=true
 
 echo "Deploying Flask API..."
 kubectl apply -f "${KUBERNETES_DIR}/deployment/flask-deployment.yml"
-#kubectl rollout status deployment/flask -n aqra --watch=true
+kubectl rollout status deployment/flask -n aqra --watch=true
