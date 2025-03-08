@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e  # Stop on error
 
-echo "Restarting deployments..."
 kubectl rollout restart deployment flask -n aqra
 kubectl rollout restart deployment mongo -n aqra
 
