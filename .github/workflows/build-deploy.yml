@@ -9,6 +9,9 @@ env:
   OPENVPN_CONFIG: ${{ secrets.OPENVPN_CONFIG }}
   OPENVPN_USERNAME: ${{ secrets.OPENVPN_USERNAME }}
   OPENVPN_PASSWORD: ${{ secrets.OPENVPN_PASSWORD }}
+  CA_CERT: ${{ secrets.CA_CERT }}
+  CLIENT_CERT: ${{ secrets.CLIENT_CERT }}
+  TLS_CRYPT_KEY: ${{ secrets.TLS_CRYPT_KEY }}
   USER_KEY: ${{ secrets.USER_KEY }}
   SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -33,6 +36,13 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y openvpn openvpn-systemd-resolved
+
+      - name: Create necessary OpenVPN key files
+        run: |
+          sudo mkdir -p /etc/openvpn
+          echo "${{ secrets.CA_CERT }}" | sudo tee /etc/openvpn/ca.crt > /dev/null
+          echo "${{ secrets.CLIENT_CERT }}" | sudo tee /etc/openvpn/client.crt > /dev/null
+          echo "${{ secrets.TLS_CRYPT_KEY }}" | sudo tee /etc/openvpn/tls-crypt.key > /dev/null
 
       - name: Connect to VPN
         uses: kota65535/github-openvpn-connect-action@v3.1.0
