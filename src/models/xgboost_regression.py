@@ -10,9 +10,9 @@ class XGBoostRegressionModel(BaseRegressionModel):
     def __init__(self) -> None:
         reg = XGBRegressor()
         param_grid = {
-            "max_depth": [3, 4, 5],  # Maximum depth of a tree
+            "max_depth": [3, 6, 9],  # Maximum depth of a tree
             "learning_rate": [0.01, 0.05, 0.1],  # Boosting learning rate
-            "n_estimators": [100, 200, 300],  # Number of boosting rounds (trees)
+            "n_estimators": [100, 300, 500],  # Number of boosting rounds (trees)
             "n_jobs": [cpu_count() // 2],
             "subsample": [0.6, 0.8, 1.0],  # Subsample ratio of the training instance
             "colsample_bytree": [0.6, 0.8, 1.0],  # Subsample ratio of columns when constructing each tree

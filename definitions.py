@@ -79,12 +79,12 @@ POLLUTANTS = {
 
 # Constants for regression models
 REGRESSION_MODELS = {
-    "DecisionTreeRegressionModel": "Decision Tree",
+    # "DecisionTreeRegressionModel": "Decision Tree",
     "LightGBMRegressionModel": "LightGBM",
-    "LinearRegressionModel": "Linear",
-    "MLPRegressionModel": "Multilayer Perceptron",
-    # "RandomForestRegressionModel": "Random Forest",
-    "SupportVectorRegressionModel": "Support Vector",
+    # "LinearRegressionModel": "Linear",
+    # "MLPRegressionModel": "Multilayer Perceptron",
+    "RandomForestRegressionModel": "Random Forest",
+    # "SupportVectorRegressionModel": "Support Vector",
     "XGBoostRegressionModel": "XGBoost"
 }
 

@@ -13,8 +13,8 @@ class MLPRegressionModel(BaseRegressionModel):
             "alpha": [0.0001, 0.001, 0.01],  # L2 regularization parameter
             "learning_rate": ["constant", "adaptive"],  # Learning rate schedule
             "learning_rate_init": [0.001, 0.01, 0.1],  # Initial learning rate
-            "max_iter": [200, 400, 600],  # Maximum number of iterations
+            "max_iter": [200, 500, 1000],  # Maximum number of iterations
             "early_stopping": [True],
-            # Whether to use early stopping to terminate training when validation score doesn't improve
+            # Whether to use early stopping to terminate training when the validation score doesn't improve
         }
         super().__init__(reg, param_grid)
