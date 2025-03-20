@@ -2,7 +2,7 @@ from datetime import datetime
 from glob import glob
 from logging import getLogger
 from math import inf
-from os import environ, makedirs, path, remove
+from os import cpu_count, environ, makedirs, path, remove
 from pickle import dump, HIGHEST_PROTOCOL
 from threading import Thread
 
@@ -74,7 +74,8 @@ def create_pollutant_lock(data_path: str) -> None:
 
 
 def hyper_parameter_tuning(model: BaseRegressionModel, x_train: DataFrame, y_train: Series, data_path: str) -> dict:
-    model_cv = RandomizedSearchCV(model.reg, model.param_grid, cv=5)
+    model_cv = RandomizedSearchCV(estimator=model.reg, param_distributions=model.param_grid, n_iter=50,
+                                  n_jobs=cpu_count() // 2, cv=5, random_state=42)
     model_cv.fit(x_train, y_train)
 
     if environ.get(APP_ENV, ENV_DEV) == ENV_DEV:
