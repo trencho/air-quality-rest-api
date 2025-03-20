@@ -14,8 +14,8 @@ class LightGBMRegressionModel(BaseRegressionModel):
             "num_leaves": [20, 30, 40, 50],  # Maximum tree leaves for base learners
             "max_depth": [-1, 5, 10, 15],  # Maximum tree depth for base learners, -1 means no limit
             "learning_rate": [0.01, 0.05, 0.1],  # Boosting learning rate
-            "n_estimators": [50, 100, 200],  # Number of boosted trees to fit
-            "subsample_for_bin": [20000, 30000, 40000],  # Number of samples for constructing bins
+            "n_estimators": [100, 500, 1000],  # Number of boosted trees to fit
+            "subsample_for_bin": [10000, 20000],  # Number of samples for constructing bins
             "min_split_gain": [0.0, 0.1, 0.2],
             # Minimum loss reduction required to make a further partition on a leaf node of the tree
             "min_child_samples": [20, 30, 40, 50],  # Minimum number of data needed in a child (leaf)
