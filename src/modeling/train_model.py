@@ -70,7 +70,7 @@ def check_pollutant_lock(data_path: str) -> bool:
 
 def create_pollutant_lock(data_path: str) -> None:
     create_path(path.join(MODELS_PATH, data_path))
-    open(path.join(MODELS_PATH, data_path, LOCK_FILE), "w")
+    open(path.join(MODELS_PATH, data_path, LOCK_FILE), "w").close()
 
 
 def hyper_parameter_tuning(model: BaseRegressionModel, x_train: DataFrame, y_train: Series, data_path: str) -> dict:

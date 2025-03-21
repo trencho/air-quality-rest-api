@@ -12,9 +12,9 @@ from sqlalchemy import create_engine
 
 from api.blueprints import fetch_city_data
 from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
-    MODELS_PATH, POLLUTANTS, REPO_NAME
+    MODELS_PATH, OPEN_WEATHER, POLLUTANTS, REPO_NAME
 from modeling import train_regression_model
-from preparation import fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
+from preparation import check_api_lock, fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
 from processing import current_hour, fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
 from .cache import cache
 from .dump import generate_sql_dump
@@ -61,6 +61,8 @@ def dump_jobs() -> None:
 @scheduler.scheduled_job(trigger="cron", id="fetch_hourly_data", misfire_grace_time=None, jobstore=jobstore_name,
                          hour="*/2")
 def fetch_hourly_data() -> None:
+    if check_api_lock() is False:
+        return
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             fetch_city_data(city["cityName"], sensor)
@@ -170,6 +172,15 @@ def predict_locations() -> None:
                 logger.error(
                     f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}",
                     exc_info=True)
+
+
+@scheduler.scheduled_job(trigger="cron", id="reset_api_counter", misfire_grace_time=None, jobstore=jobstore_name,
+                         hour=0)
+def reset_api_counter() -> None:
+    try:
+        remove(path.join(DATA_PATH, f"{OPEN_WEATHER}.lock"))
+    except OSError:
+        pass
 
 
 @scheduler.scheduled_job(trigger="cron", id="reset_model_lock", misfire_grace_time=None, jobstore=jobstore_name,
