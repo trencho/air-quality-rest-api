@@ -1,5 +1,4 @@
 from logging import getLogger
-from pathlib import Path
 
 from matplotlib import pyplot
 from pandas import DataFrame, DatetimeIndex, read_csv
@@ -24,16 +23,15 @@ PLOT_PARAMS = {
 def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
     data = []
     for model_name in REGRESSION_MODELS:
-        error_file = (Path(RESULTS_ERRORS_PATH) / "data" / city["cityName"] / sensor["sensorId"] / pollutant /
-                      model_name / "error.csv")
-        dataframe_errors = read_csv(error_file)
+        dataframe_errors = read_csv(
+            RESULTS_ERRORS_PATH / "data" / city["cityName"] / sensor["sensorId"] / pollutant / model_name / "error.csv")
         data.append([model_name, dataframe_errors.iloc[0]["Mean Absolute Error"]])
 
     dataframe_algorithms = DataFrame(data, columns=["algorithm", pollutant])
     algorithm_index = dataframe_algorithms[pollutant].idxmin()
-    prediction_file = (Path(RESULTS_PREDICTIONS_PATH) / "data" / city["cityName"] / sensor["sensorId"] / pollutant /
-                       dataframe_algorithms.iloc[algorithm_index]["algorithm"] / "prediction.csv")
-    dataframe_predictions = read_csv(prediction_file, index_col="time")
+    dataframe_predictions = read_csv(
+        RESULTS_PREDICTIONS_PATH / "data" / city["cityName"] / sensor["sensorId"] / pollutant /
+        dataframe_algorithms.iloc[algorithm_index]["algorithm"] / "prediction.csv", index_col="time")
 
     x = DatetimeIndex(dataframe_predictions.index)
     y1 = dataframe_predictions["Actual"]
@@ -54,6 +52,6 @@ def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
 
     pyplot.gcf().autofmt_xdate()
 
-    save_plot(fig, pyplot, Path(RESULTS_PREDICTIONS_PATH) / "plots" / city["cityName"] / sensor["sensorId"] / pollutant,
+    save_plot(fig, pyplot, RESULTS_PREDICTIONS_PATH / "plots" / city["cityName"] / sensor["sensorId"] / pollutant,
               "prediction")
     logger.info(f"Plot saved for {city['cityName']} - {sensor['sensorId']} - {pollutant} - prediction")

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from flasgger import swag_from
 from flask import Blueprint, jsonify, Response, send_file
 from starlette.status import HTTP_404_NOT_FOUND
@@ -23,8 +21,8 @@ def fetch_plots_predictions(city_name: str, sensor_id: str, pollutant: str) -> R
         return jsonify(
             error_message="Cannot return plot because the sensor is not found or is invalid."), HTTP_404_NOT_FOUND
 
-    image_path = Path(RESULTS_PREDICTIONS_PLOTS_PATH) / city_name / sensor_id / pollutant / "prediction.png"
-    if not Path(image_path).exists():
+    image_path = RESULTS_PREDICTIONS_PLOTS_PATH / city_name / sensor_id / pollutant / "prediction.png"
+    if not image_path.exists():
         return jsonify(error_message="Cannot return plot because it does not exist."), HTTP_404_NOT_FOUND
 
     return send_file(image_path, mimetype="image/png", max_age=3600)
@@ -44,18 +42,18 @@ def fetch_plots_errors(city_name: str, sensor_id: str, pollutant: str, error_typ
         return jsonify(
             error_message="Cannot return plot because the sensor is not found or is invalid."), HTTP_404_NOT_FOUND
 
-    image_path = Path(RESULTS_ERRORS_PLOTS_PATH) / city_name / sensor_id / pollutant
+    image_path = RESULTS_ERRORS_PLOTS_PATH / city_name / sensor_id / pollutant
     match error_type:
         case ErrorType.MEAN_ABSOLUTE_ERROR:
-            image_path = Path(image_path) / f"{ErrorType.MEAN_ABSOLUTE_ERROR.value}.png"
+            image_path = image_path / f"{ErrorType.MEAN_ABSOLUTE_ERROR.value}.png"
         case ErrorType.MEAN_ABSOLUTE_PERCENTAGE_ERROR:
-            image_path = Path(image_path) / f"{ErrorType.MEAN_ABSOLUTE_PERCENTAGE_ERROR.value}.png"
+            image_path = image_path / f"{ErrorType.MEAN_ABSOLUTE_PERCENTAGE_ERROR.value}.png"
         case ErrorType.MEAN_SQUARED_ERROR:
-            image_path = Path(image_path) / f"{ErrorType.MEAN_SQUARED_ERROR.value}.png"
+            image_path = image_path / f"{ErrorType.MEAN_SQUARED_ERROR.value}.png"
         case ErrorType.ROOT_MEAN_SQUARED_ERROR:
-            image_path = Path(image_path) / f"{ErrorType.ROOT_MEAN_SQUARED_ERROR.value}.png"
+            image_path = image_path / f"{ErrorType.ROOT_MEAN_SQUARED_ERROR.value}.png"
 
-    if not Path(image_path).exists():
+    if not image_path.exists():
         return jsonify(error_message="Cannot return plot because it does not exist."), HTTP_404_NOT_FOUND
 
     return send_file(image_path, mimetype="image/png", max_age=3600)
