@@ -14,8 +14,7 @@ from processing import read_csv_in_chunks
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def fetch_dataframe(data_path: Path, collection: str) -> DataFrame | tuple[Response, int]:
     try:
-        if (dataframe := read_csv_in_chunks(
-                Path(DATA_PROCESSED_PATH) / data_path / f"{collection}.csv")) is not None:
+        if (dataframe := read_csv_in_chunks(DATA_PROCESSED_PATH / data_path / f"{collection}.csv")) is not None:
             return dataframe
 
         raise Exception
@@ -26,8 +25,8 @@ def fetch_dataframe(data_path: Path, collection: str) -> DataFrame | tuple[Respo
 
 
 def create_data_paths(city_name: str, sensor_id: str) -> None:
-    makedirs(Path(DATA_RAW_PATH) / city_name / sensor_id, exist_ok=True)
-    makedirs(Path(DATA_PROCESSED_PATH) / city_name / sensor_id, exist_ok=True)
+    makedirs(DATA_RAW_PATH / city_name / sensor_id, exist_ok=True)
+    makedirs(DATA_PROCESSED_PATH / city_name / sensor_id, exist_ok=True)
 
 
 def fetch_city_data(city_name: str, sensor: dict) -> None:

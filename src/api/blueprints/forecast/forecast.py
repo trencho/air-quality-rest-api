@@ -1,5 +1,4 @@
-from json import load
-from os import path
+from json import loads
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, Response
@@ -69,6 +68,9 @@ def fetch_sensor_coordinates_forecast(latitude: float, longitude: float) -> Resp
         forecast.update({"latitude": latitude, "longitude": longitude})
         return jsonify(forecast)
 
+    return jsonify(
+        error_message="Value cannot be predicted because the sensor is not found or is invalid."), HTTP_404_NOT_FOUND
+
 
 def return_city_forecast_results(city: dict) -> dict:
     forecast_results = {"latitude": city["cityLocation"]["latitude"], "longitude": city["cityLocation"]["longitute"],
@@ -83,12 +85,10 @@ def return_sensor_forecast_results(city: dict, sensor: dict) -> dict:
     sensor_position = sensor["position"].split(",")
     forecast = {"latitude": float(sensor_position[0]), "longitude": float(sensor_position[1])}
     try:
-        with open(path.join(DATA_PROCESSED_PATH, city["cityName"], sensor["sensorId"], "predictions.json"),
-                  "r") as in_file:
-            data = load(in_file)
-            if data[0]["time"] == next_hour(current_hour(tz=location_timezone(city["countryCode"]))):
-                forecast.update({"data": data})
-                return forecast
+        data = loads((DATA_PROCESSED_PATH / city["cityName"] / sensor["sensorId"] / "predictions.json").read_text())
+        if data[0]["time"] == next_hour(current_hour(tz=location_timezone(city["countryCode"]))):
+            forecast.update({"data": data})
+            return forecast
     except Exception:
         pass
 
