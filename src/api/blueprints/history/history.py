@@ -1,6 +1,6 @@
 from datetime import datetime
 from json import loads
-from os import path
+from pathlib import Path
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, Response, request
@@ -81,7 +81,7 @@ def retrieve_history_timestamps() -> tuple[int, int] | tuple[Response, int]:
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def return_historical_data(city_name: str, sensor: dict, data_type: str, start_time: int, end_time: int) -> Response:
-    if isinstance(dataframe := fetch_dataframe(path.join(city_name, sensor["sensorId"]), data_type), Response):
+    if isinstance(dataframe := fetch_dataframe(Path(city_name) / sensor["sensorId"], data_type), Response):
         return dataframe
 
     dataframe = dataframe.loc[(dataframe["time"] >= start_time) & (dataframe["time"] <= end_time)]

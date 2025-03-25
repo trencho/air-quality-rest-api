@@ -1,7 +1,8 @@
 from atexit import register
 from logging import getHandlerByName, getLogger
 from logging.config import dictConfig
-from os import makedirs, path
+from os import makedirs
+from pathlib import Path
 
 from definitions import LOG_PATH
 
@@ -29,7 +30,7 @@ CONFIG = {
             "class": "logging.handlers.TimedRotatingFileHandler",
             "level": LOG_LEVEL_INFO,
             "formatter": "simple",
-            "filename": f"{path.join(LOG_PATH, 'app.log')}",
+            "filename": f"{Path(LOG_PATH) / 'app.log'}",
             "when": "midnight",
             "backupCount": BACKUP_COUNT
         },

@@ -1,4 +1,5 @@
-from os import environ, path
+from os import environ
+from pathlib import Path
 
 APP_ENV = "APP_ENV"
 
@@ -29,30 +30,25 @@ ENVIRONMENT_VARIABLES = [
     REPO_NAME
 ]
 
-# Constants for paths
 VOLUME_PATH = "VOLUME_PATH"
-ROOT_PATH = environ.get(VOLUME_PATH, "") or path.dirname(path.abspath(__file__))
-DATA_PATH = path.join(ROOT_PATH, "data")
-LOG_PATH = path.join(ROOT_PATH, "logs")
-MODELS_PATH = path.join(ROOT_PATH, "models")
-RESULTS_PATH = path.join(ROOT_PATH, "results")
+ROOT_PATH = environ.get(VOLUME_PATH, "") or Path(__file__).resolve().parent
+DATA_PATH = Path(ROOT_PATH) / "data"
+LOG_PATH = Path(ROOT_PATH) / "logs"
+MODELS_PATH = Path(ROOT_PATH) / "models"
+RESULTS_PATH = Path(ROOT_PATH) / "results"
 
-# Constants for data paths
-DATA_EXTERNAL_PATH = path.join(DATA_PATH, "external")
-DATA_PROCESSED_PATH = path.join(DATA_PATH, "processed")
-DATA_RAW_PATH = path.join(DATA_PATH, "raw")
+DATA_EXTERNAL_PATH = Path(DATA_PATH) / "external"
+DATA_PROCESSED_PATH = Path(DATA_PATH) / "processed"
+DATA_RAW_PATH = Path(DATA_PATH) / "raw"
 
-# Constants for results paths
-RESULTS_ERRORS_PATH = path.join(RESULTS_PATH, "errors")
-RESULTS_ERRORS_PLOTS_PATH = path.join(RESULTS_ERRORS_PATH, "plots")
-RESULTS_PREDICTIONS_PATH = path.join(RESULTS_PATH, "predictions")
-RESULTS_PREDICTIONS_PLOTS_PATH = path.join(RESULTS_PREDICTIONS_PATH, "plots")
+RESULTS_ERRORS_PATH = Path(RESULTS_PATH) / "errors"
+RESULTS_ERRORS_PLOTS_PATH = Path(RESULTS_ERRORS_PATH) / "plots"
+RESULTS_PREDICTIONS_PATH = Path(RESULTS_PATH) / "predictions"
+RESULTS_PREDICTIONS_PLOTS_PATH = Path(RESULTS_PREDICTIONS_PATH) / "plots"
 
-# Constants for environment
 ENV_DEV = "development"
 ENV_PROD = "production"
 
-# Constants for collections and chunk size
 COLLECTIONS = ["weather", "pollution"]
 CHUNK_SIZE = 15000
 
@@ -64,7 +60,6 @@ CACHE_TIMEOUTS = {
     "1h": 3600
 }
 
-# Constants for countries and pollutants
 COUNTRIES = {"MK": "Macedonia"}
 POLLUTANTS = {
     "aqi": "AQI",
@@ -78,7 +73,6 @@ POLLUTANTS = {
     "so2": "SO2"
 }
 
-# Constants for regression models
 REGRESSION_MODELS = {
     # "DecisionTreeRegressionModel": "Decision Tree",
     "LightGBMRegressionModel": "LightGBM",
@@ -89,5 +83,4 @@ REGRESSION_MODELS = {
     "XGBoostRegressionModel": "XGBoost"
 }
 
-# URL prefix for API
 URL_PREFIX = "/api/v1"
