@@ -1,4 +1,5 @@
-from os import makedirs, path
+from os import makedirs
+from pathlib import Path
 
 from flask import jsonify, Response
 from pandas import DataFrame
@@ -11,10 +12,10 @@ from processing import read_csv_in_chunks
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
-def fetch_dataframe(data_path: str, collection: str) -> DataFrame | tuple[Response, int]:
+def fetch_dataframe(data_path: Path, collection: str) -> DataFrame | tuple[Response, int]:
     try:
         if (dataframe := read_csv_in_chunks(
-                path.join(DATA_PROCESSED_PATH, data_path, f"{collection}.csv"))) is not None:
+                Path(DATA_PROCESSED_PATH) / data_path / f"{collection}.csv")) is not None:
             return dataframe
 
         raise Exception
@@ -25,8 +26,8 @@ def fetch_dataframe(data_path: str, collection: str) -> DataFrame | tuple[Respon
 
 
 def create_data_paths(city_name: str, sensor_id: str) -> None:
-    makedirs(path.join(DATA_RAW_PATH, city_name, sensor_id), exist_ok=True)
-    makedirs(path.join(DATA_PROCESSED_PATH, city_name, sensor_id), exist_ok=True)
+    makedirs(Path(DATA_RAW_PATH) / city_name / sensor_id, exist_ok=True)
+    makedirs(Path(DATA_PROCESSED_PATH) / city_name / sensor_id, exist_ok=True)
 
 
 def fetch_city_data(city_name: str, sensor: dict) -> None:

@@ -1,6 +1,6 @@
 from logging import getLogger
 from math import isinf
-from os import path
+from pathlib import Path
 from typing import Optional
 
 from numpy import abs, inf, mean, nan, ndarray, sqrt
@@ -33,7 +33,7 @@ def save_errors(model_path: str, y_true: ndarray, y_predicted: ndarray) -> float
             "Mean Squared Error": [mse],
             "Root Mean Squared Error": [sqrt(mse)]
         })
-        dataframe.to_csv(path.join(RESULTS_ERRORS_PATH, "data", model_path, "error.csv"), index=False)
+        dataframe.to_csv(Path(RESULTS_ERRORS_PATH) / "data" / model_path / "error.csv", index=False)
 
         return mae
     except (ValueError, IOError):
@@ -42,4 +42,4 @@ def save_errors(model_path: str, y_true: ndarray, y_predicted: ndarray) -> float
 
 
 def save_results(model_path: str, dataframe: DataFrame) -> None:
-    dataframe.to_csv(path.join(RESULTS_PREDICTIONS_PATH, "data", model_path, "prediction.csv"))
+    dataframe.to_csv(Path(RESULTS_PREDICTIONS_PATH) / "data" / model_path / "prediction.csv")

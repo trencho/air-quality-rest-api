@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, tzinfo
 from logging import getLogger
-from os import path
+from pathlib import Path
 
 from numpy import abs
 from pandas import concat, DataFrame, Series, to_numeric
@@ -94,11 +94,11 @@ def next_hour(t: datetime, tz: tzinfo = None) -> datetime:
 # TODO: Refactor this method to reduce number of exceptions based on missing dataset
 def process_data(city_name: str, sensor_id: str, collection: str) -> None:
     try:
-        dataframe_raw = read_csv_in_chunks(path.join(DATA_RAW_PATH, city_name, sensor_id, f"{collection}.csv"))
+        dataframe_raw = read_csv_in_chunks(Path(DATA_RAW_PATH) / city_name / sensor_id / f"{collection}.csv")
 
-        collection_path = path.join(DATA_PROCESSED_PATH, city_name, sensor_id, f"{collection}.csv")
+        collection_path = Path(DATA_PROCESSED_PATH) / city_name / sensor_id / f"{collection}.csv"
         dataframe_processed = None
-        if path.exists(collection_path):
+        if Path(collection_path).exists():
             dataframe_processed = read_csv_in_chunks(collection_path)
             dataframe_raw = find_missing_data(dataframe_raw, dataframe_processed, "time")
             dataframe_raw = concat(df.dropna(axis=1, how='all') for df in [dataframe_processed, dataframe_raw])
@@ -142,7 +142,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         if len(dataframe_raw.index) > 0:
             # TODO: Review this line for converting column data types
             # dataframe_raw = dataframe_raw.astype(column_dtypes, errors="ignore")
-            dataframe_raw.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
+            dataframe_raw.to_csv(collection_path, header=not Path(collection_path).exists(), index=False, mode="a")
 
     except Exception:
         logger.error(f"Error occurred while processing {collection} data for {city_name} - {sensor_id}",

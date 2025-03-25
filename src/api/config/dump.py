@@ -1,8 +1,9 @@
+from pathlib import Path
 from sqlite3 import connect, Cursor
 from typing import Any
 
 
-def generate_sql_dump(database_file: str) -> str:
+def generate_sql_dump(database_file: Path) -> str:
     with connect(database_file) as conn:
         cursor = conn.cursor()
         dump_content = [

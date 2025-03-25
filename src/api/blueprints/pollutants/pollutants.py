@@ -1,4 +1,4 @@
-from os import path
+from pathlib import Path
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, Response
@@ -14,7 +14,7 @@ pollutants_blueprint = Blueprint("pollutants", __name__)
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def fetch_measurements(city_name: str, sensor_id: str) -> Response:
-    if isinstance(dataframe := fetch_dataframe(path.join(city_name, sensor_id), "pollution"), Response):
+    if isinstance(dataframe := fetch_dataframe(Path(city_name) / sensor_id, "pollution"), Response):
         return dataframe
 
     measurements = [{"name": POLLUTANTS[pollutant], "value": pollutant}
