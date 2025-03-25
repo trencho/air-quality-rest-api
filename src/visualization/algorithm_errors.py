@@ -1,5 +1,5 @@
 from logging import getLogger
-from os import path
+from pathlib import Path
 
 import seaborn
 from matplotlib import pyplot
@@ -10,7 +10,6 @@ from .handle_plot import save_plot
 
 logger = getLogger(__name__)
 
-# Constants for error types and plot parameters
 ERROR_TYPES = [
     "Mean Absolute Error",
     "Mean Absolute Percentage Error",
@@ -38,8 +37,8 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
     for error_type in ERROR_TYPES:
         data = []
         for model_name in REGRESSION_MODELS:
-            error_file = path.join(RESULTS_ERRORS_PATH, "data", city["cityName"], sensor["sensorId"], pollutant,
-                                   model_name, "error.csv")
+            error_file = (Path(RESULTS_ERRORS_PATH) / "data" / city["cityName"] / sensor["sensorId"] / pollutant /
+                          model_name / "error.csv")
             dataframe_errors = read_csv(error_file)
             data.append([REGRESSION_MODELS[model_name], dataframe_errors.iloc[0][error_type]])
 
@@ -64,6 +63,6 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         pyplot.xticks(dataframe_algorithms.index, dataframe_algorithms["algorithm"], horizontalalignment="center",
                       fontsize=22, rotation=30)
 
-        save_plot(fig, pyplot, path.join(RESULTS_ERRORS_PATH, "plots", city["cityName"], sensor["sensorId"], pollutant),
+        save_plot(fig, pyplot, Path(RESULTS_ERRORS_PATH) / "plots" / city["cityName"] / sensor["sensorId"] / pollutant,
                   error_type)
         logger.info(f"Plot saved for {city['cityName']} - {sensor['sensorId']} - {pollutant} - {error_type}")

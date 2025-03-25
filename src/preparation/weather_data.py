@@ -1,5 +1,6 @@
 from logging import getLogger
-from os import environ, path
+from os import environ
+from pathlib import Path
 from time import sleep
 
 from pandas import DataFrame, json_normalize
@@ -12,11 +13,11 @@ logger = getLogger(__name__)
 
 
 def check_api_lock() -> bool:
-    try:
-        with open(path.join(DATA_PATH, f"{OPEN_WEATHER}.lock"), "r"):
-            return False
-    except OSError:
-        return True
+    api_lock_path = Path(DATA_PATH) / f"{OPEN_WEATHER}.lock"
+    if api_lock_path.exists():
+        return False
+
+    return True
 
 
 def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
@@ -34,7 +35,7 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
 
         if len(dataframe.index) > 0:
             save_dataframe(dataframe, "weather",
-                           path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "weather.csv"), sensor["sensorId"])
+                           Path(DATA_RAW_PATH) / city_name / sensor["sensorId"] / "weather.csv", sensor["sensorId"])
     except Exception:
         logger.error(f"Error occurred while fetching DarkSky data for {city_name} - {sensor['sensorId']}",
                      exc_info=True)
@@ -58,7 +59,7 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
         dataframe = json_normalize([flatten_json(hourly) for hourly in hourly_data])
 
         if len(dataframe.index) > 0:
-            save_dataframe(dataframe, "weather", path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "weather.csv"),
+            save_dataframe(dataframe, "weather", Path(DATA_RAW_PATH) / city_name / sensor["sensorId"] / "weather.csv",
                            sensor["sensorId"])
     except Exception:
         logger.error(f"Error occurred while fetching Open Weather data for {city_name} - {sensor['sensorId']}",
@@ -90,7 +91,7 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
 
         if len(dataframe.index) > 0:
             save_dataframe(dataframe, "pollution",
-                           path.join(DATA_RAW_PATH, city_name, sensor["sensorId"], "pollution.csv"), sensor["sensorId"])
+                           Path(DATA_RAW_PATH) / city_name / sensor["sensorId"] / "pollution.csv", sensor["sensorId"])
     except Exception:
         logger.error(f"Error occurred while fetching pollution data for {city_name} - {sensor["sensorId"]}",
                      exc_info=True)
@@ -104,5 +105,5 @@ def fetch_weather_data(city_name: str, sensor: dict) -> None:
 
 
 def lock_api() -> None:
-    onecall_path = path.join(DATA_PATH, f"{OPEN_WEATHER}.lock")
-    open(onecall_path, "w").close()
+    onecall_path = Path(DATA_PATH) / f"{OPEN_WEATHER}.lock"
+    onecall_path.write_text("")
