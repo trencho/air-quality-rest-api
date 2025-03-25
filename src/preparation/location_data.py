@@ -1,7 +1,6 @@
 from datetime import tzinfo
-from json import load
+from json import loads
 from math import atan2, modf
-from os import path
 from typing import Optional
 
 from haversine import haversine_vector
@@ -89,24 +88,21 @@ def location_timezone(country_code: str) -> tzinfo:
 
 def read_cities() -> list:
     try:
-        with open(path.join(DATA_RAW_PATH, "cities.json"), "r") as in_file:
-            return load(in_file)
+        return loads((DATA_RAW_PATH / "cities.json").read_text())
     except OSError:
         return []
 
 
 def read_countries() -> list:
     try:
-        with open(path.join(DATA_RAW_PATH, "countries.json"), "r") as in_file:
-            return load(in_file)
+        return loads((DATA_RAW_PATH / "countries.json").read_text())
     except OSError:
         return []
 
 
 def read_sensors(city_name) -> list:
     try:
-        with open(path.join(DATA_RAW_PATH, city_name, "sensors.json"), "r") as in_file:
-            return load(in_file)
+        return loads((DATA_RAW_PATH / city_name / "sensors.json").read_text())
     except OSError:
         return []
 

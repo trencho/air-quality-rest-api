@@ -12,7 +12,7 @@ numpy==2.2.4
 pandas==2.2.3
 PyGithub==2.6.1
 pymongo==4.11.3
-pytz==2025.1
+pytz==2025.2
 requests==2.32.3
 scikit-learn==1.6.1
 scipy==1.15.2
