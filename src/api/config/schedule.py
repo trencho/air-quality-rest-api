@@ -1,11 +1,10 @@
 from atexit import register
 from base64 import b64encode
 from datetime import datetime
-from json import dump, dumps, loads
+from json import dumps, loads
 from logging import getLogger
 from os import environ, makedirs, remove, rmdir, walk
 from pathlib import Path
-from pickle import load
 from shutil import unpack_archive
 
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
@@ -33,21 +32,17 @@ REPO_BRANCH = "master"
 repository = RepositorySingleton.get_instance().get_repository()
 
 
-@scheduler.scheduled_job(trigger="cron", id="convert_pkl_to_json", misfire_grace_time=None, jobstore=jobstore_name,
+@scheduler.scheduled_job(trigger="cron", id="delete_pkl_files", misfire_grace_time=None, jobstore=jobstore_name,
                          minute="*/10")
-def convert_pkl_to_json():
+def delete_pkl_files():
     for root, _, files in walk(MODELS_PATH):
         for file in files:
             if file.endswith(".pkl"):
                 pkl_path = Path(root) / file
-                json_path = Path(root) / file.replace(".pkl", ".json")
                 try:
-                    with open(pkl_path, "rb") as pkl_file:
-                        data = load(pkl_file)
-                    with open(json_path, "w") as json_file:
-                        dump(data, json_file, indent=4, ensure_ascii=False)
+                    remove(pkl_path)
                 except Exception:
-                    logger.error(f"Failed to convert {pkl_path}", exc_info=True)
+                    logger.error(f"Failed to delete {pkl_path}", exc_info=True)
 
 
 @scheduler.scheduled_job(trigger="cron", id="dump_data", misfire_grace_time=None, jobstore=jobstore_name, day="*/15")

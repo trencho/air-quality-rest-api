@@ -12,7 +12,6 @@ workers = cpu_count() * 2 + 1
 threads = 2
 timeout = 0
 
-# Configure logging
 logger = getLogger(__name__)
 basicConfig(level=INFO)
 logger.info("Gunicorn configured successfully")
