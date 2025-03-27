@@ -10,7 +10,7 @@ from scipy.stats import hmean
 
 def weighted_hamming(data: DataFrame):
     """ Compute weighted hamming distance on categorical variables. For one variable, it is equal to 1 if
-        the values between point A and point B are different, else it is equal the relative frequency of the
+        the values between point A and point B are different, else it is equal to the relative frequency of the
         distribution of the value across the variable. For multiple variables, the harmonic mean is computed
         up to a constant factor.
 
@@ -34,7 +34,7 @@ def weighted_hamming(data: DataFrame):
 
 def distance_matrix(data: DataFrame, numeric_distance: str = "euclidean", categorical_distance: str = "jaccard") -> \
         Optional[DataFrame]:
-    """ Compute the pairwise distance attribute by attribute in order to account for different variables type:
+    """ Compute the pairwise distance attribute by attribute to account for different variables type:
         - Continuous
         - Categorical
         For ordinal values, provide a numerical representation taking the order into account.
@@ -49,7 +49,7 @@ def distance_matrix(data: DataFrame, numeric_distance: str = "euclidean", catego
         @params:
             - data                  = pandas dataframe to compute distances on.
             - numeric_distances     = the metric to apply to continuous attributes.
-                                      "euclidean" and "cityblock" available.
+                                      "euclidean" and "cityblock" are available.
                                       Default = "euclidean"
             - categorical_distances = the metric to apply to binary attributes.
                                       "jaccard", "hamming", "weighted-hamming" and "euclidean"

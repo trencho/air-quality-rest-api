@@ -1,7 +1,8 @@
 from datetime import datetime
 from io import BytesIO, StringIO
 from logging import getLogger
-from os import environ, path, sep
+from os import environ
+from pathlib import Path
 from shutil import make_archive, move
 
 from github import Github, GithubException, GitRef, GitTree, InputGitTreeElement, Repository
@@ -33,10 +34,9 @@ class GithubSingleton:
         return self.github_instance.get_user().get_repo(repo_name)
 
 
-def append_commit_files(file_list: list, data: [bytes, str], root: str, file: str, file_names: list) -> None:
+def append_commit_files(file_list: list, data: [bytes, str], root: Path, file: str, file_names: list) -> None:
     file_list.append(data)
-    rel_dir = path.relpath(root, ROOT_PATH)
-    rel_file = path.join(rel_dir, file).replace("\\", "/").strip("./")
+    rel_file = (root.relative_to(ROOT_PATH) / file).as_posix().lstrip("./")
     file_names.append(rel_file)
 
 
@@ -56,22 +56,26 @@ def commit_git_files(repo: Repository, master_ref: GitRef, master_sha: str, base
         logger.error("Error occurred while committing files to GitHub", exc_info=True)
 
 
-def create_archive(source, destination) -> None:
-    base = path.basename(destination)
-    name, fmt = base.split(".")
-    archive_from = path.dirname(source)
-    archive_to = path.basename(source.strip(sep))
-    make_archive(base_name=name, format=fmt, root_dir=archive_from, base_dir=archive_to)
-    move(f"{name}.{fmt}", destination)
+def create_archive(source: str, destination: str) -> None:
+    source_path = Path(source)
+    destination_path = Path(destination)
+
+    name, fmt = destination_path.name.rsplit(".", 1)
+    archive_from = source_path.parent
+    archive_to = source_path.name
+
+    archive_file = make_archive(base_name=str(archive_from / name), format=fmt, root_dir=archive_from,
+                                base_dir=archive_to)
+    move(archive_file, destination)
 
 
-def merge_csv_files(repo: Repository, file_name: str, data: str) -> str:
+def merge_csv_files(repo: Repository, file_name: str, data: str) -> str | None:
     try:
         with StringIO(data) as string_io_data:
             local_file_content = read_csv_in_chunks(string_io_data.getvalue())
         repo_file = repo.get_contents(file_name)
         with BytesIO(repo_file.decoded_content) as bytes_io_data:
-            repo_file_content = read_csv_in_chunks(bytes_io_data.getvalue().decode("utf-8"))
+            repo_file_content = read_csv_in_chunks(Path(bytes_io_data.getvalue().decode("utf-8")))
         combined_content = concat([local_file_content, repo_file_content], ignore_index=True)
         combined_content = trim_dataframe(combined_content, "time")
         # TODO: Review this line for converting column data types
