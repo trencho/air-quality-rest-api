@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from json import load
+from json import loads
 from math import isnan, nan
 from typing import Optional
 
@@ -67,7 +67,7 @@ def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Opt
     model = make_model(model_name)
 
     model.load(model_dir)
-    model_features = load(model_dir / "selected_features.json")
+    model_features = loads((model_dir / "selected_features.json").read_text())
 
     return model, model_features
 
