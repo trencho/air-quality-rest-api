@@ -8,7 +8,6 @@ class SupportVectorRegressionModel(BaseRegressionModel):
         reg = SVR()
         param_grid = {
             "kernel": ["linear", "rbf", "poly"],  # Kernel function
-            "gamma": ["scale"],  # Kernel coefficient for "rbf" and "poly" kernels
             "C": [0.1, 1, 10, 100],  # Regularization parameter
             "epsilon": [0.1, 0.2, 0.3]  # Epsilon parameter in the epsilon-insensitive loss function
         }

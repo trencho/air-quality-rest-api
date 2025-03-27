@@ -1,5 +1,5 @@
-from os import path
-from pickle import dump, HIGHEST_PROTOCOL, load
+from pathlib import Path
+from pickle import dumps, HIGHEST_PROTOCOL, load
 
 
 class BaseRegressionModel:
@@ -19,10 +19,9 @@ class BaseRegressionModel:
     def predict(self, x):
         return self.reg.predict(x)
 
-    def save(self, model_path: str) -> None:
-        with open(path.join(model_path, f"{type(self).__name__}.mdl"), "wb") as out_file:
-            dump(self.reg, out_file, HIGHEST_PROTOCOL)
+    def save(self, model_path: Path) -> None:
+        (model_path / f"{type(self).__name__}.mdl").write_bytes(dumps(self.reg, HIGHEST_PROTOCOL))
 
-    def load(self, model_path: str) -> None:
-        with open(path.join(model_path, f"{type(self).__name__}.mdl"), "rb") as in_file:
+    def load(self, model_path: Path) -> None:
+        with open(model_path / f"{type(self).__name__}.mdl", "rb") as in_file:
             self.reg = load(in_file)

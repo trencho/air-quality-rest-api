@@ -10,14 +10,15 @@ class XGBoostRegressionModel(BaseRegressionModel):
     def __init__(self) -> None:
         reg = XGBRegressor()
         param_grid = {
+            "verbosity": [0],  # Verbosity of printing messages
+            "eta": [0.01, 0.05, 0.1],  # Boosting learning rate
             "max_depth": [3, 6, 9],  # Maximum depth of a tree
-            "learning_rate": [0.01, 0.05, 0.1],  # Boosting learning rate
-            "n_estimators": [100, 300, 500],  # Number of boosting rounds (trees)
-            "n_jobs": [cpu_count() // 2],
             "subsample": [0.6, 0.8, 1.0],  # Subsample ratio of the training instance
             "colsample_bytree": [0.6, 0.8, 1.0],  # Subsample ratio of columns when constructing each tree
-            "reg_alpha": [0.0, 0.1, 0.5],  # L1 regularization term on weights
-            "reg_lambda": [0.0, 0.1, 0.5],  # L2 regularization term on weights
+            "n_estimators": [100, 300, 500],  # Number of boosting rounds (trees)
+            "n_jobs": [cpu_count() // 2],  # Number of parallel threads used to run XGBoost
+            "lambda": [0.0, 0.1, 0.5],  # L2 regularization term on weights
+            "alpha": [0.0, 0.1, 0.5]  # L1 regularization term on weights
         }
         super().__init__(reg, param_grid)
 

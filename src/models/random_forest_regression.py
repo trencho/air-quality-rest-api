@@ -14,7 +14,6 @@ class RandomForestRegressionModel(BaseRegressionModel):
             "min_samples_split": [2, 5, 10],  # Minimum number of samples required to split an internal node
             "min_samples_leaf": [1, 2, 4],  # Minimum number of samples required to be at a leaf node
             "max_features": ["auto", "sqrt", "log2"],  # Number of features to consider when looking for the best split
-            "bootstrap": [True],  # Whether bootstrap samples are used when building trees
-            "n_jobs": [cpu_count() // 2]
+            "n_jobs": [cpu_count() // 2]  # Number of jobs to run in parallel
         }
         super().__init__(reg, param_grid)

@@ -1,6 +1,6 @@
+from json import dumps, loads
 from logging import getLogger
-from os import path
-from pickle import dump, HIGHEST_PROTOCOL, load
+from pathlib import Path
 from typing import Optional
 
 from pandas import concat, DataFrame, read_csv, to_datetime
@@ -27,12 +27,10 @@ def drop_unnecessary_features(dataframe: DataFrame) -> DataFrame:
     return dataframe
 
 
-def find_dtypes(file_path: str, collection: str) -> Optional[dict]:
-    dtypes_path = path.join(file_path, f"{collection}_dtypes.pkl")
-    if path.exists(dtypes_path):
-        with open(dtypes_path, "rb") as in_file:
-            return load(in_file)
-
+def find_dtypes(file_path: Path, collection: str) -> Optional[dict]:
+    dtypes_path = file_path / f"{collection}_dtypes.json"
+    if dtypes_path.exists():
+        return loads(dtypes_path.read_text())
     return None
 
 
@@ -41,7 +39,7 @@ def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column
     return dataframe[dataframe.columns.intersection(old_dataframe.columns.values.tolist())]
 
 
-def read_csv_in_chunks(data_path: str, index_col: str = None) -> Optional[DataFrame]:
+def read_csv_in_chunks(data_path: Path, index_col: str = None) -> Optional[DataFrame]:
     chunks = [chunk for chunk in read_csv(data_path, index_col=index_col, chunksize=CHUNK_SIZE) if len(chunk.index) > 0]
     dataframe = concat(chunks)
     dataframe.index = to_datetime(dataframe.index, errors="coerce", unit="s")
@@ -59,13 +57,13 @@ def rename_features(dataframe: DataFrame) -> None:
         errors="ignore")
 
 
-def fetch_summary_dataframe(data_path: str, index_col: str) -> DataFrame:
-    dataframe_list = [read_csv_in_chunks(path.join(data_path, f"{collection}.csv"), index_col=index_col) for collection
+def fetch_summary_dataframe(data_path: Path, index_col: str) -> DataFrame:
+    dataframe_list = [read_csv_in_chunks(data_path / f"{collection}.csv", index_col=index_col) for collection
                       in COLLECTIONS]
     return concat(dataframe_list, axis=1, join="inner")
 
 
-def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, sensor_id: str) -> None:
+def save_dataframe(dataframe: DataFrame, collection: str, collection_path: Path, sensor_id: str) -> None:
     rename_features(dataframe)
     dataframe = drop_unnecessary_features(dataframe)
 
@@ -89,12 +87,11 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: str, 
     dataframe = dataframe.drop(columns="sensorId", errors="ignore")
     # TODO: Review this line for converting column data types
     # dataframe = dataframe.astype(column_dtypes, errors="ignore")
-    dataframe.to_csv(collection_path, header=not path.exists(collection_path), index=False, mode="a")
+    dataframe.to_csv(collection_path, header=not collection_path.exists(), index=False, mode="a")
 
 
-def store_dtypes(file_path: str, collection: str, dtypes: dict) -> None:
-    with open(path.join(file_path, f"{collection}_dtypes.pkl"), "wb") as out_file:
-        dump(dtypes, out_file, HIGHEST_PROTOCOL)
+def store_dtypes(file_path: Path, collection: str, dtypes: dict) -> None:
+    (file_path / f"{collection}_dtypes.json").write_text(dumps(dtypes, indent=4))
 
 
 def trim_dataframe(dataframe: DataFrame, column: str) -> DataFrame:
