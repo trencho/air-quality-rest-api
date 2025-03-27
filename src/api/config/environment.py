@@ -1,7 +1,7 @@
 from logging import getLogger
-from os import environ, makedirs, path
+from os import environ, makedirs
 
-from pandas import DataFrame
+from pandas import concat, DataFrame
 
 from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, ENVIRONMENT_VARIABLES, \
     LOG_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
@@ -37,12 +37,12 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
     db_records = DataFrame(
         repository.get_many(collection_name=collection, filter={"sensorId": sensor_id},
                             projection={"_id": False, "sensorId": False}))
-    if len(db_records.index) == 0:
+    if db_records.empty:
         return
 
-    collection_dir = path.join(DATA_RAW_PATH, city_name, sensor_id)
+    collection_dir = DATA_RAW_PATH / city_name / sensor_id
     makedirs(collection_dir, exist_ok=True)
-    collection_path = path.join(collection_dir, f"{collection}.csv")
+    collection_path = collection_dir / f"{collection}.csv"
     try:
         dataframe = read_csv_in_chunks(collection_path)
         new_db_records = find_missing_data(db_records, dataframe, "time")
