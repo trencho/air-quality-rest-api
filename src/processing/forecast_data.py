@@ -1,8 +1,6 @@
 from datetime import datetime, timedelta
-from glob import glob
+from json import load
 from math import isnan, nan
-from os import path
-from pickle import load
 from typing import Optional
 
 from pandas import concat, DataFrame, date_range, Series
@@ -28,12 +26,12 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
             continue
 
         for index, value in predictions.items():
-            timestamp_dict = forecast_result.get(int(index.timestamp()), {})
-            tz = location_timezone(city["countryCode"])
-            date_time = datetime.fromtimestamp(int(index.timestamp()), location_timezone(city["countryCode"]))
+            timestamp = int(index.timestamp())
+            timestamp_dict = forecast_result.get(timestamp, {})
+            date_time = datetime.fromtimestamp(timestamp, location_timezone(city["countryCode"]))
             timestamp_dict.update(
-                {"dateTime": date_time, "time": int(index.timestamp()), pollutant: None if isnan(value) else value})
-            forecast_result.update({int(index.timestamp()): timestamp_dict})
+                {"dateTime": date_time, "time": timestamp, pollutant: None if isnan(value) else value})
+            forecast_result.update({timestamp: timestamp_dict})
 
     return forecast_result
 
@@ -49,7 +47,7 @@ def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Opti
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
-    dataframe = read_csv_in_chunks(path.join(DATA_PROCESSED_PATH, city_name, sensor_id, "weather.csv"))
+    dataframe = read_csv_in_chunks(DATA_PROCESSED_PATH / city_name / sensor_id / "weather.csv")
     dataframe = dataframe.loc[dataframe["time"] == timestamp]
     if len(dataframe.index) > 0:
         return dataframe.to_dict("records")[0]
@@ -59,15 +57,17 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
-    files = glob(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "*.mdl"))
+    model_dir = MODELS_PATH / city_name / sensor_id / pollutant
+
+    files = list(model_dir.glob("*.mdl"))
     if not files:
         return None
 
-    model = make_model(path.splitext(path.split(files[0])[1])[0])
-    model.load(path.join(MODELS_PATH, city_name, sensor_id, pollutant))
+    model_name = files[0].stem
+    model = make_model(model_name)
 
-    with open(path.join(MODELS_PATH, city_name, sensor_id, pollutant, "selected_features.pkl"), "rb") as in_file:
-        model_features = load(in_file)
+    model.load(model_dir)
+    model_features = load(model_dir / "selected_features.json")
 
     return model, model_features
 
@@ -136,7 +136,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     upcoming_hour = next_hour(current_hour())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
-    dataframe = fetch_summary_dataframe(path.join(DATA_PROCESSED_PATH, city_name, sensor_id), index_col="time")
+    dataframe = fetch_summary_dataframe(DATA_PROCESSED_PATH / city_name / sensor_id, index_col="time")
     if len(dataframe.index) == 0:
         return Series()
 
