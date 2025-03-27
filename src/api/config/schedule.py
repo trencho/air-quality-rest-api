@@ -32,19 +32,6 @@ REPO_BRANCH = "master"
 repository = RepositorySingleton.get_instance().get_repository()
 
 
-@scheduler.scheduled_job(trigger="cron", id="delete_pkl_files", misfire_grace_time=None, jobstore=jobstore_name,
-                         minute="*/10")
-def delete_pkl_files():
-    for root, _, files in walk(MODELS_PATH):
-        for file in files:
-            if file.endswith(".pkl"):
-                pkl_path = Path(root) / file
-                try:
-                    remove(pkl_path)
-                except Exception:
-                    logger.error(f"Failed to delete {pkl_path}", exc_info=True)
-
-
 @scheduler.scheduled_job(trigger="cron", id="dump_data", misfire_grace_time=None, jobstore=jobstore_name, day="*/15")
 def dump_data() -> None:
     file_list, file_names = [], []
@@ -116,28 +103,24 @@ def fetch_locations() -> None:
 
 @scheduler.scheduled_job(trigger="cron", id="import_data", misfire_grace_time=None, jobstore=jobstore_name, hour=0)
 def import_data() -> None:
-    for root, _, files in walk(DATA_EXTERNAL_PATH):
+    for root, directories, files in walk(DATA_EXTERNAL_PATH):
+        root_path = Path(root)
         for file in files:
-            file_path = Path(root) / file
+            file_path = root_path / file
             if file.endswith(".zip"):
                 fmt = file_path.suffix.lstrip(".")
                 unpack_archive(filename=file_path, extract_dir=root, format=fmt)
                 remove(file_path)
-
-    for root, directories, files in walk(DATA_EXTERNAL_PATH):
-        for file in files:
-            if not file.endswith(".csv"):
-                continue
-
-            file_path = Path(root) / file
-            try:
-                dataframe = read_csv_in_chunks(file_path)
-                save_dataframe(dataframe, Path(file).stem, DATA_RAW_PATH / file_path.relative_to(DATA_EXTERNAL_PATH),
-                               file_path.parent.name)
-                remove(file_path)
-            except Exception:
-                logger.error(f"Error occurred while importing data from {file_path}", exc_info=True)
-
+            elif file.endswith(".csv"):
+                file_path = root_path / file
+                try:
+                    dataframe = read_csv_in_chunks(file_path)
+                    save_dataframe(dataframe, Path(file).stem,
+                                   DATA_RAW_PATH / file_path.relative_to(DATA_EXTERNAL_PATH),
+                                   file_path.parent.name)
+                    remove(file_path)
+                except Exception:
+                    logger.error(f"Error occurred while importing data from {file_path}", exc_info=True)
         if not directories and not files:
             rmdir(root)
 
