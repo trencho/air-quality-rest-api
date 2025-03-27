@@ -6,8 +6,6 @@ from os import makedirs
 from definitions import LOG_PATH
 
 LOG_LEVEL_INFO = "INFO"
-LOG_LEVEL_DEBUG = "DEBUG"
-BACKUP_COUNT = 5
 
 CONFIG = {
     "version": 1,
@@ -31,7 +29,7 @@ CONFIG = {
             "formatter": "simple",
             "filename": f"{LOG_PATH / 'app.log'}",
             "when": "midnight",
-            "backupCount": BACKUP_COUNT
+            "backupCount": 5
         },
         "queue": {
             "class": "logging.handlers.QueueHandler",
@@ -47,7 +45,7 @@ CONFIG = {
             "handlers": [
                 "queue"
             ],
-            "level": LOG_LEVEL_DEBUG,
+            "level": "DEBUG",
             "propagate": True
         }
     }

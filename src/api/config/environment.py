@@ -12,6 +12,8 @@ from .schedule import fetch_locations
 
 logger = getLogger(__name__)
 
+repository = RepositorySingleton.get_instance().get_repository()
+
 SYSTEM_PATHS = [
     DATA_EXTERNAL_PATH,
     DATA_PROCESSED_PATH,
@@ -21,8 +23,6 @@ SYSTEM_PATHS = [
     RESULTS_ERRORS_PATH,
     RESULTS_PREDICTIONS_PATH
 ]
-
-repository = RepositorySingleton.get_instance().get_repository()
 
 
 def check_environment_variables() -> None:

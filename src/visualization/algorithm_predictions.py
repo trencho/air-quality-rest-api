@@ -1,12 +1,8 @@
-from logging import getLogger
-
 from matplotlib import pyplot
 from pandas import DataFrame, DatetimeIndex, read_csv
 
 from definitions import POLLUTANTS, REGRESSION_MODELS, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 from .handle_plot import save_plot
-
-logger = getLogger(__name__)
 
 PLOT_PARAMS = {
     "figsize": (16, 10),
@@ -54,4 +50,3 @@ def draw_predictions(city: dict, sensor: dict, pollutant: str) -> None:
 
     save_plot(fig, pyplot, RESULTS_PREDICTIONS_PATH / "plots" / city["cityName"] / sensor["sensorId"] / pollutant,
               "prediction")
-    logger.info(f"Plot saved for {city['cityName']} - {sensor['sensorId']} - {pollutant} - prediction")
