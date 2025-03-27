@@ -37,10 +37,9 @@ def dump_data() -> None:
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
         if not directories and files:
-            file_path = f"{root}.zip"
-            create_archive(source=root, destination=file_path)
-            with open(file_path, "rb") as in_file:
-                data = b64encode(in_file.read())
+            file_path = Path(f"{root}.zip")
+            create_archive(source=Path(root), destination=file_path)
+            data = b64encode(file_path.read_bytes())
             append_commit_files(file_list, data, Path(root).resolve().parent, Path(file_path).name, file_names)
             remove(file_path)
 
