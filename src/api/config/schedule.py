@@ -27,7 +27,6 @@ logger = getLogger(__name__)
 scheduler = BackgroundScheduler()
 jobstore_name = "aqra"
 DATABASE_FILE = DATA_PATH / "jobs.sqlite"
-REPO_BRANCH = "master"
 
 repository = RepositorySingleton.get_instance().get_repository()
 
@@ -44,7 +43,7 @@ def dump_data() -> None:
             remove(file_path)
 
     if file_list:
-        update_git_files(file_list, file_names, environ[REPO_NAME], REPO_BRANCH,
+        update_git_files(file_list, file_names, environ[REPO_NAME], "master",
                          f"Scheduled data dump - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}")
 
 
@@ -131,7 +130,6 @@ def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             for pollutant in POLLUTANTS:
-                logger.info(f"Training regression model for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
                 train_regression_model(city, sensor, pollutant)
 
 

@@ -4,12 +4,7 @@ from numpy import abs, cos, pi, sin
 from pandas import cut, DataFrame, Index, Series
 from statsmodels.tsa.stattools import pacf
 
-MONTHS_IN_YEAR = 12
 DAYS_IN_MONTH = 30
-HOURS_IN_DAY = 24
-WEEKS_IN_YEAR = 52
-DAYS_IN_WEEK = 7
-DAYS_IN_YEAR = 365
 QUARTERS_IN_YEAR = 4
 
 SEASONS = [
@@ -55,12 +50,12 @@ def generate_lag_features(target: Series, lags: int) -> DataFrame:
 
 def generate_time_features(target) -> DataFrame:
     features = DataFrame()
-    encode_cyclic_data(features, "month", target.index.month, MONTHS_IN_YEAR)
+    encode_cyclic_data(features, "month", target.index.month, 12)
     encode_cyclic_data(features, "day", target.index.day, DAYS_IN_MONTH)
-    encode_cyclic_data(features, "hour", target.index.hour, HOURS_IN_DAY)
-    encode_cyclic_data(features, "week_of_year", Index(target.index.isocalendar().week, dtype="int64"), WEEKS_IN_YEAR)
-    encode_cyclic_data(features, "day_of_week", target.index.dayofweek, DAYS_IN_WEEK)
-    encode_cyclic_data(features, "day_of_year", target.index.dayofyear, DAYS_IN_YEAR)
+    encode_cyclic_data(features, "hour", target.index.hour, 24)
+    encode_cyclic_data(features, "week_of_year", Index(target.index.isocalendar().week, dtype="int64"), 52)
+    encode_cyclic_data(features, "day_of_week", target.index.dayofweek, 7)
+    encode_cyclic_data(features, "day_of_year", target.index.dayofyear, 365)
     encode_cyclic_data(features, "quarter", target.index.quarter, QUARTERS_IN_YEAR)
     encode_cyclic_data(features, "days_in_month", target.index.days_in_month, DAYS_IN_MONTH)
     features["isMonthStart"] = target.index.is_month_start

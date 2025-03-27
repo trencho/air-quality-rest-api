@@ -1,13 +1,9 @@
-from logging import getLogger
-
 import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame, read_csv
 
 from definitions import POLLUTANTS, REGRESSION_MODELS, RESULTS_ERRORS_PATH
 from .handle_plot import save_plot
-
-logger = getLogger(__name__)
 
 ERROR_TYPES = [
     "Mean Absolute Error",
@@ -64,4 +60,3 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
 
         save_plot(fig, pyplot, RESULTS_ERRORS_PATH / "plots" / city["cityName"] / sensor["sensorId"] / pollutant,
                   error_type)
-        logger.info(f"Plot saved for {city['cityName']} - {sensor['sensorId']} - {pollutant} - {error_type}")
