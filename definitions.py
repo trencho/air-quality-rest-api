@@ -31,7 +31,7 @@ ENVIRONMENT_VARIABLES = [
 ]
 
 VOLUME_PATH = "VOLUME_PATH"
-ROOT_PATH = environ.get(VOLUME_PATH, "") or Path(__file__).resolve().parent
+ROOT_PATH = Path(environ.get(VOLUME_PATH, str(Path(__file__).resolve().parent)))
 DATA_PATH = ROOT_PATH / "data"
 LOG_PATH = ROOT_PATH / "logs"
 MODELS_PATH = ROOT_PATH / "models"
