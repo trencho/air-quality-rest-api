@@ -178,8 +178,10 @@ def setup_model(model_name: str, x_train: DataFrame, y_train: Series, data_path:
 
 
 def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
+    logger.info(f"Training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
     data_path = Path(city["cityName"]) / sensor["sensorId"] / pollutant
     if check_best_regression_model(data_path) or check_pollutant_lock(data_path):
+        logger.info(f"Skipped training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
         return
     try:
         dataframe = fetch_summary_dataframe(DATA_PROCESSED_PATH / city["cityName"] / sensor["sensorId"],
@@ -190,9 +192,9 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             generate_regression_model(dataframe, city["cityName"], sensor["sensorId"], pollutant)
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
-        logger.info(f"Model training completed for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
+        logger.info(f"Completed training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
     except Exception:
-        logger.error(f"Error occurred while training regression model for {city['cityName']} - "
+        logger.error(f"Error occurred while training model for {city['cityName']} - "
                      f"{sensor['sensorId']} - {pollutant}", exc_info=True)
     finally:
         remove_pollutant_lock(data_path)

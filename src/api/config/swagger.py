@@ -7,28 +7,20 @@ from definitions import URL_PREFIX
 
 logger = getLogger(__name__)
 
-FAVICON_URL = f"{URL_PREFIX}/favicon.ico/"
-OPENAPI_VERSION = "3.0.3"
-SPECS_ENDPOINT = "apispec_1"
-SPECS_ROUTE = f"{URL_PREFIX}/apispec_1.json"
-STATIC_URL_PATH = f"{URL_PREFIX}/flasgger_static"
-APIDOCS_ROUTE = f"{URL_PREFIX}/apidocs/"
-TITLE = "AQRA"
-
 CONFIG = {
-    "favicon": FAVICON_URL,
-    "openapi": OPENAPI_VERSION,
+    "favicon": f"{URL_PREFIX}/favicon.ico/",
+    "openapi": "3.0.3",
     "specs": [
         {
-            "endpoint": SPECS_ENDPOINT,
-            "route": SPECS_ROUTE,
+            "endpoint": "apispec_1",
+            "route": f"{URL_PREFIX}/apispec_1.json",
             "rule_filter": lambda rule: True,
             "model_filter": lambda tag: True,
         }
     ],
-    "static_url_path": STATIC_URL_PATH,
-    "specs_route": APIDOCS_ROUTE,
-    "title": TITLE
+    "static_url_path": f"{URL_PREFIX}/flasgger_static",
+    "specs_route": f"{URL_PREFIX}/apidocs/",
+    "title": "AQRA"
 }
 
 swagger = Swagger(config=CONFIG, merge=True)
