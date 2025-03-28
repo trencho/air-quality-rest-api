@@ -47,7 +47,10 @@ def rename_error_images() -> None:
                 for error_key, error_val in ERROR_TYPES.items():
                     if error_val in file:
                         new_file = file.replace(error_val, error_key)
-                        rename(Path(root) / file, Path(root) / new_file)
+                        try:
+                            rename(Path(root) / file, Path(root) / new_file)
+                        except Exception:
+                            pass
 
 
 @scheduler.scheduled_job(trigger="cron", id="dump_data", misfire_grace_time=None, jobstore=jobstore_name, day="*/15")

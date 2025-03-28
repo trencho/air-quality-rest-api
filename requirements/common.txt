@@ -16,7 +16,7 @@ pytz==2025.2
 requests==2.32.3
 scikit-learn==1.6.1
 scipy==1.15.2
-SQLAlchemy==2.0.39
+SQLAlchemy==2.0.40
 seaborn==0.13.2
 starlette==0.46.1
 statsmodels==0.14.4
