@@ -8,6 +8,7 @@ parameters:
   - in: query
     name: pollutant
     description: Name of the pollutant
+    enum: [ "aqi", "co", "nh3", "no", "no2", "o3", "pm2_5", "pm10", "so2" ]
     required: false
     schema:
       type: string

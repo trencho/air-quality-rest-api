@@ -19,6 +19,7 @@ parameters:
   - in: path
     name: data_type
     description: Type of data to fetch history (e.g., weather or pollution)
+    enum: [ "weather", "pollution" ]
     required: true
     schema:
       type: string

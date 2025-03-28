@@ -25,6 +25,7 @@ parameters:
   - in: path
     name: error_type
     description: Name of the error
+    enum: [ "mae", "mape", "mse", "rmse" ]
     required: true
     schema:
       type: string
