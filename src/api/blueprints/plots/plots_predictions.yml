@@ -22,6 +22,7 @@ parameters:
     required: true
     schema:
       type: string
+      enum: [ "aqi", "co", "nh3", "no", "no2", "o3", "pm2_5", "pm10", "so2" ]
 responses:
   200:
     description: Returned plot of predictions for a specified pollutant.
