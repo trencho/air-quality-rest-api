@@ -22,13 +22,14 @@ parameters:
     required: true
     schema:
       type: string
+      enum: [ "aqi", "co", "nh3", "no", "no2", "o3", "pm2_5", "pm10", "so2" ]
   - in: path
     name: error_type
     description: Name of the error
-    enum: [ "mae", "mape", "mse", "rmse" ]
     required: true
     schema:
       type: string
+      enum: [ "mae", "mape", "mse", "rmse" ]
 responses:
   200:
     description: Returned plot for a specified pollutant and error type.
