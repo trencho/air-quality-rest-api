@@ -31,10 +31,7 @@ DATABASE_FILE = DATA_PATH / "jobs.sqlite"
 repository = RepositorySingleton.get_instance().get_repository()
 
 ERROR_TYPES = {
-    "mae": "Mean Absolute Error",
-    "mape": "Mean Absolute Percentage Error",
-    "mse": "Mean Squared Error",
-    "rmse": "Root Mean Squared Error"
+    "rmse": "Root mse"
 }
 
 
