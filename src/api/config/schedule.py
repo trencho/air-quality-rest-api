@@ -3,7 +3,7 @@ from base64 import b64encode
 from datetime import datetime
 from json import dumps, loads
 from logging import getLogger
-from os import environ, makedirs, remove, rename, rmdir, walk
+from os import environ, makedirs, remove, rmdir, walk
 from pathlib import Path
 from shutil import unpack_archive
 
@@ -13,7 +13,7 @@ from sqlalchemy import create_engine
 
 from api.blueprints import fetch_city_data
 from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, \
-    MODELS_PATH, OPEN_WEATHER, POLLUTANTS, REPO_NAME, RESULTS_PATH
+    MODELS_PATH, OPEN_WEATHER, POLLUTANTS, REPO_NAME
 from modeling import train_regression_model
 from preparation import check_api_lock, fetch_cities, fetch_countries, fetch_sensors, read_cities, read_sensors
 from processing import current_hour, fetch_forecast_result, process_data, read_csv_in_chunks, save_dataframe
@@ -29,25 +29,6 @@ jobstore_name = "aqra"
 DATABASE_FILE = DATA_PATH / "jobs.sqlite"
 
 repository = RepositorySingleton.get_instance().get_repository()
-
-ERROR_TYPES = {
-    "rmse": "Root mse"
-}
-
-
-@scheduler.scheduled_job(trigger="cron", id="rename_error_images", misfire_grace_time=None, jobstore=jobstore_name,
-                         minute="*/10")
-def rename_error_images() -> None:
-    for root, directories, files in walk(RESULTS_PATH):
-        for file in files:
-            if file.endswith(".png"):
-                for error_key, error_val in ERROR_TYPES.items():
-                    if error_val in file:
-                        new_file = file.replace(error_val, error_key)
-                        try:
-                            rename(Path(root) / file, Path(root) / new_file)
-                        except Exception:
-                            pass
 
 
 @scheduler.scheduled_job(trigger="cron", id="dump_data", misfire_grace_time=None, jobstore=jobstore_name, day="*/15")
@@ -100,7 +81,7 @@ def fetch_locations() -> None:
             logger.error(f"Error occurred while updating data for {country['countryName']}", exc_info=True)
 
     cities = fetch_cities()
-    (DATA_PATH / "cities.json").write_text(dumps(cities, indent=4))
+    (DATA_RAW_PATH / "cities.json").write_text(dumps(cities, indent=4))
     cache.set("cities", cities)
     for city in cities:
         try:
