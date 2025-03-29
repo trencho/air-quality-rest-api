@@ -10,6 +10,7 @@ lightgbm==4.6.0
 matplotlib==3.10.1
 numpy==2.2.4
 pandas==2.2.3
+psutil==7.0.0
 PyGithub==2.6.1
 pymongo==4.11.3
 pytz==2025.2
