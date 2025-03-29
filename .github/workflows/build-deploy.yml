@@ -54,7 +54,7 @@ jobs:
           client_key: ${{ env.USER_KEY }}
 
       - name: SSH commands for checkout/update git repo, build and deploy
-        uses: appleboy/ssh-action@v1.2.1
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
