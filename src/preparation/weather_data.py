@@ -1,3 +1,4 @@
+from gc import collect
 from logging import getLogger
 from os import environ
 from time import sleep
@@ -37,6 +38,9 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
     except Exception:
         logger.error(f"Error occurred while fetching DarkSky data for {city_name} - {sensor['sensorId']}",
                      exc_info=True)
+    finally:
+        del dataframe
+        collect()
 
 
 def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
@@ -63,6 +67,8 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
         logger.error(f"Error occurred while fetching Open Weather data for {city_name} - {sensor['sensorId']}",
                      exc_info=True)
     finally:
+        del dataframe
+        collect()
         sleep(1)
 
 
@@ -94,6 +100,8 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
         logger.error(f"Error occurred while fetching pollution data for {city_name} - {sensor["sensorId"]}",
                      exc_info=True)
     finally:
+        del dataframe
+        collect()
         sleep(1)
 
 

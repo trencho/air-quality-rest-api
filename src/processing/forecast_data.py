@@ -141,7 +141,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
         return Series()
 
     dataframe = dataframe.loc[datetime.now() - timedelta(weeks=52): datetime.now()]
-    target = dataframe[pollutant].copy()
+    target = dataframe[pollutant].tail(lags * 2 + 1).copy()
 
     forecasted_values = []
     for date in forecast_range:
@@ -165,6 +165,7 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
         except Exception:
             forecasted_values.append(nan)
         target.update(Series(forecasted_values[-1], [target.index[-1]]))
+        target = target.tail(lags * 2 + 1).copy()
 
     forecast_results = Series(forecasted_values, forecast_range)
     return forecast_results.drop(forecast_results.index[0])

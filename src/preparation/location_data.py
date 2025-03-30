@@ -34,7 +34,7 @@ def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> O
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def check_city(city_name: str) -> Optional[dict]:
     for city in cache.get("cities") or read_cities():
-        if city["cityName"] == city_name:
+        if str(city["cityName"]).lower() == city_name.lower():
             return city
 
     return None
@@ -43,7 +43,7 @@ def check_city(city_name: str) -> Optional[dict]:
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def check_country(country_code: str) -> Optional[dict]:
     for country in cache.get("countries") or read_countries():
-        if country["countryCode"] == country_code.upper():
+        if str(country["countryCode"]).lower() == country_code.lower():
             return country
 
     return None
@@ -52,7 +52,7 @@ def check_country(country_code: str) -> Optional[dict]:
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
     for sensor in read_sensors(city_name):
-        if sensor["sensorId"] == sensor_id:
+        if str(sensor["sensorId"]).lower() == sensor_id.lower():
             return sensor
 
     return None

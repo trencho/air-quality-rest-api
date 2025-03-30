@@ -9,8 +9,9 @@ chdir = "/app/src/api"
 pidfile = "/run/.pid"
 bind = ["unix:/run/gunicorn.socket"]
 workers = cpu_count() * 2 + 1
-threads = 2
-timeout = 0
+threads = 4
+max_requests = 500
+max_requests_jitter = 50
 
 logger = getLogger(__name__)
 basicConfig(level=INFO)
