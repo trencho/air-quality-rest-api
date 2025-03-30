@@ -2,7 +2,7 @@ from gc import collect
 from logging import getLogger
 from os import environ, makedirs
 
-from pandas import concat, DataFrame
+from pandas import DataFrame
 
 from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, ENVIRONMENT_VARIABLES, \
     LOG_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
@@ -49,9 +49,10 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         new_db_records = find_missing_data(db_records, dataframe, "time")
         # TODO: Review this line for converting column data types
         # new_db_records = new_db_records.astype(column_dtypes, errors="ignore")
-        combined_df = concat([dataframe, new_db_records]).drop_duplicates(subset="time", keep="last")
-        combined_df.to_csv(collection_path, index=False)
-        del combined_df
+        # combined_df = concat([dataframe, new_db_records]).drop_duplicates(subset="time", keep="last")
+        # combined_df.to_csv(collection_path, index=False)
+        # del combined_df
+        new_db_records.to_csv(collection_path, header=False, index=False, mode="a")
 
         save_dataframe(dataframe, collection, collection_path, sensor_id)
         del dataframe
