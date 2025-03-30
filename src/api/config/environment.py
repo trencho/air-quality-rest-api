@@ -1,3 +1,4 @@
+from gc import collect
 from logging import getLogger
 from os import environ, makedirs
 
@@ -57,6 +58,9 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         # TODO: Review this line for converting column data types
         # db_records = db_records.astype(column_dtypes, errors="ignore")
         db_records.to_csv(collection_path, index=False)
+    finally:
+        del combined_df, dataframe, db_records
+        collect()
 
 
 def fetch_db_data() -> None:

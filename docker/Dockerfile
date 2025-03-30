@@ -6,7 +6,7 @@
 
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
-ARG PYTHON_VERSION=3.13.0
+ARG PYTHON_VERSION=3.13.2
 FROM python:${PYTHON_VERSION}-slim
 
 # Prevents Python from writing pyc files and keeps Python from buffering stdout and stderr to avoid situations where

@@ -1,4 +1,5 @@
 from datetime import datetime
+from gc import collect
 from json import dumps
 from logging import getLogger
 from math import inf
@@ -167,6 +168,7 @@ def generate_regression_model(dataframe: DataFrame, city_name: str, sensor_id: s
         logger.error(f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
                      f"{pollutant} - {type(best_model).__name__}", exc_info=True)
     best_model.save(MODELS_PATH / city_name / sensor_id / pollutant)
+    del best_model
 
 
 def setup_model(model_name: str, x_train: DataFrame, y_train: Series, data_path: Path) -> BaseRegressionModel:
@@ -192,6 +194,10 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             generate_regression_model(dataframe, city["cityName"], sensor["sensorId"], pollutant)
             draw_errors(city, sensor, pollutant)
             draw_predictions(city, sensor, pollutant)
+
+        del dataframe
+        collect()
+
         logger.info(f"Completed training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}")
     except Exception:
         logger.error(f"Error occurred while training model for {city['cityName']} - "
