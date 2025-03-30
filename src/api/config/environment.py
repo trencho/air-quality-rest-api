@@ -49,9 +49,12 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         new_db_records = find_missing_data(db_records, dataframe, "time")
         # TODO: Review this line for converting column data types
         # new_db_records = new_db_records.astype(column_dtypes, errors="ignore")
-        new_db_records.to_csv(collection_path, header=False, index=False, mode="a")
+        combined_df = concat([dataframe, new_db_records]).drop_duplicates(subset="time", keep="last")
+        combined_df.to_csv(collection_path, index=False)
+        del combined_df
 
         save_dataframe(dataframe, collection, collection_path, sensor_id)
+        del dataframe
     except Exception:
         logger.error(f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}",
                      exc_info=True)
@@ -59,7 +62,7 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         # db_records = db_records.astype(column_dtypes, errors="ignore")
         db_records.to_csv(collection_path, index=False)
     finally:
-        del combined_df, dataframe, db_records
+        del db_records
         collect()
 
 
