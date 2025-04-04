@@ -6,6 +6,7 @@ resources:
   - ingress/flask-ingress.yml
   - issuer/prod-issuer.yml
   - issuer/staging-issuer.yml
+  - metrics-server/components.yml
   - namespace.yml
   - network-policy/network-policy.yml
   - persistent-volume/flask-data-pv.yml
