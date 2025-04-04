@@ -26,12 +26,6 @@ kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
 kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 ```
 
-###### Apply metrics server for cluster
-
-```
-kubectl apply -f kubernetes/metrics-server/components.yml
-```
-
 ###### Apply cert-manager resources
 
 ```
@@ -56,7 +50,7 @@ kubectl apply -f kubernetes/metallb/metallb-native.yml
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
 
 ```
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.28.0/controller.yaml
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.29.0/controller.yaml
 
 kubeseal < kubernetes/secret/flask-secret.yml -o yaml > kubernetes/sealed-secret/flask-sealed-secret.yml
 kubeseal < kubernetes/secret/mongo-secret.yml -o yaml > kubernetes/sealed-secret/mongo-sealed-secret.yml
