@@ -14,7 +14,7 @@ kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.f
 kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=kubeadm.feit.ukim.edu.mk --cri-socket unix:///run/cri-dockerd.sock
 ```
 
-###### Taint the master node with control plane to deploy pods
+###### Taint the master node with a control plane to deploy pods
 
 ```
 kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
@@ -26,6 +26,18 @@ kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
 kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 ```
 
+###### Apply metrics server for cluster
+
+```
+helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+helm repo update
+```
+
+```
+helm upgrade --install metrics-server metrics-server/metrics-server -n kube-system --create-namespace --values \
+kubernetes/metrics-server/values.yaml
+```
+
 ###### Apply cert-manager resources
 
 ```
@@ -35,8 +47,13 @@ kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/downlo
 ###### Apply ingress-nginx resources with values from a custom yml file
 
 ```
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+```
+
+```
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace --values \
-kubernetes/custom-ingress-values.yml
+kubernetes/ingress/ingress-nginx-values.yml
 ```
 
 ###### Apply MetalLB resources for deploying a load balancer
@@ -51,7 +68,9 @@ kubectl apply -f kubernetes/metallb/metallb-native.yml
 
 ```
 kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.29.0/controller.yaml
+```
 
+```
 kubeseal < kubernetes/secret/flask-secret.yml -o yaml > kubernetes/sealed-secret/flask-sealed-secret.yml
 kubeseal < kubernetes/secret/mongo-secret.yml -o yaml > kubernetes/sealed-secret/mongo-sealed-secret.yml
 ```
