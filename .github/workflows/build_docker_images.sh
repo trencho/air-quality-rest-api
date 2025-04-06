@@ -5,7 +5,7 @@ source "${GIT_REPO_PATH}"/.github/workflows/hash_directory.sh
 
 SOURCE_DIR="${GIT_REPO_PATH}"
 EXCLUDE_KUBERNETES_DIR="kubernetes"
-SOURCE_DIR_SHA_FILE="${GIT_REPO_PATH}/${GIT_REPO_NAME}_source_dir_sha"
+SOURCE_DIR_SHA_FILE="${GIT_REPO_PATH}/../${GIT_REPO_NAME}_source_dir_sha"
 
 current_sha=$(hash_directory "${SOURCE_DIR}" "${EXCLUDE_KUBERNETES_DIR}")
 
