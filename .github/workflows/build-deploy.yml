@@ -75,6 +75,7 @@ jobs:
             if [ ! -d "${GIT_REPO_PATH}/.git" ]; then
               echo "Repository not found. Cloning..."
               git clone https://"${ACCESS_TOKEN}"@github.com/"${GIT_REPO_USERNAME}"/"${GIT_REPO_NAME}".git "${GIT_REPO_PATH}"
+              cd "${GIT_REPO_PATH}" || exit
             else
               echo "Repository found. Fetching latest changes..."
               cd "${GIT_REPO_PATH}" || exit
