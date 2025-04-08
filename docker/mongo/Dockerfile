@@ -1,7 +1,5 @@
-FROM mongo:7.0.18
+FROM mongo:8.0.6
 
 LABEL maintainer="Aleksandar Trenchevski <atrenchevski@gmail.com>"
 
 EXPOSE 27017
-
-CMD ["mongod", "--auth"]
