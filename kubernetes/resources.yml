@@ -110,7 +110,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   capacity:
-    storage: 10Gi
+    storage: 50Gi
   claimRef:
     name: flask-data-pvc
     namespace: aqra
@@ -148,7 +148,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: 50Gi
   storageClassName: manual
 ---
 apiVersion: v1
