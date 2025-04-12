@@ -6,7 +6,6 @@ DEBUG_FLAG_FILE="/tmp/debug1"
 REQUIREMENTS_OS="requirements_os.txt"
 REQUIREMENTS_PROD="requirements/prod.txt"
 APP_PATH="/app/src/api/app.py"
-GUNICORN_CONF="/app/docker/gunicorn.conf.py"
 
 if [ ! -f $DEBUG_FILE ]; then
   touch $DEBUG_FILE
@@ -40,5 +39,5 @@ if [ -e $DEBUG_FLAG_FILE ]; then
   python3 $APP_PATH
 else
   echo "Running app in production mode!"
-  nginx && gunicorn -c $GUNICORN_CONF
+  nginx && gunicorn -c "/app/docker/gunicorn.conf.py"
 fi

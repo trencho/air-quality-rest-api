@@ -156,6 +156,16 @@ kubectl get pods -n aqra | grep -E 'flask[a-z0-9\-]*' -iwo | tr -d '\n' | xargs 
 kubectl get pods -n aqra | grep -E 'mongo[a-z0-9\-]*' -iwo | tr -d '\n' | xargs describe pod -n aqra
 ```
 
+##### Resource usage of node and deployed pods
+
+```
+kubectl top nodes --show-capacity
+```
+
+```
+kubectl top pods --containers --sum -n aqra
+```
+
 ###### Delete and reapply deployments if changes are made to the Docker images
 
 ```
