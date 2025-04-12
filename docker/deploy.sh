@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Constants
-DEFAULT_TAG_NAME="prototype"
-DEFAULT_TAG_NUMBER="latest"
-
 # Check for required arguments
 if [ -z "$1" ]; then
   echo "You must specify a Dockerfile!"
@@ -20,8 +16,8 @@ else
 fi
 
 # Set optional arguments with default values
-tag_name=${3:-$DEFAULT_TAG_NAME}
-tag_number=${4:-$DEFAULT_TAG_NUMBER}
+tag_name=${3:-"prototype"}
+tag_number=${4:-"latest"}
 
 # Build, tag, and push the Docker image
 docker build -f "${dockerfile}" -t "${tag_name}:${tag_number}" .
