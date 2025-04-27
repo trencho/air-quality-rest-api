@@ -22,4 +22,5 @@ seaborn==0.13.2
 starlette==0.46.2
 statsmodels==0.14.4
 urllib3==2.4.0
+waitress==3.0.2
 xgboost==3.0.0
