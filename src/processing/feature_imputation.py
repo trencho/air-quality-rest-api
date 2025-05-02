@@ -33,9 +33,9 @@ def weighted_hamming(data: DataFrame):
 
 
 def distance_matrix(
-        data: DataFrame,
-        numeric_distance: str = "euclidean",
-        categorical_distance: str = "jaccard",
+    data: DataFrame,
+    numeric_distance: str = "euclidean",
+    categorical_distance: str = "jaccard",
 ) -> Optional[DataFrame]:
     """Compute the pairwise distance attribute by attribute to account for different variables type:
     - Continuous
@@ -88,7 +88,7 @@ def distance_matrix(
         number_of_categorical_var = number_of_variables - number_of_numeric_var
         data_numeric = data.iloc[:, is_numeric]
         data_numeric = (data_numeric - data_numeric.mean()) / (
-                data_numeric.max() - data_numeric.min()
+            data_numeric.max() - data_numeric.min()
         )
         data_categorical = data.iloc[:, [not x for x in is_numeric]]
 
@@ -106,7 +106,7 @@ def distance_matrix(
 
     # "Dummifies" categorical variables in place
     if not is_all_numeric and not (
-            categorical_distance == "hamming" or categorical_distance == "weighted-hamming"
+        categorical_distance == "hamming" or categorical_distance == "weighted-hamming"
     ):
         if is_mixed_type:
             data_categorical = get_dummies(data_categorical)
@@ -140,8 +140,8 @@ def distance_matrix(
                 [
                     1.0
                     * (
-                            result_numeric[i, j] * number_of_numeric_var
-                            + result_categorical[i, j] * number_of_categorical_var
+                        result_numeric[i, j] * number_of_numeric_var
+                        + result_categorical[i, j] * number_of_categorical_var
                     )
                     / number_of_variables
                     for j in range(number_of_observations)
@@ -156,13 +156,13 @@ def distance_matrix(
 
 
 def knn_impute(
-        target,
-        attributes,
-        k_neighbors: int,
-        aggregation_method: str = "mean",
-        numeric_distance: str = "euclidean",
-        categorical_distance: str = "jaccard",
-        missing_neighbors_threshold: float = 0.5,
+    target,
+    attributes,
+    k_neighbors: int,
+    aggregation_method: str = "mean",
+    numeric_distance: str = "euclidean",
+    categorical_distance: str = "jaccard",
+    missing_neighbors_threshold: float = 0.5,
 ) -> Optional[DataFrame]:
     """Replace the missing values within the target variable based on its k nearest neighbors identified with the
     attributes variables. If more than 50% of its neighbors are also missing values, the value is not modified and

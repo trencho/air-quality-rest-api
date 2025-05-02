@@ -16,7 +16,7 @@ plots_blueprint = Blueprint("plots", __name__)
 )
 @swag_from("plots_predictions.yml", endpoint="plots.plots_predictions", methods=["GET"])
 def fetch_plots_predictions(
-        city_name: str, sensor_id: str, pollutant: PollutantType
+    city_name: str, sensor_id: str, pollutant: PollutantType
 ) -> Response | tuple[Response, int]:
     if check_city(city_name) is None:
         return (
@@ -35,11 +35,11 @@ def fetch_plots_predictions(
         )
 
     image_path = (
-            RESULTS_PREDICTIONS_PLOTS_PATH
-            / city_name
-            / sensor_id
-            / pollutant
-            / "prediction.png"
+        RESULTS_PREDICTIONS_PLOTS_PATH
+        / city_name
+        / sensor_id
+        / pollutant
+        / "prediction.png"
     )
     if not image_path.exists():
         return (
@@ -57,7 +57,7 @@ def fetch_plots_predictions(
 )
 @swag_from("plots_errors.yml", endpoint="plots.plots_errors", methods=["GET"])
 def fetch_plots_errors(
-        city_name: str, sensor_id: str, pollutant: PollutantType, error_type: ErrorType
+    city_name: str, sensor_id: str, pollutant: PollutantType, error_type: ErrorType
 ) -> Response | tuple[Response, int]:
     if check_city(city_name) is None:
         return (
@@ -76,11 +76,11 @@ def fetch_plots_errors(
         )
 
     image_path = (
-            RESULTS_ERRORS_PLOTS_PATH
-            / city_name
-            / sensor_id
-            / pollutant
-            / f"{error_type.value}.png"
+        RESULTS_ERRORS_PLOTS_PATH
+        / city_name
+        / sensor_id
+        / pollutant
+        / f"{error_type.value}.png"
     )
     if not image_path.exists():
         return (

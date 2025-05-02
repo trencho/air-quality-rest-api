@@ -22,7 +22,7 @@ train_blueprint = Blueprint("train", __name__)
 @swag_from("train_city.yml", endpoint="train.train_city", methods=["GET"])
 @swag_from("train_city_sensor.yml", endpoint="train.train_city_sensor", methods=["GET"])
 def train_data(
-        city_name: str = None, sensor_id: str = None
+    city_name: str = None, sensor_id: str = None
 ) -> Response | tuple[Response, int]:
     pollutant_name = request.args.get("pollutant", default=None, type=Optional[str])
     if pollutant_name is not None and pollutant_name not in POLLUTANTS:

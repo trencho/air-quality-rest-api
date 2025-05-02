@@ -23,9 +23,9 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     forecast_result = {}
     for pollutant in POLLUTANTS:
         if (
-                predictions := forecast_city_sensor(
-                    city["cityName"], sensor["sensorId"], pollutant
-                )
+            predictions := forecast_city_sensor(
+                city["cityName"], sensor["sensorId"], pollutant
+            )
         ) is None:
             continue
 
@@ -49,7 +49,7 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def forecast_city_sensor(
-        city_name: str, sensor_id: str, pollutant: str
+    city_name: str, sensor_id: str, pollutant: str
 ) -> Optional[Series]:
     if (load_model := load_regression_model(city_name, sensor_id, pollutant)) is None:
         return None
@@ -72,7 +72,7 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def load_regression_model(
-        city_name: str, sensor_id: str, pollutant: str
+    city_name: str, sensor_id: str, pollutant: str
 ) -> Optional[tuple]:
     model_dir = MODELS_PATH / city_name / sensor_id / pollutant
 
@@ -91,11 +91,11 @@ def load_regression_model(
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def direct_forecast(
-        y: Series,
-        model: BaseRegressionModel,
-        lags: int = FORECAST_STEPS,
-        n_steps: int = FORECAST_STEPS,
-        step: str = FORECAST_PERIOD,
+    y: Series,
+    model: BaseRegressionModel,
+    lags: int = FORECAST_STEPS,
+    n_steps: int = FORECAST_STEPS,
+    step: str = FORECAST_PERIOD,
 ) -> Series:
     """Multistep direct forecasting using a machine learning model to forecast each time period ahead
 
@@ -137,14 +137,14 @@ def direct_forecast(
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def recursive_forecast(
-        city_name: str,
-        sensor_id: str,
-        pollutant: str,
-        model: BaseRegressionModel,
-        model_features: list,
-        lags: int = FORECAST_STEPS,
-        n_steps: int = FORECAST_STEPS,
-        step: str = FORECAST_PERIOD,
+    city_name: str,
+    sensor_id: str,
+    pollutant: str,
+    model: BaseRegressionModel,
+    model_features: list,
+    lags: int = FORECAST_STEPS,
+    n_steps: int = FORECAST_STEPS,
+    step: str = FORECAST_PERIOD,
 ) -> Series:
     """Multistep recursive forecasting using the input time series data and a pre-trained machine learning model
 
@@ -173,7 +173,7 @@ def recursive_forecast(
     if len(dataframe.index) == 0:
         return Series()
 
-    dataframe = dataframe.loc[datetime.now() - timedelta(weeks=52): datetime.now()]
+    dataframe = dataframe.loc[datetime.now() - timedelta(weeks=52) : datetime.now()]
     target = dataframe[pollutant].tail(lags * 2 + 1).copy()
 
     forecasted_values = []

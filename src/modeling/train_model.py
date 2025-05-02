@@ -44,7 +44,7 @@ def previous_value_overwrite(dataframe: DataFrame) -> DataFrame:
 
 
 def split_dataframe(
-        dataframe: DataFrame, target: str, selected_features: list = None
+    dataframe: DataFrame, target: str, selected_features: list = None
 ) -> tuple:
     x = dataframe.drop(columns=POLLUTANTS, errors="ignore")
     x = value_scaling(x)
@@ -92,7 +92,7 @@ def create_pollutant_lock(data_path: str) -> None:
 
 
 def hyper_parameter_tuning(
-        model: BaseRegressionModel, x_train: DataFrame, y_train: Series, data_path: Path
+    model: BaseRegressionModel, x_train: DataFrame, y_train: Series, data_path: Path
 ) -> dict:
     model_cv = RandomizedSearchCV(
         estimator=model.reg,
@@ -106,10 +106,10 @@ def hyper_parameter_tuning(
 
     if environ.get(APP_ENV, ENV_DEV) == ENV_DEV:
         (
-                MODELS_PATH
-                / data_path
-                / type(model).__name__
-                / "HyperparameterOptimization.json"
+            MODELS_PATH
+            / data_path
+            / type(model).__name__
+            / "HyperparameterOptimization.json"
         ).write_text(dumps(model_cv.best_params_))
 
     return model_cv.best_params_
@@ -131,8 +131,8 @@ def check_best_regression_model(data_path: Path) -> bool:
         last_modified = int(Path(files[0]).stat().st_mtime)
         three_months_in_seconds = 7889400
         if (
-                last_modified
-                < int(datetime.timestamp(current_hour())) - three_months_in_seconds
+            last_modified
+            < int(datetime.timestamp(current_hour())) - three_months_in_seconds
         ):
             remove(model_dir / files[0])
             return False
@@ -143,7 +143,7 @@ def check_best_regression_model(data_path: Path) -> bool:
 
 
 def generate_regression_model(
-        dataframe: DataFrame, city_name: str, sensor_id: str, pollutant: str
+    dataframe: DataFrame, city_name: str, sensor_id: str, pollutant: str
 ) -> None:
     dataframe = dataframe.join(generate_features(dataframe[pollutant]), how="inner")
     dataframe = dataframe.dropna(axis="columns", how="all").dropna(
@@ -164,7 +164,7 @@ def generate_regression_model(
     for model_name in REGRESSION_MODELS:
         model_data_path = Path(city_name) / sensor_id / pollutant / model_name
         if (env_var := environ.get(APP_ENV, ENV_DEV)) == ENV_DEV and (
-                MODELS_PATH / model_data_path / f"{model_name}.mdl"
+            MODELS_PATH / model_data_path / f"{model_name}.mdl"
         ).exists():
             model, model_error = read_model(
                 model_data_path, model_name, "Mean Absolute Error"
@@ -197,7 +197,7 @@ def generate_regression_model(
         save_results(model_data_path, results)
 
         if (
-                model_error := save_errors(model_data_path, y_test, y_predicted)
+            model_error := save_errors(model_data_path, y_test, y_predicted)
         ) < best_model_error:
             best_model = model
             best_model_error = model_error
@@ -227,7 +227,7 @@ def generate_regression_model(
 
 
 def setup_model(
-        model_name: str, x_train: DataFrame, y_train: Series, data_path: Path
+    model_name: str, x_train: DataFrame, y_train: Series, data_path: Path
 ) -> BaseRegressionModel:
     model = make_model(model_name)
     params = hyper_parameter_tuning(model, x_train, y_train, data_path)

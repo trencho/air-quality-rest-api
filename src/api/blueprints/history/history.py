@@ -23,7 +23,7 @@ data_types = ["pollution", "weather"]
 )
 @swag_from("history_city_sensor.yml", endpoint="history.city_sensor", methods=["GET"])
 def fetch_city_sensor_history(
-        city_name: str, sensor_id: str, data_type: str
+    city_name: str, sensor_id: str, data_type: str
 ) -> Response | tuple[Response, int]:
     if data_type not in data_types:
         return (
@@ -62,7 +62,7 @@ def fetch_city_sensor_history(
 )
 @swag_from("history_coordinates.yml", endpoint="history.coordinates", methods=["GET"])
 def fetch_coordinates_history(
-        latitude: float, longitude: float, data_type: str
+    latitude: float, longitude: float, data_type: str
 ) -> Response | tuple[Response, int]:
     if data_type not in data_types:
         return (
@@ -80,7 +80,7 @@ def fetch_coordinates_history(
         return (
             jsonify(
                 error_message="Cannot return historical data because the coordinates are far away from all available "
-                              "sensors."
+                "sensors."
             ),
             HTTP_404_NOT_FOUND,
         )
@@ -116,11 +116,11 @@ def retrieve_history_timestamps() -> tuple[int, int] | tuple[Response, int]:
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def return_historical_data(
-        city_name: str, sensor: dict, data_type: str, start_time: int, end_time: int
+    city_name: str, sensor: dict, data_type: str, start_time: int, end_time: int
 ) -> Response:
     if isinstance(
-            dataframe := fetch_dataframe(Path(city_name) / sensor["sensorId"], data_type),
-            Response,
+        dataframe := fetch_dataframe(Path(city_name) / sensor["sensorId"], data_type),
+        Response,
     ):
         return dataframe
 

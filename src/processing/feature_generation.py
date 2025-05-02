@@ -32,7 +32,7 @@ def encode_categorical_data(dataframe: DataFrame) -> None:
 
 
 def encode_cyclic_data(
-        features: DataFrame, col: str, data: [DataFrame, Series], max_value: int
+    features: DataFrame, col: str, data: [DataFrame, Series], max_value: int
 ) -> None:
     features[f"{col}_cos"] = cos(2 * pi * data / max_value)
     features[f"{col}_sin"] = sin(2 * pi * data / max_value)

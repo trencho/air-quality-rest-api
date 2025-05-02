@@ -81,9 +81,9 @@ def draw_errors(city: dict, sensor: dict, pollutant: str) -> None:
         )
         ax.set_ylabel(error_val, fontsize=22)
         y_lim = (
-                dataframe_algorithms[pollutant].max()
-                + 10
-                - (dataframe_algorithms[pollutant].max() % 10)
+            dataframe_algorithms[pollutant].max()
+            + 10
+            - (dataframe_algorithms[pollutant].max() % 10)
         )
         ax.set_ylim(ymin=0, ymax=y_lim)
         pyplot.xticks(
