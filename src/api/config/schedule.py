@@ -116,10 +116,10 @@ def fetch_hourly_data() -> None:
             fetch_city_data(city["cityName"], sensor)
             for collection in COLLECTIONS:
                 if (
-                        DATA_RAW_PATH
-                        / city["cityName"]
-                        / sensor["sensorId"]
-                        / f"{collection}.csv"
+                    DATA_RAW_PATH
+                    / city["cityName"]
+                    / sensor["sensorId"]
+                    / f"{collection}.csv"
                 ).exists():
                     process_data(city["cityName"], sensor["sensorId"], collection)
 
@@ -246,10 +246,10 @@ def predict_locations() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
             file_path = (
-                    DATA_PROCESSED_PATH
-                    / city["cityName"]
-                    / sensor["sensorId"]
-                    / "predictions.json"
+                DATA_PROCESSED_PATH
+                / city["cityName"]
+                / sensor["sensorId"]
+                / "predictions.json"
             )
             try:
                 repository.save(
@@ -275,10 +275,10 @@ def predict_locations() -> None:
             try:
                 forecast_result = fetch_forecast_result(city, sensor)
                 (
-                        DATA_PROCESSED_PATH
-                        / city["cityName"]
-                        / sensor["sensorId"]
-                        / "predictions.json"
+                    DATA_PROCESSED_PATH
+                    / city["cityName"]
+                    / sensor["sensorId"]
+                    / "predictions.json"
                 ).write_text(
                     dumps(list(forecast_result.values()), indent=4, default=str)
                 )

@@ -13,13 +13,13 @@ from processing import read_csv_in_chunks
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def fetch_dataframe(
-        data_path: Path, collection: str
+    data_path: Path, collection: str
 ) -> DataFrame | tuple[Response, int]:
     try:
         if (
-                dataframe := read_csv_in_chunks(
-                    DATA_PROCESSED_PATH / data_path / f"{collection}.csv"
-                )
+            dataframe := read_csv_in_chunks(
+                DATA_PROCESSED_PATH / data_path / f"{collection}.csv"
+            )
         ) is not None:
             return dataframe
 

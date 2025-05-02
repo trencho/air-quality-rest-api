@@ -13,7 +13,7 @@ from definitions import CACHE_TIMEOUTS, COUNTRIES, DATA_RAW_PATH
 
 
 def calculate_nearest_city(
-        coordinates: tuple, radius_of_effect: int = 2
+    coordinates: tuple, radius_of_effect: int = 2
 ) -> Optional[dict]:
     cities = cache.get("cities") or read_cities()
     distances = haversine_vector(
@@ -41,7 +41,7 @@ def calculate_nearest_city(
 
 
 def calculate_nearest_sensor(
-        coordinates: tuple, radius_of_effect: int = 2
+    coordinates: tuple, radius_of_effect: int = 2
 ) -> Optional[dict]:
     sensors = [
         sensor

@@ -53,7 +53,7 @@ def current_hour(tz: tzinfo = None) -> datetime:
 
 
 def drop_numerical_outliers_with_iqr_score(
-        dataframe: DataFrame, low: float = 0.05, high: float = 0.95
+    dataframe: DataFrame, low: float = 0.05, high: float = 0.95
 ) -> DataFrame:
     df = dataframe.loc[:, dataframe.columns != "time"]
     quant_df = df.quantile([low, high])
@@ -66,7 +66,7 @@ def drop_numerical_outliers_with_iqr_score(
 
 
 def drop_numerical_outliers_with_z_score(
-        dataframe: DataFrame, z_thresh: int = 3
+    dataframe: DataFrame, z_thresh: int = 3
 ) -> DataFrame:
     df = dataframe.loc[:, dataframe.columns != "time"]
     constrains = (abs(zscore(df)) < z_thresh).all(axis=1)
@@ -120,7 +120,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         )
 
         collection_path = (
-                DATA_PROCESSED_PATH / city_name / sensor_id / f"{collection}.csv"
+            DATA_PROCESSED_PATH / city_name / sensor_id / f"{collection}.csv"
         )
         dataframe_processed = None
         if collection_path.exists():

@@ -39,7 +39,7 @@ def find_dtypes(file_path: Path, collection: str) -> Optional[dict]:
 
 
 def find_missing_data(
-        new_dataframe: DataFrame, old_dataframe: DataFrame, column: str
+    new_dataframe: DataFrame, old_dataframe: DataFrame, column: str
 ) -> DataFrame:
     dataframe = new_dataframe.loc[
         ~new_dataframe[column].isin(old_dataframe[column])
@@ -101,7 +101,7 @@ def fetch_summary_dataframe(data_path: Path, index_col: str) -> DataFrame:
 
 
 def save_dataframe(
-        dataframe: DataFrame, collection: str, collection_path: Path, sensor_id: str
+    dataframe: DataFrame, collection: str, collection_path: Path, sensor_id: str
 ) -> None:
     rename_features(dataframe)
     dataframe = drop_unnecessary_features(dataframe)

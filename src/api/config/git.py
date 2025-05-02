@@ -42,7 +42,7 @@ class GithubSingleton:
 
 
 def append_commit_files(
-        file_list: list, data: [bytes, str], root: Path, file: str, file_names: list
+    file_list: list, data: [bytes, str], root: Path, file: str, file_names: list
 ) -> None:
     file_list.append(data)
     rel_file = (root.relative_to(ROOT_PATH) / file).as_posix().lstrip("./")
@@ -50,12 +50,12 @@ def append_commit_files(
 
 
 def commit_git_files(
-        repo: Repository,
-        master_ref: GitRef,
-        master_sha: str,
-        base_tree: GitTree,
-        commit_message: str,
-        element_list: list,
+    repo: Repository,
+    master_ref: GitRef,
+    master_sha: str,
+    base_tree: GitTree,
+    commit_message: str,
+    element_list: list,
 ) -> None:
     try:
         tree = repo.create_git_tree(element_list, base_tree)
@@ -78,7 +78,7 @@ def commit_git_files(
                 master_sha,
                 base_tree,
                 commit_message,
-                element_list[len(element_list) // 2:],
+                element_list[len(element_list) // 2 :],
             )
         logger.error("Error occurred while committing files to GitHub", exc_info=True)
 
@@ -122,11 +122,11 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str | None:
 
 
 def update_git_files(
-        file_list: list,
-        file_names: list,
-        repo_name: str,
-        branch: str,
-        commit_message: str = f"Data Updated - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}",
+    file_list: list,
+    file_names: list,
+    repo_name: str,
+    branch: str,
+    commit_message: str = f"Data Updated - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}",
 ) -> None:
     repo = GithubSingleton.get_instance().get_repository(repo_name)
     master_ref = repo.get_git_ref(f"heads/{branch}")

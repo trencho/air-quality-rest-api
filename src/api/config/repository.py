@@ -159,8 +159,8 @@ class InMemoryRepository(Repository):
                     existing_item
                     for existing_item in collection.values()
                     if all(
-                    existing_item.__dict__.get(k) == v for k, v in filter.items()
-                )
+                        existing_item.__dict__.get(k) == v for k, v in filter.items()
+                    )
                 ),
                 None,
             )
