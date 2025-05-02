@@ -253,7 +253,7 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
         )
         dataframe = dataframe.loc[
             dataframe.index <= to_datetime(datetime.now(UTC)).to_datetime64()
-            ]
+        ]
         if pollutant in dataframe.columns:
             create_pollutant_lock(data_path)
             generate_regression_model(
