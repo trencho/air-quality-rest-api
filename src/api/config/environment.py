@@ -4,8 +4,17 @@ from os import environ, makedirs
 
 from pandas import DataFrame
 
-from definitions import COLLECTIONS, DATA_EXTERNAL_PATH, DATA_PROCESSED_PATH, DATA_RAW_PATH, ENVIRONMENT_VARIABLES, \
-    LOG_PATH, MODELS_PATH, RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
+from definitions import (
+    COLLECTIONS,
+    DATA_EXTERNAL_PATH,
+    DATA_PROCESSED_PATH,
+    DATA_RAW_PATH,
+    ENVIRONMENT_VARIABLES,
+    LOG_PATH,
+    MODELS_PATH,
+    RESULTS_ERRORS_PATH,
+    RESULTS_PREDICTIONS_PATH,
+)
 from preparation import read_cities, read_sensors
 from processing import find_missing_data, read_csv_in_chunks, save_dataframe
 from .repository import RepositorySingleton
@@ -22,22 +31,28 @@ SYSTEM_PATHS = [
     LOG_PATH,
     MODELS_PATH,
     RESULTS_ERRORS_PATH,
-    RESULTS_PREDICTIONS_PATH
+    RESULTS_PREDICTIONS_PATH,
 ]
 
 
 def check_environment_variables() -> None:
     for environment_variable in ENVIRONMENT_VARIABLES:
         if environ.get(environment_variable) is None:
-            logger.error(f"The environment variable \"{environment_variable}\" is missing")
+            logger.error(
+                f'The environment variable "{environment_variable}" is missing'
+            )
             exit(-1)
 
 
 # TODO: Review this method for inserting duplicate values
 def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
     db_records = DataFrame(
-        repository.get_many(collection_name=collection, filter={"sensorId": sensor_id},
-                            projection={"_id": False, "sensorId": False}))
+        repository.get_many(
+            collection_name=collection,
+            filter={"sensorId": sensor_id},
+            projection={"_id": False, "sensorId": False},
+        )
+    )
     if db_records.empty:
         return
 
@@ -57,8 +72,10 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         save_dataframe(dataframe, collection, collection_path, sensor_id)
         del dataframe
     except Exception:
-        logger.error(f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}",
-                     exc_info=True)
+        logger.error(
+            f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}",
+            exc_info=True,
+        )
         # TODO: Review this line for converting column data types
         # db_records = db_records.astype(column_dtypes, errors="ignore")
         db_records.to_csv(collection_path, index=False)
@@ -76,7 +93,9 @@ def fetch_db_data() -> None:
                 except Exception:
                     logger.error(
                         f"Could not fetch data from the database for {city['cityName']} - {sensor['sensorId']} - "
-                        f"{collection}", exc_info=True)
+                        f"{collection}",
+                        exc_info=True,
+                    )
 
 
 def fetch_data() -> None:

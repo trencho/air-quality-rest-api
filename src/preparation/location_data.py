@@ -12,23 +12,56 @@ from api.config.cache import cache
 from definitions import CACHE_TIMEOUTS, COUNTRIES, DATA_RAW_PATH
 
 
-def calculate_nearest_city(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
+def calculate_nearest_city(
+        coordinates: tuple, radius_of_effect: int = 2
+) -> Optional[dict]:
     cities = cache.get("cities") or read_cities()
-    distances = haversine_vector(coordinates, [
-        tuple(map(float, [city["cityLocation"]["latitude"], city["cityLocation"]["longitute"]])) for city in cities],
-                                 comb=True)
+    distances = haversine_vector(
+        coordinates,
+        [
+            tuple(
+                map(
+                    float,
+                    [
+                        city["cityLocation"]["latitude"],
+                        city["cityLocation"]["longitute"],
+                    ],
+                )
+            )
+            for city in cities
+        ],
+        comb=True,
+    )
     min_distance = min(distances)
-    return cities[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None
+    return (
+        cities[where(distances == min_distance)[0][0]]
+        if min_distance <= radius_of_effect
+        else None
+    )
 
 
-def calculate_nearest_sensor(coordinates: tuple, radius_of_effect: int = 2) -> Optional[dict]:
-    sensors = [sensor for sensor_list in
-               [read_sensors(city["cityName"]) for city in cache.get("cities") or read_cities()] for sensor in
-               sensor_list]
-    distances = haversine_vector(coordinates, [tuple(map(float, sensor["position"].split(","))) for sensor in sensors],
-                                 comb=True)
+def calculate_nearest_sensor(
+        coordinates: tuple, radius_of_effect: int = 2
+) -> Optional[dict]:
+    sensors = [
+        sensor
+        for sensor_list in [
+            read_sensors(city["cityName"])
+            for city in cache.get("cities") or read_cities()
+        ]
+        for sensor in sensor_list
+    ]
+    distances = haversine_vector(
+        coordinates,
+        [tuple(map(float, sensor["position"].split(","))) for sensor in sensors],
+        comb=True,
+    )
     min_distance = min(distances)
-    return sensors[where(distances == min_distance)[0][0]] if min_distance <= radius_of_effect else None
+    return (
+        sensors[where(distances == min_distance)[0][0]]
+        if min_distance <= radius_of_effect
+        else None
+    )
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
@@ -60,23 +93,38 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 
 def fetch_cities() -> list:
     try:
-        return sorted([sort_city_coordinates(city) for city in get("https://pulse.eco/rest/city/").json() if
-                       city["countryCode"] in COUNTRIES], key=lambda i: i["cityName"])
+        return sorted(
+            [
+                sort_city_coordinates(city)
+                for city in get("https://pulse.eco/rest/city/").json()
+                if city["countryCode"] in COUNTRIES
+            ],
+            key=lambda i: i["cityName"],
+        )
     except Exception:
         return []
 
 
 def fetch_countries() -> list:
     try:
-        return sorted(get("https://pulse.eco/rest/country/").json(), key=lambda i: i["countryCode"])
+        return sorted(
+            get("https://pulse.eco/rest/country/").json(),
+            key=lambda i: i["countryCode"],
+        )
     except Exception:
         return []
 
 
 def fetch_sensors(city_name: str) -> list:
     try:
-        return sorted([sensor for sensor in get(f"https://{city_name}.pulse.eco/rest/sensor/").json() if
-                       sensor["status"] == "ACTIVE"], key=lambda i: i["sensorId"])
+        return sorted(
+            [
+                sensor
+                for sensor in get(f"https://{city_name}.pulse.eco/rest/sensor/").json()
+                if sensor["status"] == "ACTIVE"
+            ],
+            key=lambda i: i["sensorId"],
+        )
     except Exception:
         return []
 
@@ -138,13 +186,24 @@ def recalculate_coordinate(val: tuple, _as: Optional[str] = None) -> [float, tup
 
 
 def sort_city_coordinates(city: dict) -> dict:
-    border_points = [tuple(border_points.values()) for border_points in city["cityBorderPoints"]]
-    border_points = [(float(latitude), float(longitude)) for latitude, longitude in border_points]
+    border_points = [
+        tuple(border_points.values()) for border_points in city["cityBorderPoints"]
+    ]
+    border_points = [
+        (float(latitude), float(longitude)) for latitude, longitude in border_points
+    ]
     cent = (
         sum([border_point[0] for border_point in border_points]) / len(border_points),
-        sum([border_point[1] for border_point in border_points]) / len(border_points))
-    border_points.sort(key=lambda border_point: atan2(border_point[1] - cent[1], border_point[0] - cent[0]))
-    city["cityBorderPoints"] = [{"latitude": border_point[0], "longitute": border_point[1]} for border_point in
-                                border_points]
+        sum([border_point[1] for border_point in border_points]) / len(border_points),
+    )
+    border_points.sort(
+        key=lambda border_point: atan2(
+            border_point[1] - cent[1], border_point[0] - cent[0]
+        )
+    )
+    city["cityBorderPoints"] = [
+        {"latitude": border_point[0], "longitute": border_point[1]}
+        for border_point in border_points
+    ]
 
     return city

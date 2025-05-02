@@ -27,7 +27,9 @@ class TestAPI(TestCase):
 
     def test_get_country(self):
         country_code = "MK"
-        response = self.client.get(url_for("countries.countries_code", country_code=country_code))
+        response = self.client.get(
+            url_for("countries.countries_code", country_code=country_code)
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(loads(response.data)["countryCode"], country_code)
 
@@ -36,12 +38,24 @@ class TestAPI(TestCase):
         sensor_id = "1000"
         data_type = "weather"
         response = self.client.get(
-            url_for("history.city_sensor", city_name=city_name, sensor_id=sensor_id, data_type=data_type))
+            url_for(
+                "history.city_sensor",
+                city_name=city_name,
+                sensor_id=sensor_id,
+                data_type=data_type,
+            )
+        )
         self.assertEqual(response.status_code, 200)
         # TODO: Add additional assertions for the received data
         data_type = "pollution"
         response = self.client.get(
-            url_for("history.city_sensor", city_name=city_name, sensor_id=sensor_id, data_type=data_type))
+            url_for(
+                "history.city_sensor",
+                city_name=city_name,
+                sensor_id=sensor_id,
+                data_type=data_type,
+            )
+        )
         self.assertEqual(response.status_code, 200)
         # TODO: Add additional assertions for the received data
 
@@ -50,26 +64,42 @@ class TestAPI(TestCase):
         longitude = 21.4236110
         data_type = "weather"
         response = self.client.get(
-            url_for("history.coordinates", latitude=latitude, longitude=longitude, data_type=data_type))
+            url_for(
+                "history.coordinates",
+                latitude=latitude,
+                longitude=longitude,
+                data_type=data_type,
+            )
+        )
         self.assertEqual(response.status_code, 200)
         # TODO: Add additional assertions for the received data
         data_type = "pollution"
         response = self.client.get(
-            url_for("history.coordinates", latitude=latitude, longitude=longitude, data_type=data_type))
+            url_for(
+                "history.coordinates",
+                latitude=latitude,
+                longitude=longitude,
+                data_type=data_type,
+            )
+        )
         self.assertEqual(response.status_code, 200)
         # TODO: Add additional assertions for the received data
 
     def test_get_city_sensor_pollutants(self):
         city_name = "skopje"
         sensor_id = "1000"
-        response = self.client.get(url_for("pollutants.city_sensor", city_name=city_name, sensor_id=sensor_id))
+        response = self.client.get(
+            url_for("pollutants.city_sensor", city_name=city_name, sensor_id=sensor_id)
+        )
         self.assertEqual(response.status_code, 200)
         # TODO: Add additional assertions for the received data
 
     def test_get_coordinates_pollutants(self):
         latitude = 41.99249998
         longitude = 21.4236110
-        response = self.client.get(url_for("pollutants.coordinates", latitude=latitude, longitude=longitude))
+        response = self.client.get(
+            url_for("pollutants.coordinates", latitude=latitude, longitude=longitude)
+        )
         self.assertEqual(response.status_code, 200)
         # TODO: Add additional assertions for the received data
 
@@ -81,6 +111,8 @@ class TestAPI(TestCase):
     def test_get_city_sensor(self):
         city_name = "skopje"
         sensor_id = "1000"
-        response = self.client.get(url_for("sensors.sensors_id", city_name=city_name, sensor_id=sensor_id))
+        response = self.client.get(
+            url_for("sensors.sensors_id", city_name=city_name, sensor_id=sensor_id)
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(loads(response.data)["sensorId"], sensor_id)

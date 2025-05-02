@@ -19,7 +19,11 @@ def fetch_country(country_code: str = None) -> Response | tuple[Response, int]:
         return jsonify(cache.get("countries") or read_countries())
 
     if (country := check_country(country_code)) is None:
-        return jsonify(
-            error_message="Cannot return data because the country is not found or is invalid."), HTTP_404_NOT_FOUND
+        return (
+            jsonify(
+                error_message="Cannot return data because the country is not found or is invalid."
+            ),
+            HTTP_404_NOT_FOUND,
+        )
 
     return jsonify(country)

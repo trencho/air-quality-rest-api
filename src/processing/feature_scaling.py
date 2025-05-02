@@ -4,7 +4,7 @@ from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 SCALER_TYPES = {
     "min_max": MinMaxScaler(),
     "standard": StandardScaler(),
-    "robust": RobustScaler()
+    "robust": RobustScaler(),
 }
 
 

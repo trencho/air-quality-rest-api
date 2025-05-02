@@ -20,7 +20,7 @@ CONFIG = {
     ],
     "static_url_path": f"{URL_PREFIX}/flasgger_static",
     "specs_route": f"{URL_PREFIX}/apidocs/",
-    "title": "AQRA"
+    "title": "AQRA",
 }
 
 swagger = Swagger(config=CONFIG, merge=True)

@@ -22,7 +22,7 @@ def register_blueprints(app: Flask) -> None:
         icon_blueprint,
         plots_blueprint,
         pollutants_blueprint,
-        sensors_blueprint
+        sensors_blueprint,
     ]
 
     for blueprint in blueprints:
