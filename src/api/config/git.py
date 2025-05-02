@@ -16,6 +16,7 @@ from github import (
 from github.Auth import Token
 from pandas import concat
 from requests import ReadTimeout
+from requests.exceptions import ChunkedEncodingError
 from urllib3.exceptions import ReadTimeoutError
 
 from definitions import GITHUB_TOKEN, ROOT_PATH
@@ -62,7 +63,7 @@ def commit_git_files(
         parent = repo.get_git_commit(master_sha)
         commit = repo.create_git_commit(commit_message, tree, [parent])
         master_ref.edit(commit.sha)
-    except (GithubException, ReadTimeout, ReadTimeoutError):
+    except (ChunkedEncodingError, GithubException, ReadTimeout, ReadTimeoutError):
         if len(element_list) // 2 > 0:
             commit_git_files(
                 repo,

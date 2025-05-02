@@ -1,4 +1,4 @@
-FROM mongo:8.0.6
+FROM mongo:8.0.9
 
 LABEL maintainer="Aleksandar Trenchevski <atrenchevski@gmail.com>"
 
