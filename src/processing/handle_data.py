@@ -22,8 +22,12 @@ def convert_dtype(x: object) -> str:
 
 
 def drop_unnecessary_features(dataframe: DataFrame) -> DataFrame:
-    dataframe = dataframe.drop(columns=dataframe.filter(regex="weather").columns, axis=1, errors="ignore")
-    dataframe = dataframe.drop(columns=["precipProbability", "precipType", "ozone", "co2"], errors="ignore")
+    dataframe = dataframe.drop(
+        columns=dataframe.filter(regex="weather").columns, axis=1, errors="ignore"
+    )
+    dataframe = dataframe.drop(
+        columns=["precipProbability", "precipType", "ozone", "co2"], errors="ignore"
+    )
     return dataframe
 
 
@@ -34,13 +38,23 @@ def find_dtypes(file_path: Path, collection: str) -> Optional[dict]:
     return None
 
 
-def find_missing_data(new_dataframe: DataFrame, old_dataframe: DataFrame, column: str) -> DataFrame:
-    dataframe = new_dataframe.loc[~new_dataframe[column].isin(old_dataframe[column])].copy()
-    return dataframe[dataframe.columns.intersection(old_dataframe.columns.values.tolist())]
+def find_missing_data(
+        new_dataframe: DataFrame, old_dataframe: DataFrame, column: str
+) -> DataFrame:
+    dataframe = new_dataframe.loc[
+        ~new_dataframe[column].isin(old_dataframe[column])
+    ].copy()
+    return dataframe[
+        dataframe.columns.intersection(old_dataframe.columns.values.tolist())
+    ]
 
 
 def read_csv_in_chunks(data_path: Path, index_col: str = None) -> Optional[DataFrame]:
-    chunks = [chunk for chunk in read_csv(data_path, index_col=index_col, chunksize=CHUNK_SIZE) if len(chunk.index) > 0]
+    chunks = [
+        chunk
+        for chunk in read_csv(data_path, index_col=index_col, chunksize=CHUNK_SIZE)
+        if len(chunk.index) > 0
+    ]
     dataframe = concat(chunks)
     dataframe.index = to_datetime(dataframe.index, errors="coerce", unit="s")
     dataframe = dataframe.drop_duplicates(keep="last")
@@ -49,26 +63,56 @@ def read_csv_in_chunks(data_path: Path, index_col: str = None) -> Optional[DataF
 
 def rename_features(dataframe: DataFrame) -> None:
     dataframe.rename(
-        columns={"dt": "time", "temperature": "temp", "apparentTemperature": "feels_like", "dewPoint": "dew_point",
-                 "cloudCover": "clouds", "windSpeed": "wind_speed", "windGust": "wind_gust", "windBearing": "wind_deg",
-                 "summary": "weather.description", "icon": "weather.icon", "uvIndex": "uvi",
-                 "precipIntensity": "precipitation", "AQI": "aqi", "CO": "co", "CO2": "co2", "NH3": "nh3", "NO": "no",
-                 "NO2": "no2", "O3": "o3", "PM25": "pm2_5", "PM10": "pm10", "SO2": "so2"}, inplace=True,
-        errors="ignore")
+        columns={
+            "dt": "time",
+            "temperature": "temp",
+            "apparentTemperature": "feels_like",
+            "dewPoint": "dew_point",
+            "cloudCover": "clouds",
+            "windSpeed": "wind_speed",
+            "windGust": "wind_gust",
+            "windBearing": "wind_deg",
+            "summary": "weather.description",
+            "icon": "weather.icon",
+            "uvIndex": "uvi",
+            "precipIntensity": "precipitation",
+            "AQI": "aqi",
+            "CO": "co",
+            "CO2": "co2",
+            "NH3": "nh3",
+            "NO": "no",
+            "NO2": "no2",
+            "O3": "o3",
+            "PM25": "pm2_5",
+            "PM10": "pm10",
+            "SO2": "so2",
+        },
+        inplace=True,
+        errors="ignore",
+    )
 
 
 def fetch_summary_dataframe(data_path: Path, index_col: str) -> DataFrame:
-    dataframe_list = [read_csv_in_chunks(data_path / f"{collection}.csv", index_col=index_col) for collection
-                      in COLLECTIONS]
+    dataframe_list = [
+        read_csv_in_chunks(data_path / f"{collection}.csv", index_col=index_col)
+        for collection in COLLECTIONS
+    ]
     return concat(dataframe_list, axis=1, join="inner")
 
 
-def save_dataframe(dataframe: DataFrame, collection: str, collection_path: Path, sensor_id: str) -> None:
+def save_dataframe(
+        dataframe: DataFrame, collection: str, collection_path: Path, sensor_id: str
+) -> None:
     rename_features(dataframe)
     dataframe = drop_unnecessary_features(dataframe)
 
     db_records = DataFrame(
-        repository.get_many(collection_name=collection, filter={"sensorId": sensor_id}, projection={"_id": False}))
+        repository.get_many(
+            collection_name=collection,
+            filter={"sensorId": sensor_id},
+            projection={"_id": False},
+        )
+    )
     if len(db_records.index) > 0:
         dataframe = find_missing_data(dataframe, db_records, "time")
 
@@ -83,11 +127,16 @@ def save_dataframe(dataframe: DataFrame, collection: str, collection_path: Path,
         df = read_csv_in_chunks(collection_path)
         dataframe = find_missing_data(dataframe, df, "time")
     except Exception:
-        logger.error(f"Could not fetch data from local storage for {sensor_id} - {collection}", exc_info=True)
+        logger.error(
+            f"Could not fetch data from local storage for {sensor_id} - {collection}",
+            exc_info=True,
+        )
     dataframe = dataframe.drop(columns="sensorId", errors="ignore")
     # TODO: Review this line for converting column data types
     # dataframe = dataframe.astype(column_dtypes, errors="ignore")
-    dataframe.to_csv(collection_path, header=not collection_path.exists(), index=False, mode="a")
+    dataframe.to_csv(
+        collection_path, header=not collection_path.exists(), index=False, mode="a"
+    )
 
 
 def store_dtypes(file_path: Path, collection: str, dtypes: dict) -> None:

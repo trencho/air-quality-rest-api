@@ -19,7 +19,11 @@ def fetch_city(city_name: str = None) -> Response | tuple[Response, int]:
         return jsonify(cache.get("cities") or read_cities())
 
     if (city := check_city(city_name)) is None:
-        return jsonify(
-            error_message="Cannot return data because the city is not found or is invalid."), HTTP_404_NOT_FOUND
+        return (
+            jsonify(
+                error_message="Cannot return data because the city is not found or is invalid."
+            ),
+            HTTP_404_NOT_FOUND,
+        )
 
     return jsonify(city)

@@ -6,8 +6,17 @@ from uuid import uuid4
 from bson.objectid import ObjectId
 from pymongo import ASCENDING, MongoClient
 
-from definitions import APP_ENV, ENV_DEV, ENV_PROD, COLLECTIONS, MONGODB_CONNECTION, MONGO_DATABASE, MONGODB_HOSTNAME, \
-    MONGO_USERNAME, MONGO_PASSWORD
+from definitions import (
+    APP_ENV,
+    ENV_DEV,
+    ENV_PROD,
+    COLLECTIONS,
+    MONGODB_CONNECTION,
+    MONGO_DATABASE,
+    MONGODB_HOSTNAME,
+    MONGO_USERNAME,
+    MONGO_PASSWORD,
+)
 
 logger = getLogger(__name__)
 
@@ -44,7 +53,9 @@ class RegularRepository(Repository):
         self.database["cities"].create_index([("cityName", ASCENDING)])
         self.database["countries"].create_index([("countryCode", ASCENDING)])
         self.database["sensors"].create_index([("sensorId", ASCENDING)])
-        self.database["predictions"].create_index([("cityName", ASCENDING), ("sensorId", ASCENDING)])
+        self.database["predictions"].create_index(
+            [("cityName", ASCENDING), ("sensorId", ASCENDING)]
+        )
         for collection in COLLECTIONS:
             self.database[collection].create_index([("sensorId", ASCENDING)])
 
@@ -63,12 +74,17 @@ class RegularRepository(Repository):
         if filter is None:
             collection.insert_one(item if isinstance(item, dict) else item.__dict__)
         else:
-            collection.replace_one(filter=filter, replacement=item if isinstance(item, dict) else item.__dict__,
-                                   upsert=True)
+            collection.replace_one(
+                filter=filter,
+                replacement=item if isinstance(item, dict) else item.__dict__,
+                upsert=True,
+            )
 
     def save_many(self, collection_name, items) -> None:
         collection = self.database[collection_name]
-        documents = [item if isinstance(item, dict) else item.__dict__ for item in items]
+        documents = [
+            item if isinstance(item, dict) else item.__dict__ for item in items
+        ]
         results = collection.insert_many(documents)
         for item, result in zip(items, results.inserted_ids):
             if isinstance(item, dict):
@@ -97,7 +113,11 @@ class InMemoryRepository(Repository):
     def get_many(self, collection_name, filter=None, **kwargs) -> list:
         collection = self.collections.get(collection_name, {})
         if filter:
-            return [item for item in collection.values() if self._matches_filter(item, filter)]
+            return [
+                item
+                for item in collection.values()
+                if self._matches_filter(item, filter)
+            ]
         return list(collection.values())
 
     def save(self, collection_name, filter, item) -> None:
@@ -113,8 +133,14 @@ class InMemoryRepository(Repository):
             item["_id"] = item_id
             collection[item_id] = item
         else:
-            existing_item = next((existing_item for existing_item in collection.values()
-                                  if all(existing_item.get(k) == v for k, v in filter.items())), None)
+            existing_item = next(
+                (
+                    existing_item
+                    for existing_item in collection.values()
+                    if all(existing_item.get(k) == v for k, v in filter.items())
+                ),
+                None,
+            )
             if existing_item:
                 existing_item.update(item)
             else:
@@ -128,8 +154,16 @@ class InMemoryRepository(Repository):
             item.id = item_id
             collection[item_id] = item
         else:
-            existing_item = next((existing_item for existing_item in collection.values()
-                                  if all(existing_item.__dict__.get(k) == v for k, v in filter.items())), None)
+            existing_item = next(
+                (
+                    existing_item
+                    for existing_item in collection.values()
+                    if all(
+                    existing_item.__dict__.get(k) == v for k, v in filter.items()
+                )
+                ),
+                None,
+            )
             if existing_item:
                 existing_item.__dict__.update(item.__dict__)
             else:
@@ -174,7 +208,8 @@ class RepositorySingleton:
                 RepositorySingleton._repository = RegularRepository(
                     f"{environ[MONGODB_CONNECTION]}://{environ[MONGO_USERNAME]}:{environ[MONGO_PASSWORD]}@"
                     f"{environ[MONGODB_HOSTNAME]}/{environ[MONGO_DATABASE]}"
-                    f"?authSource=admin&retryWrites=true&w=majority")
+                    f"?authSource=admin&retryWrites=true&w=majority"
+                )
             else:
                 RepositorySingleton._repository = InMemoryRepository()
 
