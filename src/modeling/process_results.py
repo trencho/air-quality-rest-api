@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 
 
 def filter_invalid_values(
-        y_true: [ndarray, Series], y_predicted: [ndarray, Series]
+    y_true: [ndarray, Series], y_predicted: [ndarray, Series]
 ) -> tuple:
     dataframe = (
         DataFrame({"y_true": y_true, "y_predicted": y_predicted})
@@ -23,7 +23,7 @@ def filter_invalid_values(
 
 
 def mean_absolute_percentage_error(
-        y_true: ndarray, y_predicted: ndarray
+    y_true: ndarray, y_predicted: ndarray
 ) -> Optional[float]:
     mape = mean(abs((y_true - y_predicted) / y_true)) * 100
     return None if isinf(mape) else mape

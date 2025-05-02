@@ -22,7 +22,7 @@ fetch_blueprint = Blueprint("fetch", __name__)
 @swag_from("fetch_city.yml", endpoint="fetch.fetch_city", methods=["GET"])
 @swag_from("fetch_city_sensor.yml", endpoint="fetch.fetch_city_sensor", methods=["GET"])
 def fetch_data(
-        city_name: str = None, sensor_id: str = None
+    city_name: str = None, sensor_id: str = None
 ) -> Response | tuple[Response, int]:
     current_datetime = current_hour()
     current_timestamp = int(datetime.timestamp(current_datetime))
@@ -63,7 +63,7 @@ def fetch_data(
 
         return jsonify(
             success="Started the operation to fetch weather and pollution data from the external APIs for "
-                    f"{city['siteName']} and all active sensors."
+            f"{city['siteName']} and all active sensors."
         )
     else:
         if (sensor := check_sensor(city_name, sensor_id)) is None:
@@ -78,5 +78,5 @@ def fetch_data(
 
         return jsonify(
             success="Started the operation to fetch weather and pollution data from the external APIs for "
-                    f"{city['siteName']} and {sensor['description']}."
+            f"{city['siteName']} and {sensor['description']}."
         )

@@ -48,13 +48,13 @@ def fetch_city_forecast(city_name: str) -> Response | tuple[Response, int]:
     methods=["GET"],
 )
 def fetch_city_coordinates_forecast(
-        latitude: float, longitude: float
+    latitude: float, longitude: float
 ) -> Response | tuple[Response, int]:
     if (city := calculate_nearest_city((latitude, longitude))) is None:
         return (
             jsonify(
                 error_message="Value cannot be predicted because the coordinates are far away from all "
-                              "available cities."
+                "available cities."
             ),
             HTTP_404_NOT_FOUND,
         )
@@ -73,7 +73,7 @@ def fetch_city_coordinates_forecast(
     "forecast_sensor.yml", endpoint="forecast.forecast_city_sensor", methods=["GET"]
 )
 def fetch_sensor_forecast(
-        city_name: str, sensor_id: str
+    city_name: str, sensor_id: str
 ) -> Response | tuple[Response, int]:
     if (city := check_city(city_name)) is None:
         return (
@@ -105,13 +105,13 @@ def fetch_sensor_forecast(
     methods=["GET"],
 )
 def fetch_sensor_coordinates_forecast(
-        latitude: float, longitude: float
+    latitude: float, longitude: float
 ) -> Response | tuple[Response, int]:
     if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:
         return (
             jsonify(
                 error_message="Value cannot be predicted because the coordinates are far away from all "
-                              "available sensors."
+                "available sensors."
             ),
             HTTP_404_NOT_FOUND,
         )
@@ -150,14 +150,14 @@ def return_sensor_forecast_results(city: dict, sensor: dict) -> dict:
     try:
         data = loads(
             (
-                    DATA_PROCESSED_PATH
-                    / city["cityName"]
-                    / sensor["sensorId"]
-                    / "predictions.json"
+                DATA_PROCESSED_PATH
+                / city["cityName"]
+                / sensor["sensorId"]
+                / "predictions.json"
             ).read_text()
         )
         if data[0]["time"] == next_hour(
-                current_hour(tz=location_timezone(city["countryCode"]))
+            current_hour(tz=location_timezone(city["countryCode"]))
         ):
             forecast.update({"data": data})
             return forecast

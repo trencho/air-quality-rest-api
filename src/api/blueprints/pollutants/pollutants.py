@@ -15,7 +15,7 @@ pollutants_blueprint = Blueprint("pollutants", __name__)
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def fetch_measurements(city_name: str, sensor_id: str) -> Response:
     if isinstance(
-            dataframe := fetch_dataframe(Path(city_name) / sensor_id, "pollution"), Response
+        dataframe := fetch_dataframe(Path(city_name) / sensor_id, "pollution"), Response
     ):
         return dataframe
 
@@ -37,7 +37,7 @@ def fetch_measurements(city_name: str, sensor_id: str) -> Response:
     "pollutants_city_sensor.yml", endpoint="pollutants.city_sensor", methods=["GET"]
 )
 def fetch_city_sensor_pollutants(
-        city_name: str, sensor_id: str
+    city_name: str, sensor_id: str
 ) -> Response | tuple[Response, int]:
     if check_city(city_name) is None:
         return (
@@ -66,13 +66,13 @@ def fetch_city_sensor_pollutants(
     "pollutants_coordinates.yml", endpoint="pollutants.coordinates", methods=["GET"]
 )
 def fetch_coordinates_pollutants(
-        latitude: float, longitude: float
+    latitude: float, longitude: float
 ) -> Response | tuple[Response, int]:
     if (sensor := calculate_nearest_sensor((latitude, longitude))) is None:
         return (
             jsonify(
                 error_message="Cannot return available pollutants because the coordinates are far away from all available "
-                              "sensors."
+                "sensors."
             ),
             HTTP_404_NOT_FOUND,
         )
