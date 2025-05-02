@@ -126,7 +126,7 @@ def return_historical_data(
 
     dataframe = dataframe.loc[
         (dataframe["time"] >= start_time) & (dataframe["time"] <= end_time)
-        ]
+    ]
     sensor_position = sensor["position"].split(",")
     latitude, longitude = float(sensor_position[0]), float(sensor_position[1])
     history_results = {

@@ -118,6 +118,7 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str | None:
             "Error occurred while merging local files with files from GitHub repository",
             exc_info=True,
         )
+        return None
 
 
 def update_git_files(
