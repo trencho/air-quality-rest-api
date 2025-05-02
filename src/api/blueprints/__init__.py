@@ -12,16 +12,25 @@ from processing import read_csv_in_chunks
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
-def fetch_dataframe(data_path: Path, collection: str) -> DataFrame | tuple[Response, int]:
+def fetch_dataframe(
+        data_path: Path, collection: str
+) -> DataFrame | tuple[Response, int]:
     try:
-        if (dataframe := read_csv_in_chunks(DATA_PROCESSED_PATH / data_path / f"{collection}.csv")) is not None:
+        if (
+                dataframe := read_csv_in_chunks(
+                    DATA_PROCESSED_PATH / data_path / f"{collection}.csv"
+                )
+        ) is not None:
             return dataframe
 
         raise Exception
     except Exception:
-        return jsonify(
-            error_message="Cannot return historical data because the data is missing for that city and sensor."), \
-            HTTP_404_NOT_FOUND
+        return (
+            jsonify(
+                error_message="Cannot return historical data because the data is missing for that city and sensor."
+            ),
+            HTTP_404_NOT_FOUND,
+        )
 
 
 def create_data_paths(city_name: str, sensor_id: str) -> None:

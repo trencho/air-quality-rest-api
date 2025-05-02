@@ -13,7 +13,7 @@ CONFIG = {
     "formatters": {
         "simple": {
             "format": "%(asctime)s [%(name)s] [%(process)d] [%(levelname)s] %(message)s",
-            "datefmt": "[%Y-%m-%d %H:%M:%S %z]"
+            "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
         }
     },
     "handlers": {
@@ -21,7 +21,7 @@ CONFIG = {
             "class": "logging.StreamHandler",
             "level": LOG_LEVEL_INFO,
             "formatter": "simple",
-            "stream": "ext://sys.stdout"
+            "stream": "ext://sys.stdout",
         },
         "file": {
             "class": "logging.handlers.TimedRotatingFileHandler",
@@ -29,26 +29,15 @@ CONFIG = {
             "formatter": "simple",
             "filename": f"{LOG_PATH / 'app.log'}",
             "when": "midnight",
-            "backupCount": 5
+            "backupCount": 5,
         },
         "queue": {
             "class": "logging.handlers.QueueHandler",
-            "handlers": [
-                "stdout",
-                "file"
-            ],
-            "respect_handler_level": True
-        }
+            "handlers": ["stdout", "file"],
+            "respect_handler_level": True,
+        },
     },
-    "loggers": {
-        "root": {
-            "handlers": [
-                "queue"
-            ],
-            "level": "DEBUG",
-            "propagate": True
-        }
-    }
+    "loggers": {"root": {"handlers": ["queue"], "level": "DEBUG", "propagate": True}},
 }
 
 

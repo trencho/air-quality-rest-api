@@ -22,22 +22,35 @@ FORECAST_STEPS = 25
 def fetch_forecast_result(city: dict, sensor: dict) -> dict:
     forecast_result = {}
     for pollutant in POLLUTANTS:
-        if (predictions := forecast_city_sensor(city["cityName"], sensor["sensorId"], pollutant)) is None:
+        if (
+                predictions := forecast_city_sensor(
+                    city["cityName"], sensor["sensorId"], pollutant
+                )
+        ) is None:
             continue
 
         for index, value in predictions.items():
             timestamp = int(index.timestamp())
             timestamp_dict = forecast_result.get(timestamp, {})
-            date_time = datetime.fromtimestamp(timestamp, location_timezone(city["countryCode"]))
+            date_time = datetime.fromtimestamp(
+                timestamp, location_timezone(city["countryCode"])
+            )
             timestamp_dict.update(
-                {"dateTime": date_time, "time": timestamp, pollutant: None if isnan(value) else value})
+                {
+                    "dateTime": date_time,
+                    "time": timestamp,
+                    pollutant: None if isnan(value) else value,
+                }
+            )
             forecast_result.update({timestamp: timestamp_dict})
 
     return forecast_result
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
-def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Optional[Series]:
+def forecast_city_sensor(
+        city_name: str, sensor_id: str, pollutant: str
+) -> Optional[Series]:
     if (load_model := load_regression_model(city_name, sensor_id, pollutant)) is None:
         return None
 
@@ -47,7 +60,9 @@ def forecast_city_sensor(city_name: str, sensor_id: str, pollutant: str) -> Opti
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
-    dataframe = read_csv_in_chunks(DATA_PROCESSED_PATH / city_name / sensor_id / "weather.csv")
+    dataframe = read_csv_in_chunks(
+        DATA_PROCESSED_PATH / city_name / sensor_id / "weather.csv"
+    )
     dataframe = dataframe.loc[dataframe["time"] == timestamp]
     if len(dataframe.index) > 0:
         return dataframe.to_dict("records")[0]
@@ -56,7 +71,9 @@ def forecast_sensor(city_name: str, sensor_id: str, timestamp: int) -> dict:
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
-def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Optional[tuple]:
+def load_regression_model(
+        city_name: str, sensor_id: str, pollutant: str
+) -> Optional[tuple]:
     model_dir = MODELS_PATH / city_name / sensor_id / pollutant
 
     files = list(model_dir.glob("*.mdl"))
@@ -73,8 +90,13 @@ def load_regression_model(city_name: str, sensor_id: str, pollutant: str) -> Opt
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
-def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
-                    step: str = FORECAST_PERIOD) -> Series:
+def direct_forecast(
+        y: Series,
+        model: BaseRegressionModel,
+        lags: int = FORECAST_STEPS,
+        n_steps: int = FORECAST_STEPS,
+        step: str = FORECAST_PERIOD,
+) -> Series:
     """Multistep direct forecasting using a machine learning model to forecast each time period ahead
 
     Parameters
@@ -98,7 +120,9 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
         return features, target
 
     forecast_values = []
-    forecast_range = date_range(y.index[-1] + timedelta(hours=1), periods=n_steps, freq=step)
+    forecast_range = date_range(
+        y.index[-1] + timedelta(hours=1), periods=n_steps, freq=step
+    )
     forecast_features, _ = one_step_features(y.index[-1], 0)
 
     for s in range(1, n_steps + 1):
@@ -112,9 +136,16 @@ def direct_forecast(y: Series, model: BaseRegressionModel, lags: int = FORECAST_
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
-def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: BaseRegressionModel, model_features: list,
-                       lags: int = FORECAST_STEPS, n_steps: int = FORECAST_STEPS,
-                       step: str = FORECAST_PERIOD) -> Series:
+def recursive_forecast(
+        city_name: str,
+        sensor_id: str,
+        pollutant: str,
+        model: BaseRegressionModel,
+        model_features: list,
+        lags: int = FORECAST_STEPS,
+        n_steps: int = FORECAST_STEPS,
+        step: str = FORECAST_PERIOD,
+) -> Series:
     """Multistep recursive forecasting using the input time series data and a pre-trained machine learning model
 
     Parameters
@@ -136,7 +167,9 @@ def recursive_forecast(city_name: str, sensor_id: str, pollutant: str, model: Ba
     upcoming_hour = next_hour(current_hour())
     forecast_range = date_range(upcoming_hour, periods=n_steps, freq=step)
 
-    dataframe = fetch_summary_dataframe(DATA_PROCESSED_PATH / city_name / sensor_id, index_col="time")
+    dataframe = fetch_summary_dataframe(
+        DATA_PROCESSED_PATH / city_name / sensor_id, index_col="time"
+    )
     if len(dataframe.index) == 0:
         return Series()
 

@@ -11,12 +11,20 @@ from definitions import RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 logger = getLogger(__name__)
 
 
-def filter_invalid_values(y_true: [ndarray, Series], y_predicted: [ndarray, Series]) -> tuple:
-    dataframe = DataFrame({"y_true": y_true, "y_predicted": y_predicted}).replace([-inf, inf], nan).dropna()
+def filter_invalid_values(
+        y_true: [ndarray, Series], y_predicted: [ndarray, Series]
+) -> tuple:
+    dataframe = (
+        DataFrame({"y_true": y_true, "y_predicted": y_predicted})
+        .replace([-inf, inf], nan)
+        .dropna()
+    )
     return dataframe["y_true"].values, dataframe["y_predicted"].values
 
 
-def mean_absolute_percentage_error(y_true: ndarray, y_predicted: ndarray) -> Optional[float]:
+def mean_absolute_percentage_error(
+        y_true: ndarray, y_predicted: ndarray
+) -> Optional[float]:
     mape = mean(abs((y_true - y_predicted) / y_true)) * 100
     return None if isinf(mape) else mape
 
@@ -26,13 +34,19 @@ def save_errors(model_path: str, y_true: ndarray, y_predicted: ndarray) -> float
     try:
         mae = mean_absolute_error(y_true, y_predicted)
         mse = mean_squared_error(y_true, y_predicted)
-        dataframe = DataFrame({
-            "Mean Absolute Error": [None if isinf(mae) else mae],
-            "Mean Absolute Percentage Error": [mean_absolute_percentage_error(y_true, y_predicted)],
-            "Mean Squared Error": [mse],
-            "Root Mean Squared Error": [sqrt(mse)]
-        })
-        dataframe.to_csv(RESULTS_ERRORS_PATH / "data" / model_path / "error.csv", index=False)
+        dataframe = DataFrame(
+            {
+                "Mean Absolute Error": [None if isinf(mae) else mae],
+                "Mean Absolute Percentage Error": [
+                    mean_absolute_percentage_error(y_true, y_predicted)
+                ],
+                "Mean Squared Error": [mse],
+                "Root Mean Squared Error": [sqrt(mse)],
+            }
+        )
+        dataframe.to_csv(
+            RESULTS_ERRORS_PATH / "data" / model_path / "error.csv", index=False
+        )
 
         return mae
     except (ValueError, IOError):

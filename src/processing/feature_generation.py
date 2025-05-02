@@ -12,7 +12,7 @@ SEASONS = [
     ("spring", (date(2000, 3, 21), date(2000, 6, 20))),
     ("summer", (date(2000, 6, 21), date(2000, 9, 22))),
     ("autumn", (date(2000, 9, 23), date(2000, 12, 20))),
-    ("winter", (date(2000, 12, 21), date(2000, 12, 31)))
+    ("winter", (date(2000, 12, 21), date(2000, 12, 31))),
 ]
 
 SESSION_BINS = [0, 4, 8, 12, 16, 20, 24]
@@ -31,13 +31,19 @@ def encode_categorical_data(dataframe: DataFrame) -> None:
     dataframe[cat_columns] = dataframe[cat_columns].apply(lambda x: x.cat.codes)
 
 
-def encode_cyclic_data(features: DataFrame, col: str, data: [DataFrame, Series], max_value: int) -> None:
+def encode_cyclic_data(
+        features: DataFrame, col: str, data: [DataFrame, Series], max_value: int
+) -> None:
     features[f"{col}_cos"] = cos(2 * pi * data / max_value)
     features[f"{col}_sin"] = sin(2 * pi * data / max_value)
 
 
 def generate_lag_features(target: Series, lags: int) -> DataFrame:
-    partial = Series(data=pacf(target, nlags=lags if lags < target.size // 2 else target.size // 2 - 1))
+    partial = Series(
+        data=pacf(
+            target, nlags=lags if lags < target.size // 2 else target.size // 2 - 1
+        )
+    )
     lags = list(partial[abs(partial) >= 0.2].index)
     if 0 in lags:
         # Do not consider itself as a lag feature
@@ -53,11 +59,18 @@ def generate_time_features(target) -> DataFrame:
     encode_cyclic_data(features, "month", target.index.month, 12)
     encode_cyclic_data(features, "day", target.index.day, DAYS_IN_MONTH)
     encode_cyclic_data(features, "hour", target.index.hour, 24)
-    encode_cyclic_data(features, "week_of_year", Index(target.index.isocalendar().week, dtype="int64"), 52)
+    encode_cyclic_data(
+        features,
+        "week_of_year",
+        Index(target.index.isocalendar().week, dtype="int64"),
+        52,
+    )
     encode_cyclic_data(features, "day_of_week", target.index.dayofweek, 7)
     encode_cyclic_data(features, "day_of_year", target.index.dayofyear, 365)
     encode_cyclic_data(features, "quarter", target.index.quarter, QUARTERS_IN_YEAR)
-    encode_cyclic_data(features, "days_in_month", target.index.days_in_month, DAYS_IN_MONTH)
+    encode_cyclic_data(
+        features, "days_in_month", target.index.days_in_month, DAYS_IN_MONTH
+    )
     features["isMonthStart"] = target.index.is_month_start
     features["isMonthEnd"] = target.index.is_month_end
     features["isQuarterStart"] = target.index.is_quarter_start
@@ -65,13 +78,24 @@ def generate_time_features(target) -> DataFrame:
     features["isYearStart"] = target.index.is_year_start
     features["isYearEnd"] = target.index.is_year_end
     features["isLeapYear"] = target.index.is_leap_year
-    features["isWeekend"] = target.index.to_series().apply(lambda x: 0 if x.dayofweek in (5, 6) else 1).values
+    features["isWeekend"] = (
+        target.index.to_series()
+        .apply(lambda x: 0 if x.dayofweek in (5, 6) else 1)
+        .values
+    )
 
     season = DataFrame(target.index.to_series().apply(get_season).values)
     encode_categorical_data(season)
     encode_cyclic_data(features, "season", season, QUARTERS_IN_YEAR)
 
-    session = DataFrame(cut(target.index.hour, bins=SESSION_BINS, labels=SESSION_LABELS, include_lowest=True))
+    session = DataFrame(
+        cut(
+            target.index.hour,
+            bins=SESSION_BINS,
+            labels=SESSION_LABELS,
+            include_lowest=True,
+        )
+    )
     encode_categorical_data(session)
     encode_cyclic_data(features, "session", session, len(SESSION_LABELS))
 
@@ -82,5 +106,9 @@ def generate_time_features(target) -> DataFrame:
 def generate_features(target: Series, lags: int = 24) -> DataFrame:
     lag_features = generate_lag_features(target, lags)
     time_features = generate_time_features(target)
-    features = time_features if len(lag_features.index) == 0 else lag_features.join(time_features, how="inner")
+    features = (
+        time_features
+        if len(lag_features.index) == 0
+        else lag_features.join(time_features, how="inner")
+    )
     return features

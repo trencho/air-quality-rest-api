@@ -27,7 +27,7 @@ ENVIRONMENT_VARIABLES = [
     MONGODB_CONNECTION,
     MONGODB_HOSTNAME,
     OPEN_WEATHER_TOKEN,
-    REPO_NAME
+    REPO_NAME,
 ]
 
 VOLUME_PATH = "VOLUME_PATH"
@@ -52,13 +52,7 @@ ENV_PROD = "production"
 COLLECTIONS = ["weather", "pollution"]
 CHUNK_SIZE = 15000
 
-CACHE_TIMEOUTS = {
-    "never": 0,
-    "1min": 60,
-    "3min": 180,
-    "5min": 300,
-    "1h": 3600
-}
+CACHE_TIMEOUTS = {"never": 0, "1min": 60, "3min": 180, "5min": 300, "1h": 3600}
 
 COUNTRIES = {"MK": "Macedonia"}
 POLLUTANTS = {
@@ -70,7 +64,7 @@ POLLUTANTS = {
     "o3": "O3",
     "pm2_5": "PM2.5",
     "pm10": "PM10",
-    "so2": "SO2"
+    "so2": "SO2",
 }
 
 REGRESSION_MODELS = {
@@ -80,7 +74,7 @@ REGRESSION_MODELS = {
     # "MLPRegressionModel": "Multilayer Perceptron",
     "RandomForestRegressionModel": "Random Forest",
     # "SupportVectorRegressionModel": "Support Vector",
-    "XGBoostRegressionModel": "XGBoost"
+    "XGBoostRegressionModel": "XGBoost",
 }
 
 URL_PREFIX = "/api/v1"
