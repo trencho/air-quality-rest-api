@@ -4,6 +4,8 @@
 
 FROM python:3.13.3-slim
 
+LABEL maintainer="Aleksandar Trenchevski <atrenchevski@gmail.com>"
+
 # Prevents Python from writing pyc files and keeps Python from buffering stdout and stderr to avoid situations where
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -26,8 +28,8 @@ RUN apt update && \
 # into this layer.
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements,target=requirements \
-    python -m pip install --upgrade pip && \
-    python -m pip install -r requirements/prod.txt
+    pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir -r requirements/prod.txt
 
 # Copy the source code into the container.
 COPY . .
