@@ -43,7 +43,7 @@ class GithubSingleton:
 
 
 def append_commit_files(
-    file_list: list, data: [bytes, str], root: Path, file: str, file_names: list
+    file_list: list, data: bytes | str, root: Path, file: str, file_names: list
 ) -> None:
     file_list.append(data)
     rel_file = (root.relative_to(ROOT_PATH) / file).as_posix().lstrip("./")

@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from numpy import abs, cos, pi, sin
-from pandas import cut, DataFrame, Index, Series
+from pandas import cut, DataFrame, Series
 from statsmodels.tsa.stattools import pacf
 
 DAYS_IN_MONTH = 30
@@ -32,7 +32,7 @@ def encode_categorical_data(dataframe: DataFrame) -> None:
 
 
 def encode_cyclic_data(
-    features: DataFrame, col: str, data: [DataFrame, Series], max_value: int
+    features: DataFrame, col: str, data: DataFrame | Series, max_value: int
 ) -> None:
     features[f"{col}_cos"] = cos(2 * pi * data / max_value)
     features[f"{col}_sin"] = sin(2 * pi * data / max_value)
@@ -62,7 +62,7 @@ def generate_time_features(target) -> DataFrame:
     encode_cyclic_data(
         features,
         "week_of_year",
-        Index(target.index.isocalendar().week, dtype="int64"),
+        Series(target.index.isocalendar().week, dtype="int64"),
         52,
     )
     encode_cyclic_data(features, "day_of_week", target.index.dayofweek, 7)
