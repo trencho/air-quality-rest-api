@@ -28,13 +28,13 @@ class PollutantType(str, Enum):
 class EnumConverter(BaseConverter):
     enum_class = None
 
-    def to_python(self, value):
+    def to_python(self, value) -> Enum | None:
         try:
             return self.enum_class(value)
         except ValueError as err:
             raise ValidationError(err)
 
-    def to_url(self, obj):
+    def to_url(self, obj) -> str:
         return obj.value
 
 

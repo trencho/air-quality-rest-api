@@ -35,7 +35,7 @@ def fetch_data(
     if end_time <= start_time:
         return (
             jsonify(
-                error_message='Specify end timestamp larger than the current hour"s timestamp.'
+                error_message="Specify end timestamp larger than the current hour's timestamp."
             ),
             HTTP_400_BAD_REQUEST,
         )
