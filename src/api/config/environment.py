@@ -36,12 +36,14 @@ SYSTEM_PATHS = [
 
 
 def check_environment_variables() -> None:
+    missing_envs = []
     for environment_variable in ENVIRONMENT_VARIABLES:
         if environ.get(environment_variable) is None:
-            logger.error(
-                f'The environment variable "{environment_variable}" is missing'
-            )
-            exit(-1)
+            missing_envs.append(environment_variable)
+
+    if missing_envs:
+        logger.error(f"Missing environment variables: {', '.join(missing_envs)}")
+        exit(-1)
 
 
 # TODO: Review this method for inserting duplicate values

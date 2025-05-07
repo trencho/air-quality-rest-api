@@ -101,7 +101,7 @@ def retrieve_history_timestamps() -> tuple[int, int] | tuple[Response, int]:
     if start_time > end_time:
         return (
             jsonify(
-                error_message='Specify end timestamp larger than the current hour"s timestamp.'
+                error_message="Specify end timestamp larger than the current hour's timestamp."
             ),
             HTTP_400_BAD_REQUEST,
         )
