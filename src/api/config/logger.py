@@ -41,7 +41,7 @@ CONFIG = {
 }
 
 
-def configure_logger() -> None:
+def init_logger() -> None:
     makedirs(LOG_PATH, exist_ok=True)
     dictConfig(CONFIG)
     queue_handler = getHandlerByName("queue")

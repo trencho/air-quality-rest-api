@@ -12,7 +12,7 @@ from api.blueprints.sensors import sensors_blueprint
 from definitions import URL_PREFIX
 
 
-def register_blueprints(app: Flask) -> None:
+def init_blueprints(app: Flask) -> None:
     blueprints = [
         cities_blueprint,
         countries_blueprint,

@@ -14,7 +14,7 @@ HEALTHZ = {
 }
 
 
-def configure_healthcheck(app: Flask) -> None:
+def init_healthcheck(app: Flask) -> None:
     app.config["HEALTHZ"] = HEALTHZ
     Healthz(app, prefix=f"{URL_PREFIX}/healthz", no_log=True)
     logger.info("Health check configured with endpoints: /live and /ready")
