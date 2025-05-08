@@ -4,7 +4,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def configure_gc() -> None:
+def init_gc() -> None:
     collect()
     freeze()
     _, g1, g2 = get_threshold()

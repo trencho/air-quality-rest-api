@@ -35,7 +35,7 @@ SYSTEM_PATHS = [
 ]
 
 
-def check_environment_variables() -> None:
+def init_environment_variables() -> None:
     missing_envs = []
     for environment_variable in ENVIRONMENT_VARIABLES:
         if environ.get(environment_variable) is None:
@@ -100,7 +100,7 @@ def fetch_db_data() -> None:
                     )
 
 
-def fetch_data() -> None:
+def init_data() -> None:
     fetch_db_data()
     fetch_locations()
 
