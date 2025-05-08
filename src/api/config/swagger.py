@@ -26,6 +26,6 @@ CONFIG = {
 swagger = Swagger(config=CONFIG, merge=True)
 
 
-def configure_swagger(app: Flask) -> None:
+def init_swagger(app: Flask) -> None:
     swagger.init_app(app)
     logger.info("Swagger configured successfully")

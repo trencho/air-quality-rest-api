@@ -3,37 +3,37 @@ from os import environ
 from flask import Flask
 
 from definitions import ENV_DEV, APP_ENV, ENV_PROD
-from .blueprints import register_blueprints
-from .cache import configure_cache
-from .converters import configure_converters
-from .cors import configure_cors
-from .environment import check_environment_variables, fetch_data, init_system_paths
-from .garbage_collection import configure_gc
-from .health import configure_healthcheck
-from .logger import configure_logger
-from .schedule import configure_scheduler
-from .swagger import configure_swagger
+from .blueprints import init_blueprints
+from .cache import init_cache
+from .converters import init_converters
+from .cors import init_cors
+from .environment import init_environment_variables, init_data, init_system_paths
+from .garbage_collection import init_gc
+from .health import init_healthcheck
+from .logger import init_logger
+from .schedule import init_scheduler
+from .swagger import init_swagger
 
 
 def create_app() -> Flask:
-    configure_logger()
-    configure_gc()
+    init_logger()
+    init_gc()
     init_system_paths()
 
     app = Flask(__name__)
 
     if environ.get(APP_ENV, ENV_DEV) == ENV_PROD:
-        check_environment_variables()
-        configure_scheduler()
+        init_environment_variables()
+        init_scheduler()
 
-    configure_converters(app)
-    register_blueprints(app)
+    init_converters(app)
+    init_blueprints(app)
 
-    configure_cache(app)
-    configure_cors(app)
-    configure_healthcheck(app)
-    configure_swagger(app)
+    init_cache(app)
+    init_cors(app)
+    init_healthcheck(app)
+    init_swagger(app)
 
-    fetch_data()
+    init_data()
 
     return app

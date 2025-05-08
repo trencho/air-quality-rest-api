@@ -46,6 +46,6 @@ class PollutantTypeConverter(EnumConverter):
     enum_class = PollutantType
 
 
-def configure_converters(app: Flask) -> None:
+def init_converters(app: Flask) -> None:
     app.url_map.converters.update(error_type=ErrorTypeConverter)
     app.url_map.converters.update(pollutant_type=PollutantTypeConverter)
