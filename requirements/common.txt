@@ -8,7 +8,7 @@ flask-healthz==1.0.1
 gunicorn==23.0.0
 haversine==2.9.0
 lightgbm==4.6.0
-matplotlib==3.10.1
+matplotlib==3.10.3
 numpy==2.2.5
 pandas==2.2.3
 psutil==7.0.0
@@ -17,7 +17,7 @@ pymongo==4.12.1
 pytz==2025.2
 requests==2.32.3
 scikit-learn==1.6.1
-scipy==1.15.2
+scipy==1.15.3
 SQLAlchemy==2.0.40
 seaborn==0.13.2
 starlette==0.46.2
