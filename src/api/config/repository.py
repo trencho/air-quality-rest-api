@@ -127,7 +127,8 @@ class InMemoryRepository(Repository):
         else:
             self._save_class_item(collection, filter, item)
 
-    def _save_dict_item(self, collection, filter, item):
+    @staticmethod
+    def _save_dict_item(collection, filter, item):
         if filter is None:
             item_id = item.get("_id") or str(uuid4())
             item["_id"] = item_id
@@ -148,7 +149,8 @@ class InMemoryRepository(Repository):
                 item["_id"] = item_id
                 collection[item_id] = item
 
-    def _save_class_item(self, collection, filter, item):
+    @staticmethod
+    def _save_class_item(collection, filter, item):
         if filter is None:
             item_id = item.id or str(uuid4())
             item.id = item_id
