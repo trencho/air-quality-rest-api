@@ -59,6 +59,7 @@ repository = RepositorySingleton.get_instance().get_repository()
     id="dump_data",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     day="*/15",
 )
 @track_time
@@ -93,6 +94,7 @@ def dump_data() -> None:
     id="dump_jobs",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     hour=0,
 )
 @track_time
@@ -109,6 +111,7 @@ def dump_jobs() -> None:
     id="fetch_hourly_data",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     hour="*/2",
 )
 @track_time
@@ -133,6 +136,7 @@ def fetch_hourly_data() -> None:
     id="fetch_locations",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     hour=0,
 )
 @track_time
@@ -193,6 +197,7 @@ def fetch_locations() -> None:
     id="import_data",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     hour=0,
 )
 def import_data() -> None:
@@ -231,6 +236,7 @@ def import_data() -> None:
     id="model_training",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     minute=0,
 )
 @track_time
@@ -246,6 +252,7 @@ def model_training() -> None:
     id="predict_locations",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     minute=0,
 )
 @track_time
@@ -301,6 +308,7 @@ def predict_locations() -> None:
     id="reset_api_counter",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     hour=0,
 )
 def reset_api_counter() -> None:
@@ -315,6 +323,7 @@ def reset_api_counter() -> None:
     id="reset_model_lock",
     misfire_grace_time=None,
     jobstore=jobstore_name,
+    replace_existing=True,
     month="*/2",
 )
 def reset_model_lock() -> None:
