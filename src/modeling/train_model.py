@@ -31,6 +31,7 @@ from processing import (
     fetch_summary_dataframe,
     value_scaling,
 )
+from utils import track_time
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
@@ -236,6 +237,7 @@ def setup_model(
     return model
 
 
+@track_time
 def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
     logger.info(
         f"Training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}"
