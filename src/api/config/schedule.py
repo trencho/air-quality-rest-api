@@ -39,6 +39,7 @@ from processing import (
     read_csv_in_chunks,
     save_dataframe,
 )
+from utils import track_time
 from .cache import cache
 from .dump import generate_sql_dump
 from .git import append_commit_files, create_archive, update_git_files
@@ -60,6 +61,7 @@ repository = RepositorySingleton.get_instance().get_repository()
     jobstore=jobstore_name,
     day="*/15",
 )
+@track_time
 def dump_data() -> None:
     file_list, file_names = [], []
     for root, directories, files in walk(DATA_PATH):
@@ -93,6 +95,7 @@ def dump_data() -> None:
     jobstore=jobstore_name,
     hour=0,
 )
+@track_time
 def dump_jobs() -> None:
     dump_filename = "job_dump.sql"
     dump_content = generate_sql_dump(DATABASE_FILE)
@@ -108,6 +111,7 @@ def dump_jobs() -> None:
     jobstore=jobstore_name,
     hour="*/2",
 )
+@track_time
 def fetch_hourly_data() -> None:
     if check_api_lock() is False:
         return
@@ -131,6 +135,7 @@ def fetch_hourly_data() -> None:
     jobstore=jobstore_name,
     hour=0,
 )
+@track_time
 def fetch_locations() -> None:
     countries = fetch_countries()
     (DATA_RAW_PATH / "countries.json").write_text(dumps(countries, indent=4))
@@ -228,6 +233,7 @@ def import_data() -> None:
     jobstore=jobstore_name,
     minute=0,
 )
+@track_time
 def model_training() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
@@ -242,6 +248,7 @@ def model_training() -> None:
     jobstore=jobstore_name,
     minute=0,
 )
+@track_time
 def predict_locations() -> None:
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):
