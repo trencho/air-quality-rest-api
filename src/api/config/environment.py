@@ -18,7 +18,6 @@ from definitions import (
 from preparation import read_cities, read_sensors
 from processing import find_missing_data, read_csv_in_chunks, save_dataframe
 from .repository import RepositorySingleton
-from .schedule import fetch_locations
 
 logger = getLogger(__name__)
 
@@ -86,7 +85,7 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         collect()
 
 
-def fetch_db_data() -> None:
+def init_data() -> None:
     for city in read_cities():
         for sensor in read_sensors(city["cityName"]):
             for collection in COLLECTIONS:
@@ -99,10 +98,6 @@ def fetch_db_data() -> None:
                         exc_info=True,
                     )
 
-
-def init_data() -> None:
-    fetch_db_data()
-    fetch_locations()
 
 
 def init_system_paths() -> None:
