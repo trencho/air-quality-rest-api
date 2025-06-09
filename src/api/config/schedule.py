@@ -149,9 +149,8 @@ def fetch_locations() -> None:
                 item=country,
             )
         except Exception:
-            logger.error(
+            logger.exception(
                 f"Error occurred while updating data for {country['countryName']}",
-                exc_info=True,
             )
 
     cities = fetch_cities()
@@ -166,9 +165,8 @@ def fetch_locations() -> None:
                 item=city,
             )
         except Exception:
-            logger.error(
+            logger.exception(
                 f"Error occurred while updating data for {city['cityName']}",
-                exc_info=True,
             )
         sensors = fetch_sensors(city["cityName"])
         for sensor in sensors:
@@ -180,9 +178,8 @@ def fetch_locations() -> None:
                     item=sensor,
                 )
             except Exception:
-                logger.error(
+                logger.exception(
                     f"Error occurred while updating data for {sensor['sensorId']}",
-                    exc_info=True,
                 )
         makedirs(DATA_RAW_PATH / city["cityName"], exist_ok=True)
         (DATA_RAW_PATH / city["cityName"] / "sensors.json").write_text(
@@ -218,9 +215,8 @@ def import_data() -> None:
                     )
                     remove(file_path)
                 except Exception:
-                    logger.error(
+                    logger.exception(
                         f"Error occurred while importing data from {file_path}",
-                        exc_info=True,
                     )
         if not directories and not files:
             rmdir(root)
@@ -274,9 +270,8 @@ def predict_locations() -> None:
                     },
                 )
             except Exception:
-                logger.error(
+                logger.exception(
                     f"Error occurred while updating forecast values from {file_path}",
-                    exc_info=True,
                 )
 
     for city in cache.get("cities") or read_cities():
@@ -292,9 +287,8 @@ def predict_locations() -> None:
                     dumps(list(forecast_result.values()), indent=4, default=str)
                 )
             except Exception:
-                logger.error(
+                logger.exception(
                     f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}",
-                    exc_info=True,
                 )
 
 

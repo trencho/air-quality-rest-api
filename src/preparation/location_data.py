@@ -1,5 +1,6 @@
 from datetime import tzinfo
 from json import loads
+from logging import getLogger
 from math import atan2, modf
 from typing import Optional
 
@@ -10,6 +11,8 @@ from requests import get
 
 from api.config.cache import cache
 from definitions import CACHE_TIMEOUTS, COUNTRIES, DATA_RAW_PATH
+
+logger = getLogger(__name__)
 
 
 def calculate_nearest_city(
@@ -102,6 +105,9 @@ def fetch_cities() -> list:
             key=lambda i: i["cityName"],
         )
     except Exception:
+        logger.exception(
+            "Error fetching cities",
+        )
         return []
 
 
@@ -112,6 +118,9 @@ def fetch_countries() -> list:
             key=lambda i: i["countryCode"],
         )
     except Exception:
+        logger.exception(
+            "Error fetching countries",
+        )
         return []
 
 
@@ -126,6 +135,9 @@ def fetch_sensors(city_name: str) -> list:
             key=lambda i: i["sensorId"],
         )
     except Exception:
+        logger.exception(
+            f"Error fetching sensors for city: {city_name}",
+        )
         return []
 
 
@@ -138,6 +150,9 @@ def read_cities() -> list:
     try:
         return loads((DATA_RAW_PATH / "cities.json").read_text())
     except OSError:
+        logger.exception(
+            "Error reading cities.json file",
+        )
         return []
 
 
@@ -145,6 +160,9 @@ def read_countries() -> list:
     try:
         return loads((DATA_RAW_PATH / "countries.json").read_text())
     except OSError:
+        logger.exception(
+            "Error reading countries.json file",
+        )
         return []
 
 
@@ -152,6 +170,9 @@ def read_sensors(city_name) -> list:
     try:
         return loads((DATA_RAW_PATH / city_name / "sensors.json").read_text())
     except OSError:
+        logger.exception(
+            f"Error reading sensors.json file for city: {city_name}",
+        )
         return []
 
 

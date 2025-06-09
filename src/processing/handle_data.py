@@ -127,9 +127,8 @@ def save_dataframe(
         df = read_csv_in_chunks(collection_path)
         dataframe = find_missing_data(dataframe, df, "time")
     except Exception:
-        logger.error(
+        logger.exception(
             f"Could not fetch data from local storage for {sensor_id} - {collection}",
-            exc_info=True,
         )
     dataframe = dataframe.drop(columns="sensorId", errors="ignore")
     # TODO: Review this line for converting column data types

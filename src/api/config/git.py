@@ -81,7 +81,9 @@ def commit_git_files(
                 commit_message,
                 element_list[len(element_list) // 2 :],
             )
-        logger.error("Error occurred while committing files to GitHub", exc_info=True)
+        logger.exception(
+            "Error occurred while committing files to GitHub",
+        )
 
 
 def create_archive(source: Path, destination: Path) -> None:
@@ -115,9 +117,8 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str | None:
         # combined_content = combined_content.astype(column_dtypes, errors="ignore")
         return combined_content.to_csv(index=False)
     except Exception:
-        logger.error(
+        logger.exception(
             "Error occurred while merging local files with files from GitHub repository",
-            exc_info=True,
         )
         return None
 
