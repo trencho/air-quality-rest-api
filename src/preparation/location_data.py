@@ -96,10 +96,12 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 
 def fetch_cities() -> list:
     try:
+        cities = get("https://pulse.eco/rest/city/").json()
+        logger.info(f"Fetched {len(cities)} cities")
         return sorted(
             [
                 sort_city_coordinates(city)
-                for city in get("https://pulse.eco/rest/city/").json()
+                for city in cities
                 if city["countryCode"] in COUNTRIES
             ],
             key=lambda i: i["cityName"],
@@ -113,8 +115,10 @@ def fetch_cities() -> list:
 
 def fetch_countries() -> list:
     try:
+        countries = get("https://pulse.eco/rest/country/").json()
+        logger.info(f"Fetched {len(countries)} countries")
         return sorted(
-            get("https://pulse.eco/rest/country/").json(),
+            countries,
             key=lambda i: i["countryCode"],
         )
     except Exception:
