@@ -77,21 +77,21 @@
 #         try:
 #             repository.save(collection_name="countries", filter={"countryCode": country["countryCode"]}, item=country)
 #         except Exception:
-#             logger.error(f"Error occurred while updating data for {country['countryName']}", exc_info=True)
+#             logger.exception(f"Error occurred while updating data for {country['countryName']}")
 #
 #     sensors = {}
 #     for city in cities:
 #         try:
 #             repository.save(collection_name="cities", filter={"cityName": city["cityName"]}, item=city)
 #         except Exception:
-#             logger.error(f"Error occurred while updating data for {city['cityName']}", exc_info=True)
+#             logger.exception(f"Error occurred while updating data for {city['cityName']}")
 #         sensors[city["cityName"]] = fetch_sensors(city["cityName"])
 #         for sensor in sensors[city["cityName"]]:
 #             sensor["cityName"] = city["cityName"]
 #             try:
 #                 repository.save(collection_name="sensors", filter={"sensorId": sensor["sensorId"]}, item=sensor)
 #             except Exception:
-#                 logger.error(f"Error occurred while updating data for {sensor['sensorId']}", exc_info=True)
+#                 logger.exception(f"Error occurred while updating data for {sensor['sensorId']}")
 #         makedirs(path.join(DATA_RAW_PATH, city["cityName"]), exist_ok=True)
 #         with open(path.join(DATA_RAW_PATH, city["cityName"], "sensors.json"), "w") as out_file:
 #             dump(sensors[city["cityName"]], out_file, indent=4)
@@ -119,7 +119,7 @@
 #                                path.basename(path.dirname(file_path)))
 #                 remove(file_path)
 #             except Exception:
-#                 logger.error(f"Error occurred while importing data from {file_path}", exc_info=True)
+#                 logger.exception(f"Error occurred while importing data from {file_path}")
 #
 #         if not directories and not files:
 #             rmdir(root)
@@ -145,7 +145,7 @@
 #                                     item={"data": load(in_file), "cityName": city["cityName"],
 #                                           "sensorId": sensor["sensorId"]})
 #             except Exception:
-#                 logger.error(f"Error occurred while updating forecast values from {file_path}", exc_info=True)
+#                 logger.exception(f"Error occurred while updating forecast values from {file_path}")
 #
 #     for city in cache.get("cities") or read_cities():
 #         for sensor in read_sensors(city["cityName"]):
@@ -155,9 +155,8 @@
 #                           "w") as out_file:
 #                     dump(list(forecast_result.values()), out_file, indent=4, default=str)
 #             except Exception:
-#                 logger.error(
-#                     f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}",
-#                     exc_info=True)
+#                 logger.exception(
+#                     f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}")
 #
 #
 # def reset_api_counter() -> None:
@@ -167,7 +166,7 @@
 #         with open(path.join(DATA_PATH, f"{ONECALL_COUNTER}.txt"), "w") as out_file:
 #             out_file.write(str(0))
 #     except OSError:
-#         logger.error("Error occurred while resetting the API counter", exc_info=True)
+#         logger.exception("Error occurred while resetting the API counter")
 #
 #
 # def reset_model_lock() -> None:

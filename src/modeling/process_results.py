@@ -50,7 +50,9 @@ def save_errors(model_path: str, y_true: ndarray, y_predicted: ndarray) -> float
 
         return mae
     except (ValueError, IOError):
-        logger.error("Error saving errors", exc_info=True)
+        logger.exception(
+            "Error saving errors",
+        )
         return inf
 
 

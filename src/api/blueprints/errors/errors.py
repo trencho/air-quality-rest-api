@@ -34,7 +34,9 @@ def handle_not_found_error(error) -> tuple[Response, int]:
 
 @errors_blueprint.app_errorhandler(HTTP_500_INTERNAL_SERVER_ERROR)
 def handle_unexpected_error(error) -> tuple[Response, int]:
-    logger.exception("Unexpected server error", exc_info=True)
+    logger.exception(
+        "Unexpected server error",
+    )
     return (
         jsonify(
             error_message="Internal server error",
@@ -46,7 +48,9 @@ def handle_unexpected_error(error) -> tuple[Response, int]:
 
 @errors_blueprint.app_errorhandler(Exception)
 def handle_generic_exception(error) -> tuple[Response, int]:
-    logger.exception("Unexpected server error", exc_info=True)
+    logger.exception(
+        "Unexpected server error",
+    )
     return (
         jsonify(error_message="Unhandled exception", details=str(error)),
         HTTP_500_INTERNAL_SERVER_ERROR,
