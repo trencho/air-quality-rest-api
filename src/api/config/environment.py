@@ -99,8 +99,8 @@ def fetch_db_data() -> None:
 
 
 def init_data() -> None:
-    fetch_db_data()
     fetch_locations()
+    fetch_db_data()
 
 
 def init_system_paths() -> None:
