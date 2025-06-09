@@ -96,7 +96,7 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
 
 def fetch_cities() -> list:
     try:
-        cities = get("https://pulse.eco/rest/city/").json()
+        cities = get("https://pulse.eco/rest/city").json()
         logger.info(f"Fetched {len(cities)} cities")
         return sorted(
             [
@@ -115,7 +115,7 @@ def fetch_cities() -> list:
 
 def fetch_countries() -> list:
     try:
-        countries = get("https://pulse.eco/rest/country/").json()
+        countries = get("https://pulse.eco/rest/country").json()
         logger.info(f"Fetched {len(countries)} countries")
         return sorted(
             countries,
@@ -133,7 +133,7 @@ def fetch_sensors(city_name: str) -> list:
         return sorted(
             [
                 sensor
-                for sensor in get(f"https://{city_name}.pulse.eco/rest/sensor/").json()
+                for sensor in get(f"https://{city_name}.pulse.eco/rest/sensor").json()
                 if sensor["status"] == "ACTIVE"
             ],
             key=lambda i: i["sensorId"],
