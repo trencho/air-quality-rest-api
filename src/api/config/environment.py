@@ -74,9 +74,8 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         save_dataframe(dataframe, collection, collection_path, sensor_id)
         del dataframe
     except Exception:
-        logger.error(
+        logger.exception(
             f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}",
-            exc_info=True,
         )
         # TODO: Review this line for converting column data types
         # db_records = db_records.astype(column_dtypes, errors="ignore")
@@ -93,10 +92,9 @@ def fetch_db_data() -> None:
                 try:
                     fetch_collection(collection, city["cityName"], sensor["sensorId"])
                 except Exception:
-                    logger.error(
+                    logger.exception(
                         f"Could not fetch data from the database for {city['cityName']} - {sensor['sensorId']} - "
                         f"{collection}",
-                        exc_info=True,
                     )
 
 

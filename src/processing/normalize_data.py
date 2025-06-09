@@ -193,7 +193,6 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
             )
 
     except Exception:
-        logger.error(
+        logger.exception(
             f"Error occurred while processing {collection} data for {city_name} - {sensor_id}",
-            exc_info=True,
         )

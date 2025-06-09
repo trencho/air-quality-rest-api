@@ -180,10 +180,9 @@ def generate_regression_model(
                 model_name, x_train, y_train, Path(city_name) / sensor_id / pollutant
             )
         except Exception:
-            logger.error(
+            logger.exception(
                 f"Error occurred while training regression model for {city_name} - {sensor_id} - {pollutant} - "
                 f"{model_name}",
-                exc_info=True,
             )
             continue
 
@@ -218,10 +217,9 @@ def generate_regression_model(
             Path(city_name) / sensor_id / pollutant,
         )
     except Exception:
-        logger.error(
+        logger.exception(
             f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
             f"{pollutant} - {type(best_model).__name__}",
-            exc_info=True,
         )
     best_model.save(MODELS_PATH / city_name / sensor_id / pollutant)
     del best_model
@@ -271,10 +269,9 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             f"Completed training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}"
         )
     except Exception:
-        logger.error(
+        logger.exception(
             f"Error occurred while training model for {city['cityName']} - "
             f"{sensor['sensorId']} - {pollutant}",
-            exc_info=True,
         )
     finally:
         remove_pollutant_lock(data_path)

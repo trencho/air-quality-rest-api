@@ -1,3 +1,4 @@
+from logging import getLogger
 from os import makedirs
 from pathlib import Path
 
@@ -9,6 +10,8 @@ from api.config.cache import cache
 from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH, DATA_RAW_PATH
 from preparation import fetch_weather_data
 from processing import read_csv_in_chunks
+
+logger = getLogger(__name__)
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
@@ -25,6 +28,9 @@ def fetch_dataframe(
 
         raise Exception
     except Exception:
+        logger.exception(
+            f"Exception while reading data from CSV file from {data_path} - {collection}",
+        )
         return (
             jsonify(
                 error_message="Cannot return historical data because the data is missing for that city and sensor."
