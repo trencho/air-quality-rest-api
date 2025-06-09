@@ -138,6 +138,7 @@ def fetch_hourly_data() -> None:
 @track_time
 def fetch_locations() -> None:
     countries = fetch_countries()
+    logger.info(f"Fetched {len(countries)} countries")
     (DATA_RAW_PATH / "countries.json").write_text(dumps(countries, indent=4))
     cache.set("countries", countries)
     for country in countries:
@@ -154,6 +155,7 @@ def fetch_locations() -> None:
             )
 
     cities = fetch_cities()
+    logger.info(f"Fetched {len(cities)} cities")
     (DATA_RAW_PATH / "cities.json").write_text(dumps(cities, indent=4))
     cache.set("cities", cities)
     for city in cities:
