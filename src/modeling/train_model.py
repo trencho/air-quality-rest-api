@@ -153,12 +153,11 @@ def generate_regression_model(
     encode_categorical_data(dataframe)
     validation_split = len(dataframe.index) * 3 // 4
 
-    train_dataframe = dataframe.iloc[:validation_split]
-    x_train, y_train = split_dataframe(train_dataframe, pollutant)
-    selected_features = x_train.columns.values.tolist()
+    x, y = split_dataframe(dataframe, pollutant)
+    selected_features = x.columns.values.tolist()
 
-    test_dataframe = dataframe.iloc[validation_split:]
-    x_test, y_test = split_dataframe(test_dataframe, pollutant, selected_features)
+    x_train, y_train = x.iloc[:validation_split], y.iloc[:validation_split]
+    x_test, y_test = x.iloc[validation_split:], y.iloc[validation_split:]
 
     best_model_error = inf
     best_model = None
@@ -208,7 +207,6 @@ def generate_regression_model(
     save_selected_features(
         MODELS_PATH / city_name / sensor_id / pollutant, selected_features
     )
-    x_train, y_train = split_dataframe(dataframe, pollutant, selected_features)
     try:
         best_model = setup_model(
             type(best_model).__name__,
