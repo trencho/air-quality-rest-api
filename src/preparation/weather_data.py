@@ -19,10 +19,7 @@ logger = getLogger(__name__)
 
 
 def check_api_lock() -> bool:
-    if (DATA_PATH / f"{OPEN_WEATHER}.lock").exists():
-        return False
-
-    return True
+    return not (DATA_PATH / f"{OPEN_WEATHER}.lock").exists()
 
 
 def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:

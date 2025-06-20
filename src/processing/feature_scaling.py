@@ -8,7 +8,7 @@ SCALER_TYPES = {
 }
 
 
-def value_scaling(dataframe: DataFrame, scale: str = "robust") -> DataFrame:
+def value_scaling(dataframe: DataFrame, scale: str = None) -> DataFrame:
     scaler = SCALER_TYPES.get(scale, RobustScaler())
     dataframe_index = dataframe.index
     dataframe_columns = dataframe.columns
