@@ -261,7 +261,6 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
             draw_predictions(city, sensor, pollutant)
 
         del dataframe
-        collect()
 
         logger.info(
             f"Completed training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}"
@@ -273,6 +272,7 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
         )
     finally:
         remove_pollutant_lock(data_path)
+        collect()
 
 
 def train_city_sensors(city: dict, sensor: dict, pollutant: str) -> None:
