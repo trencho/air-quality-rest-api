@@ -67,7 +67,7 @@ kubectl apply -f kubernetes/metallb/metallb-native.yml
 ###### Apply sealed secrets controller and generate sealed secrets from existing secrets
 
 ```
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.29.0/controller.yaml
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.30.0/controller.yaml
 ```
 
 ```
