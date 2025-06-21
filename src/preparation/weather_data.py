@@ -42,13 +42,14 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
                 DATA_RAW_PATH / city_name / sensor["sensorId"] / "weather.csv",
                 sensor["sensorId"],
             )
+        del dataframe
     except Exception:
         logger.exception(
             f"Error occurred while fetching DarkSky data for {city_name} - {sensor['sensorId']}",
         )
     finally:
-        del dataframe
         collect()
+        sleep(1)
 
 
 def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
@@ -77,12 +78,12 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
                 DATA_RAW_PATH / city_name / sensor["sensorId"] / "weather.csv",
                 sensor["sensorId"],
             )
+        del dataframe
     except Exception:
         logger.exception(
             f"Error occurred while fetching Open Weather data for {city_name} - {sensor['sensorId']}",
         )
     finally:
-        del dataframe
         collect()
         sleep(1)
 
@@ -117,12 +118,12 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
                 DATA_RAW_PATH / city_name / sensor["sensorId"] / "pollution.csv",
                 sensor["sensorId"],
             )
+        del dataframe
     except Exception:
         logger.exception(
             f"Error occurred while fetching pollution data for {city_name} - {sensor["sensorId"]}",
         )
     finally:
-        del dataframe
         collect()
         sleep(1)
 
