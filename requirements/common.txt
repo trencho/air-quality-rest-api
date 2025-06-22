@@ -17,7 +17,7 @@ pymongo==4.13.2
 pytz==2025.2
 requests==2.32.4
 scikit-learn==1.7.0
-scipy==1.15.3
+scipy==1.16.0
 SQLAlchemy==2.0.41
 seaborn==0.13.2
 starlette==0.47.1
