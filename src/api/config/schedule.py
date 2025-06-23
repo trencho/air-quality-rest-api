@@ -113,7 +113,7 @@ def dump_jobs() -> None:
 )
 @track_time
 def fetch_hourly_data() -> None:
-    if check_api_lock() is False:
+    if not check_api_lock():
         return
     for city in cache.get("cities") or read_cities():
         for sensor in read_sensors(city["cityName"]):

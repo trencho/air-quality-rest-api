@@ -159,7 +159,7 @@ def return_sensor_forecast_results(city: dict, sensor: dict) -> dict:
         if data[0]["time"] == next_hour(
             current_hour(tz=location_timezone(city["countryCode"]))
         ):
-            forecast.update({"data": data})
+            forecast["data"] = data
             return forecast
     except Exception:
         pass
@@ -169,8 +169,8 @@ def return_sensor_forecast_results(city: dict, sensor: dict) -> dict:
         filter={"cityName": city["cityName"], "sensorId": sensor["sensorId"]},
     )
     if forecast_result is not None:
-        forecast.update({"data": forecast_result["data"]})
+        forecast["data"] = forecast_result["data"]
         return forecast
 
-    forecast.update({"data": []})
+    forecast["data"] = []
     return forecast
