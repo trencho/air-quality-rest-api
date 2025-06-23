@@ -3,7 +3,7 @@ from math import isinf
 from typing import Optional
 
 from numpy import abs, inf, mean, nan, ndarray, sqrt
-from pandas import DataFrame, Series
+from pandas import DataFrame
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from definitions import RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
@@ -11,9 +11,7 @@ from definitions import RESULTS_ERRORS_PATH, RESULTS_PREDICTIONS_PATH
 logger = getLogger(__name__)
 
 
-def filter_invalid_values(
-    y_true: [ndarray, Series], y_predicted: [ndarray, Series]
-) -> tuple:
+def filter_invalid_values(y_true: ndarray, y_predicted: ndarray) -> tuple:
     dataframe = (
         DataFrame({"y_true": y_true, "y_predicted": y_predicted})
         .replace([-inf, inf], nan)
