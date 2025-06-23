@@ -46,7 +46,7 @@ def previous_value_overwrite(dataframe: DataFrame) -> DataFrame:
 
 def split_dataframe(
     dataframe: DataFrame, target: str, selected_features: list = None
-) -> tuple:
+) -> tuple[DataFrame, Series]:
     x = dataframe.drop(columns=POLLUTANTS, errors="ignore")
     x = value_scaling(x)
     y = dataframe[target]
