@@ -99,7 +99,7 @@ def generate_time_features(target) -> DataFrame:
     encode_categorical_data(session)
     encode_cyclic_data(features, "session", session, len(SESSION_LABELS))
 
-    features.set_index(target.index, inplace=True)
+    features = features.set_index(target.index)
     return features
 
 

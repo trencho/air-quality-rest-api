@@ -61,8 +61,8 @@ def read_csv_in_chunks(data_path: Path, index_col: str = None) -> Optional[DataF
     return dataframe.sort_index() if len(dataframe.index) > 0 else None
 
 
-def rename_features(dataframe: DataFrame) -> None:
-    dataframe.rename(
+def rename_features(dataframe: DataFrame) -> DataFrame:
+    return dataframe.rename(
         columns={
             "dt": "time",
             "temperature": "temp",
@@ -87,7 +87,6 @@ def rename_features(dataframe: DataFrame) -> None:
             "PM10": "pm10",
             "SO2": "so2",
         },
-        inplace=True,
         errors="ignore",
     )
 
@@ -103,7 +102,7 @@ def fetch_summary_dataframe(data_path: Path, index_col: str) -> DataFrame:
 def save_dataframe(
     dataframe: DataFrame, collection: str, collection_path: Path, sensor_id: str
 ) -> None:
-    rename_features(dataframe)
+    dataframe = rename_features(dataframe)
     dataframe = drop_unnecessary_features(dataframe)
 
     db_records = DataFrame(
@@ -147,5 +146,5 @@ def trim_dataframe(dataframe: DataFrame, column: str) -> DataFrame:
     dataframe = dataframe.dropna(axis="columns", how="all")
     dataframe = dataframe.dropna(axis="index", how="all")
     dataframe = dataframe.drop_duplicates(subset=column, keep="last")
-    dataframe.reset_index(drop=True, inplace=True)
+    dataframe = dataframe.reset_index(drop=True)
     return dataframe
