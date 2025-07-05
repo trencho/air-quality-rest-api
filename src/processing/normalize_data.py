@@ -133,7 +133,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
                 for df in [dataframe_processed, dataframe_raw]
             )
 
-        rename_features(dataframe_raw)
+        dataframe_raw = rename_features(dataframe_raw)
         dataframe_raw = drop_unnecessary_features(dataframe_raw)
         dataframe_raw = trim_dataframe(dataframe_raw, "time")
         if len(dataframe_raw.index) == 0:
