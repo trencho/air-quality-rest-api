@@ -14,7 +14,7 @@ __all__ = [
     "MLPRegressionModel",
     "RandomForestRegressionModel",
     "SupportVectorRegressionModel",
-    "XGBoostRegressionModel"
+    "XGBoostRegressionModel",
 ]
 
 

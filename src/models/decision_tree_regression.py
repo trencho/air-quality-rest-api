@@ -12,6 +12,6 @@ class DecisionTreeRegressionModel(BaseRegressionModel):
             "min_samples_split": [2, 5, 10, 20],
             "min_samples_leaf": [1, 2, 5, 10],
             "max_features": ["sqrt", "log2", None],
-            "max_leaf_nodes": [None, 5, 20, 100]
+            "max_leaf_nodes": [None, 5, 20, 100],
         }
         super().__init__(reg, param_grid)
