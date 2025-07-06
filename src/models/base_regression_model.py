@@ -20,7 +20,9 @@ class BaseRegressionModel:
         return self.reg.predict(x)
 
     def save(self, model_path: Path) -> None:
-        (model_path / f"{type(self).__name__}.mdl").write_bytes(dumps(self.reg, HIGHEST_PROTOCOL))
+        (model_path / f"{type(self).__name__}.mdl").write_bytes(
+            dumps(self.reg, HIGHEST_PROTOCOL)
+        )
 
     def load(self, model_path: Path) -> None:
         with open(model_path / f"{type(self).__name__}.mdl", "rb") as in_file:
