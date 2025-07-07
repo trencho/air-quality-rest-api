@@ -242,7 +242,6 @@ cython_debug/
 
 # Project
 data/
-docker/
 kubernetes/
 logs/
 models/
