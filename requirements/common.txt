@@ -9,7 +9,7 @@ haversine==2.9.0
 lightgbm==4.6.0
 matplotlib==3.10.3
 numpy==2.3.1
-pandas==2.3.0
+pandas==2.3.1
 psutil==7.0.0
 PyGithub==2.6.1
 pymongo==4.13.2
