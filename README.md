@@ -28,7 +28,7 @@ This guide provides step-by-step instructions to set up a Python Flask environme
       ```
 5. Install the required dependencies:
    ```
-   pip3 install -r requirements/dev.txt
+   pip install --no-cache-dir -r requirements/dev.txt
    ```
 6. Set up environment variables if necessary:
     - Define your environment variables in the `.env` file using the `KEY=VALUE` format.
