@@ -215,6 +215,7 @@ cython_debug/
 
 # Project
 data/
+kubernetes/secret/
 logs/
 models/
 results/
