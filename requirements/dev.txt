@@ -1,6 +1,6 @@
 -r common.txt
 black==25.1.0
 Flask-Testing==0.8.1
-pytest==8.4.1
+pytest==8.4.2
 pytest-xdist[psutil]==3.8.0
 py-unused-deps==0.4.2
