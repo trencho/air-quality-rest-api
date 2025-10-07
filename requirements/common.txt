@@ -9,10 +9,10 @@ haversine==2.9.0
 lightgbm==4.6.0
 matplotlib==3.10.6
 numpy==2.3.3
-pandas==2.3.2
+pandas==2.3.3
 psutil==7.1.0
 PyGithub==2.8.1
-pymongo==4.15.1
+pymongo==4.15.2
 pytz==2025.2
 requests==2.32.5
 scikit-learn==1.7.2
