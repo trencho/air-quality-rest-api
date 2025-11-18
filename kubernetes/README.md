@@ -80,16 +80,10 @@ kubectl apply -f kubernetes/sealed-secret/flask-sealed-secret.yml
 kubectl apply -f kubernetes/sealed-secret/mongo-sealed-secret.yml
 ```
 
-###### Generate single yml files for applying all necessary kubernetes resources
-
-```
-kubectl kustomize kubernetes > kubernetes/resources.yml
-```
-
 ###### Apply all system resources
 
 ```
-kubectl apply -f kubernetes/resources.yml
+kubectl apply -k kubernetes
 kubectl apply -f kubernetes/deployment/flask-deployment.yml
 kubectl apply -f kubernetes/deployment/mongo-deployment.yml
 ```

@@ -4,7 +4,7 @@ set -e  # Stop on error
 KUBERNETES_DIR="${GIT_REPO_PATH}/kubernetes"
 
 echo "Applying base resources..."
-kubectl apply -f "${KUBERNETES_DIR}/resources.yml"
+kubectl apply -k ${KUBERNETES_DIR}
 
 echo "Deploying MongoDB first to avoid dependency issues..."
 kubectl apply -f "${KUBERNETES_DIR}/deployment/mongo-deployment.yml"
