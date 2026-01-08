@@ -21,7 +21,7 @@ SQLAlchemy==2.0.45
 seaborn==0.13.2
 starlette==0.50.0
 statsmodels==0.14.6
-urllib3==2.6.2
+urllib3==2.6.3
 waitress==3.0.2
 Werkzeug==3.1.4
 xgboost==3.1.2
