@@ -12,7 +12,7 @@ numpy==2.4.0
 pandas==2.3.3
 psutil==7.2.1
 PyGithub==2.8.1
-pymongo==4.15.5
+pymongo==4.16.0
 pytz==2025.2
 requests==2.32.5
 scikit-learn==1.8.0
@@ -21,7 +21,7 @@ SQLAlchemy==2.0.45
 seaborn==0.13.2
 starlette==0.50.0
 statsmodels==0.14.6
-urllib3==2.6.2
+urllib3==2.6.3
 waitress==3.0.2
 Werkzeug==3.1.4
 xgboost==3.1.2
