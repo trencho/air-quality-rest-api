@@ -21,6 +21,8 @@ spec:
       automountServiceAccountToken: false
       containers:
         - envFrom:
+            - configMapRef:
+                name: mongo-config
             - secretRef:
                 name: mongo-secret
           image: aqra-mongo

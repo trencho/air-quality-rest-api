@@ -21,6 +21,8 @@ spec:
       automountServiceAccountToken: false
       containers:
         - envFrom:
+            - configMapRef:
+                name: flask-config
             - secretRef:
                 name: flask-secret
           image: aqra-flask
