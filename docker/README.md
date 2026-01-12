@@ -24,7 +24,7 @@ docker-compose -f docker/docker-compose.yml up -d
 docker logs -f [container-id]
 ```
 
-###### Enter bash of deployed docker container by id
+###### Enter bash of the deployed docker container by id
 
 ```
 docker exec -it [container-id] bash
