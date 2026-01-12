@@ -88,7 +88,7 @@ kubectl apply -f kubernetes/deployment/flask-deployment.yml
 kubectl apply -f kubernetes/deployment/mongo-deployment.yml
 ```
 
-###### Get deployed pods in namespace aqra
+###### Get deployed pods in namespace
 
 ```
 kubectl get pods -n aqra

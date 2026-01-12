@@ -16,10 +16,10 @@ pymongo==4.15.5
 pytz==2025.2
 requests==2.32.5
 scikit-learn==1.8.0
-scipy==1.16.3
+scipy==1.17.0
 SQLAlchemy==2.0.45
 seaborn==0.13.2
-starlette==0.50.0
+starlette==0.51.0
 statsmodels==0.14.6
 urllib3==2.6.3
 waitress==3.0.2

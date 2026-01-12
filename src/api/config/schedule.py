@@ -324,7 +324,7 @@ def reset_model_lock() -> None:
 
 
 def init_scheduler() -> None:
-    db_url = f"sqlite:////{DATABASE_FILE}"
+    db_url = f"sqlite:///{DATABASE_FILE}"
     engine = create_engine(db_url)
     jobstore = SQLAlchemyJobStore(engine=engine)
     scheduler.add_jobstore(jobstore=jobstore, alias=jobstore_name)
