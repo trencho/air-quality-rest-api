@@ -175,4 +175,5 @@ kubernetes/secret/
 logs/
 models/
 results/
+*.env
 !.gitkeep
