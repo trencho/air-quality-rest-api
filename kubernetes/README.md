@@ -35,7 +35,7 @@ helm repo update
 
 ```
 helm upgrade --install metrics-server metrics-server/metrics-server -n kube-system --create-namespace --values \
-kubernetes/metrics-server/values.yaml
+kubernetes/metrics-server/values.yml
 ```
 
 ###### Apply cert-manager resources
