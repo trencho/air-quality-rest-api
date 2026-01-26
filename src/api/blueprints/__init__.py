@@ -1,5 +1,4 @@
 from logging import getLogger
-from os import makedirs
 from pathlib import Path
 
 from flask import jsonify, Response
@@ -40,8 +39,8 @@ def fetch_dataframe(
 
 
 def create_data_paths(city_name: str, sensor_id: str) -> None:
-    makedirs(DATA_RAW_PATH / city_name / sensor_id, exist_ok=True)
-    makedirs(DATA_PROCESSED_PATH / city_name / sensor_id, exist_ok=True)
+    (DATA_RAW_PATH / city_name / sensor_id).mkdir(parents=True, exist_ok=True)
+    (DATA_PROCESSED_PATH / city_name / sensor_id).mkdir(parents=True, exist_ok=True)
 
 
 def fetch_city_data(city_name: str, sensor: dict) -> None:
