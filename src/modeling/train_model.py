@@ -3,7 +3,7 @@ from gc import collect
 from json import dumps
 from logging import getLogger
 from math import inf
-from os import cpu_count, environ, makedirs, remove
+from os import cpu_count, environ
 from pathlib import Path
 from threading import Thread
 
@@ -75,7 +75,7 @@ def read_model(data_path: Path, model_name: str, error_type: str) -> tuple:
 
 
 def create_path(data_path: Path) -> None:
-    makedirs(data_path, exist_ok=True)
+    data_path.mkdir(parents=True, exist_ok=True)
 
 
 def create_results_paths(data_path: Path) -> None:
@@ -117,10 +117,7 @@ def hyper_parameter_tuning(
 
 
 def remove_pollutant_lock(data_path: Path) -> None:
-    try:
-        remove(MODELS_PATH / data_path / LOCK_FILE)
-    except OSError:
-        pass
+    (MODELS_PATH / data_path / LOCK_FILE).unlink(missing_ok=True)
 
 
 def check_best_regression_model(data_path: Path) -> bool:
@@ -135,7 +132,7 @@ def check_best_regression_model(data_path: Path) -> bool:
             last_modified
             < int(datetime.timestamp(current_hour())) - three_months_in_seconds
         ):
-            remove(model_dir / files[0])
+            (model_dir / files[0]).unlink(missing_ok=True)
             return False
 
         return True

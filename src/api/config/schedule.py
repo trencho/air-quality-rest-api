@@ -3,7 +3,7 @@ from base64 import b64encode
 from datetime import datetime
 from json import dumps, loads
 from logging import getLogger
-from os import environ, makedirs, remove, rmdir, walk
+from os import environ, walk
 from pathlib import Path
 from shutil import unpack_archive
 
@@ -76,7 +76,7 @@ def dump_data() -> None:
                 Path(file_path).name,
                 file_names,
             )
-            remove(file_path)
+            file_path.unlink(missing_ok=True)
 
     if file_list:
         update_git_files(
@@ -179,7 +179,7 @@ def fetch_locations() -> None:
                 logger.exception(
                     f"Error occurred while updating data for {sensor['sensorId']}",
                 )
-        makedirs(DATA_RAW_PATH / city["cityName"], exist_ok=True)
+        (DATA_RAW_PATH / city["cityName"]).mkdir(parents=True, exist_ok=True)
         (DATA_RAW_PATH / city["cityName"] / "sensors.json").write_text(
             dumps(sensors, indent=4)
         )
@@ -193,16 +193,18 @@ def fetch_locations() -> None:
     hour=0,
 )
 def import_data() -> None:
-    for root, directories, files in walk(DATA_EXTERNAL_PATH):
-        root_path = Path(root)
+    for root, _, files in walk(DATA_EXTERNAL_PATH):
         for file in files:
-            file_path = root_path / file
-            if file.endswith(".zip"):
-                fmt = file_path.suffix.lstrip(".")
-                unpack_archive(filename=file_path, extract_dir=root, format=fmt)
-                remove(file_path)
-            elif file.endswith(".csv"):
-                file_path = root_path / file
+            file_path = Path(root) / file
+            fmt = file_path.suffix.lstrip(".")
+            if fmt == "zip":
+                unpack_archive(filename=str(file_path), extract_dir=root, format=fmt)
+                file_path.unlink(missing_ok=True)
+
+    for root, directories, files in walk(DATA_EXTERNAL_PATH):
+        for file in files:
+            if file.endswith(".csv"):
+                file_path = Path(root) / file
                 try:
                     dataframe = read_csv_in_chunks(file_path)
                     save_dataframe(
@@ -211,15 +213,15 @@ def import_data() -> None:
                         DATA_RAW_PATH / file_path.relative_to(DATA_EXTERNAL_PATH),
                         file_path.parent.name,
                     )
-                    remove(file_path)
+                    file_path.unlink(missing_ok=True)
                 except Exception:
                     logger.exception(
                         f"Error occurred while importing data from {file_path}",
                     )
         if not directories and not files:
-            rmdir(root)
+            root.rmdir()
 
-    makedirs(DATA_EXTERNAL_PATH, exist_ok=True)
+    DATA_EXTERNAL_PATH.mkdir(parents=True, exist_ok=True)
 
 
 @scheduler.scheduled_job(
@@ -298,10 +300,7 @@ def predict_locations() -> None:
     hour=0,
 )
 def reset_api_counter() -> None:
-    try:
-        remove(DATA_PATH / f"{OPEN_WEATHER}.lock")
-    except OSError:
-        pass
+    (DATA_PATH / f"{OPEN_WEATHER}.lock").unlink(missing_ok=True)
 
 
 @scheduler.scheduled_job(
@@ -320,7 +319,7 @@ def reset_model_lock() -> None:
     ]:
         last_modified = int(file.stat().st_mtime)
         if last_modified < int(datetime.timestamp(current_hour())) - 3600:
-            remove(MODELS_PATH / file)
+            (MODELS_PATH / file).unlink(missing_ok=True)
 
 
 def init_scheduler() -> None:

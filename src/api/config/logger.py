@@ -1,7 +1,6 @@
 from atexit import register
 from logging import getHandlerByName, getLogger
 from logging.config import dictConfig
-from os import makedirs
 
 from definitions import LOG_PATH
 
@@ -42,7 +41,7 @@ CONFIG = {
 
 
 def init_logger() -> None:
-    makedirs(LOG_PATH, exist_ok=True)
+    LOG_PATH.mkdir(parents=True, exist_ok=True)
     dictConfig(CONFIG)
     queue_handler = getHandlerByName("queue")
     if queue_handler is not None:
