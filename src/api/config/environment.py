@@ -1,6 +1,6 @@
 from gc import collect
 from logging import getLogger
-from os import environ, makedirs
+from os import environ
 
 from pandas import DataFrame
 
@@ -59,7 +59,7 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         return
 
     collection_dir = DATA_RAW_PATH / city_name / sensor_id
-    makedirs(collection_dir, exist_ok=True)
+    collection_dir.mkdir(parents=True, exist_ok=True)
     collection_path = collection_dir / f"{collection}.csv"
     try:
         dataframe = read_csv_in_chunks(collection_path)
@@ -105,4 +105,4 @@ def init_data() -> None:
 
 def init_system_paths() -> None:
     for system_path in SYSTEM_PATHS:
-        makedirs(system_path, exist_ok=True)
+        system_path.mkdir(parents=True, exist_ok=True)
