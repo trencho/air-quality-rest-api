@@ -2,6 +2,7 @@ from pathlib import Path
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, Response
+from pandas import DataFrame
 from starlette.status import HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
@@ -13,9 +14,12 @@ pollutants_blueprint = Blueprint("pollutants", __name__)
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
-def fetch_measurements(city_name: str, sensor_id: str) -> Response:
-    if isinstance(
-        dataframe := fetch_dataframe(Path(city_name) / sensor_id, "pollution"), Response
+def fetch_measurements(
+    city_name: str, sensor_id: str
+) -> Response | tuple[Response, int]:
+    if not isinstance(
+        dataframe := fetch_dataframe(Path(city_name) / sensor_id, "pollution"),
+        DataFrame,
     ):
         return dataframe
 
