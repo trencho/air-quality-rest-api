@@ -4,6 +4,7 @@ from pathlib import Path
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, Response, request
+from pandas import DataFrame
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
@@ -33,7 +34,8 @@ def fetch_city_sensor_history(
             HTTP_404_NOT_FOUND,
         )
 
-    if isinstance(timestamps := retrieve_history_timestamps(), Response):
+    timestamps = retrieve_history_timestamps()
+    if isinstance(timestamps[0], Response):
         return timestamps
     start_time, end_time = timestamps
 
@@ -72,7 +74,8 @@ def fetch_coordinates_history(
             HTTP_404_NOT_FOUND,
         )
 
-    if isinstance(timestamps := retrieve_history_timestamps(), Response):
+    timestamps = retrieve_history_timestamps()
+    if isinstance(timestamps[0], Response):
         return timestamps
     start_time, end_time = timestamps
 
@@ -117,10 +120,10 @@ def retrieve_history_timestamps() -> tuple[int, int] | tuple[Response, int]:
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def return_historical_data(
     city_name: str, sensor: dict, data_type: str, start_time: int, end_time: int
-) -> Response:
-    if isinstance(
+) -> Response | tuple[Response, int]:
+    if not isinstance(
         dataframe := fetch_dataframe(Path(city_name) / sensor["sensorId"], data_type),
-        Response,
+        DataFrame,
     ):
         return dataframe
 
