@@ -20,6 +20,10 @@ MONGODB_CONNECTION = "MONGODB_CONNECTION"
 MONGODB_HOSTNAME = "MONGODB_HOSTNAME"
 OPEN_WEATHER = "open_weather"
 OPEN_WEATHER_TOKEN = "OPEN_WEATHER_TOKEN"
+# Optional shared Redis backend for the cache + rate limiter (multi-worker/pod prod).
+# When unset, the cache falls back to a per-host filesystem cache and the limiter to
+# in-process memory.
+REDIS_URL = "REDIS_URL"
 REPO_NAME = "REPO_NAME"
 VOLUME_PATH = "VOLUME_PATH"
 

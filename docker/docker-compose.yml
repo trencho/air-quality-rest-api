@@ -8,6 +8,7 @@ services:
     container_name: flask
     depends_on:
       - mongo
+      - redis
     deploy:
       replicas: 1
     env_file:
@@ -23,6 +24,7 @@ services:
       MONGODB_HOSTNAME: ${MONGODB_HOSTNAME:-}
       OPEN_WEATHER_TOKEN: ${OPEN_WEATHER_TOKEN:-}
       PYTHONPATH: ${PYTHONPATH:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       REPO_NAME: ${REPO_NAME:-}
       TZ: ${TZ:-}
       VOLUME_PATH: ${VOLUME_PATH:-}
@@ -59,6 +61,19 @@ services:
     volumes:
       - mongo-data:/data/db
 
+  redis:
+    image: redis:8-alpine
+    container_name: redis
+    command: ["redis-server", "--save", "60", "1"]
+    deploy:
+      replicas: 1
+    expose:
+      - 6379
+    networks:
+      - network
+    volumes:
+      - redis-data:/data
+
 networks:
   network:
     attachable: true
@@ -68,4 +83,6 @@ volumes:
   flask-data:
     driver: local
   mongo-data:
+    driver: local
+  redis-data:
     driver: local

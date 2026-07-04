@@ -87,6 +87,7 @@ the required variables at startup and exits if any are missing.
 | `MONGODB_CONNECTION` / `MONGODB_HOSTNAME` / `MONGO_DATABASE` / `MONGO_USERNAME` / `MONGO_PASSWORD` | MongoDB datasource (prod) |
 | `OPEN_WEATHER_TOKEN`                                                 | upstream weather/air-quality API token              |
 | `GITHUB_TOKEN` / `REPO_NAME`                                         | data-dump backup to a Git repository (scheduler)    |
+| `REDIS_URL`                                                          | optional shared Redis for the cache + rate limiter (multi-worker/pod); falls back to a filesystem cache + in-memory limits when unset |
 | `VOLUME_PATH`                                                        | root for `data/`, `logs/`, `models/`, `results/` (defaults to the project dir) |
 
 ## Running

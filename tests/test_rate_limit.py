@@ -12,8 +12,8 @@ from flask import Flask
 # Import the config package first so the api chain initialises in order.
 import api.config  # noqa: F401
 from api.blueprints.errors import errors_blueprint
-from api.config.limiter import init_limiter, limiter
-from definitions import URL_PREFIX
+from api.config.limiter import _storage_uri, init_limiter, limiter
+from definitions import RATE_LIMIT_STORAGE_URI, REDIS_URL, URL_PREFIX
 
 
 @pytest.fixture
@@ -83,3 +83,15 @@ def test_rate_limited_response_is_429_with_error_blueprint(active_limiter):
 
     assert client.get("/guarded").status_code == 200
     assert client.get("/guarded").status_code == 429
+
+
+def test_storage_uri_prefers_override_then_redis_then_memory(monkeypatch):
+    monkeypatch.delenv(RATE_LIMIT_STORAGE_URI, raising=False)
+    monkeypatch.delenv(REDIS_URL, raising=False)
+    assert _storage_uri() == "memory://"
+
+    monkeypatch.setenv(REDIS_URL, "redis://shared:6379")
+    assert _storage_uri() == "redis://shared:6379"
+
+    monkeypatch.setenv(RATE_LIMIT_STORAGE_URI, "redis://dedicated:6379")
+    assert _storage_uri() == "redis://dedicated:6379"
