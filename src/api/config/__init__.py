@@ -10,6 +10,7 @@ from .cors import init_cors
 from .environment import init_environment_variables, init_data, init_system_paths
 from .garbage_collection import init_gc
 from .health import init_healthcheck
+from .limiter import init_limiter
 from .logger import init_logger
 from .schedule import init_scheduler
 from .swagger import init_swagger
@@ -32,6 +33,7 @@ def create_app() -> Flask:
     init_cache(app)
     init_cors(app)
     init_healthcheck(app)
+    init_limiter(app)
     init_swagger(app)
 
     if environ.get(SKIP_DATA_FETCH, "").lower() not in ("1", "true", "yes"):

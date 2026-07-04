@@ -96,3 +96,10 @@ REGRESSION_MODELS = {
 
 # API configuration
 URL_PREFIX = "/api/v1"
+
+# Rate limiting (Flask-Limiter). Default limits apply to every API route (health
+# checks are exempt). Storage defaults to in-process memory, which is fine for dev and
+# a single worker; multi-worker prod needs a shared backend (e.g. Redis) — override
+# with the RATE_LIMIT_STORAGE_URI env var (e.g. "redis://host:6379").
+RATE_LIMIT_STORAGE_URI = "RATE_LIMIT_STORAGE_URI"
+RATE_LIMIT_DEFAULTS = ["1000 per hour", "60 per minute"]

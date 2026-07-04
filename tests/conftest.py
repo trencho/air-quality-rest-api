@@ -30,6 +30,13 @@ from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, SKIP_DATA_FETCH
 # ``setdefault`` so an explicit override from the environment still wins.
 environ.setdefault(SKIP_DATA_FETCH, "1")
 
+# The endpoint tests aren't exercising rate limits; disable the shared limiter so
+# requests accumulated across a run can't trip a 429. ``tests/test_rate_limit.py``
+# re-enables it per-test.
+from api.config.limiter import limiter  # noqa: E402
+
+limiter.enabled = False
+
 _FIXTURES_RAW = Path(__file__).parent / "fixtures" / "raw"
 _SENSOR_DIR = DATA_PROCESSED_PATH / "skopje" / "1000"
 
