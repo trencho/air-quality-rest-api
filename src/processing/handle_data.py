@@ -23,7 +23,7 @@ def convert_dtype(x: object) -> str:
 
 def drop_unnecessary_features(dataframe: DataFrame) -> DataFrame:
     dataframe = dataframe.drop(
-        columns=dataframe.filter(regex="weather").columns, axis=1, errors="ignore"
+        columns=dataframe.filter(regex="weather").columns, errors="ignore"
     )
     dataframe = dataframe.drop(
         columns=["precipProbability", "precipType", "ozone", "co2"], errors="ignore"
