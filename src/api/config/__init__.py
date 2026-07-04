@@ -2,7 +2,7 @@ from os import environ
 
 from flask import Flask
 
-from definitions import ENV_DEV, APP_ENV, ENV_PROD
+from definitions import ENV_DEV, APP_ENV, ENV_PROD, SKIP_DATA_FETCH
 from .blueprints import init_blueprints
 from .cache import init_cache
 from .converters import init_converters
@@ -34,6 +34,7 @@ def create_app() -> Flask:
     init_healthcheck(app)
     init_swagger(app)
 
-    init_data()
+    if environ.get(SKIP_DATA_FETCH, "").lower() not in ("1", "true", "yes"):
+        init_data()
 
     return app

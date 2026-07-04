@@ -1,30 +1,58 @@
-"""Seed processed data for the skopje/1000 sensor so the endpoint integration tests
-in ``test_api.py`` can return 200 locally.
+"""Make the test suite hermetic: no network, no reliance on generated data.
 
-In CI/production this data is produced by the scheduler pipeline; a fresh local
-checkout only has the raw location JSON, so the history/pollutants endpoints would
-(correctly) 404. All four data-dependent tests resolve to skopje/1000 — the two
-coordinate tests use that sensor's exact position — so seeding one sensor is enough.
+Two things aren't committed (``data/`` is gitignored) yet the endpoint tests in
+``test_api.py`` need them:
 
-The CSVs are written before the run and removed afterwards, so nothing is committed
-and the working tree stays clean.
+* **Raw location JSON** (``cities``/``countries``/``sensors``). In prod/CI these come
+  from the scheduler's live ``fetch_locations`` call; importing the app used to trigger
+  that network fetch on every ``create_app()``. We now set ``SKIP_DATA_FETCH`` (read in
+  ``create_app``) so the import stays offline, and seed a trimmed skopje/MK/1000 slice
+  from the committed fixtures under ``tests/fixtures/raw`` instead.
+* **Processed CSVs** for skopje/1000, which the history/pollutants endpoints read. All
+  four data-dependent tests resolve to skopje/1000 (the coordinate tests use that
+  sensor's exact position), so seeding one sensor is enough.
+
+Seeding is **create-only**: we write a file only if it's absent and remove only the
+files we created, so a developer's real local ``data/`` is never clobbered. Raw seeds
+we create are left in place on teardown (``data/`` is gitignored, so leftovers never
+dirty the tree and serve as a valid seed for the next run).
 """
 
+from os import environ
 from pathlib import Path
-from shutil import rmtree
+from shutil import copyfile, rmtree
 
 import pytest
 
-from definitions import DATA_PROCESSED_PATH
+from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, SKIP_DATA_FETCH
 
+# Keep ``create_app()`` (run at import time by ``from src.api.app import app``) offline.
+# ``setdefault`` so an explicit override from the environment still wins.
+environ.setdefault(SKIP_DATA_FETCH, "1")
+
+_FIXTURES_RAW = Path(__file__).parent / "fixtures" / "raw"
 _SENSOR_DIR = DATA_PROCESSED_PATH / "skopje" / "1000"
 
-# Minimal frames: a ``time`` column (history filters on it) plus pollutant columns
-# (pollutants lists the ones present). One row is enough — the tests assert only 200.
+# Raw location fixtures → their destination under ``data/raw``.
+_RAW_SEEDS = {
+    _FIXTURES_RAW / "countries.json": DATA_RAW_PATH / "countries.json",
+    _FIXTURES_RAW / "cities.json": DATA_RAW_PATH / "cities.json",
+    _FIXTURES_RAW
+    / "skopje"
+    / "sensors.json": DATA_RAW_PATH
+    / "skopje"
+    / "sensors.json",
+}
+
+# Minimal processed frames: a ``time`` column (history filters on it) plus pollutant
+# columns (pollutants lists the ones present). One row is enough — the tests assert 200.
 _SEED_FILES = {
     "pollution.csv": "time,pm2_5,pm10,no2,o3,so2,co\n1704067200,12.0,20.0,15.0,40.0,5.0,0.4\n",
     "weather.csv": "time,temperature,humidity,pressure\n1704067200,7.5,60.0,1013.0\n",
 }
+
+# Files we actually created this run, so teardown only removes our own.
+_created_processed: list[Path] = []
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -32,9 +60,19 @@ def pytest_configure(config: pytest.Config) -> None:
     # previously cached "data missing" 404 for skopje/1000 can't mask the seed.
     rmtree(Path("/tmp/cache"), ignore_errors=True)
 
+    # Seed raw location JSON only where it's missing, so a real local data/raw stays
+    # untouched. Left in place on teardown (data/ is gitignored).
+    for source, destination in _RAW_SEEDS.items():
+        if not destination.exists():
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            copyfile(source, destination)
+
     _SENSOR_DIR.mkdir(parents=True, exist_ok=True)
     for name, content in _SEED_FILES.items():
-        (_SENSOR_DIR / name).write_text(content)
+        target = _SENSOR_DIR / name
+        if not target.exists():
+            target.write_text(content)
+            _created_processed.append(target)
 
 
 def pytest_unconfigure(config: pytest.Config) -> None:
@@ -43,8 +81,8 @@ def pytest_unconfigure(config: pytest.Config) -> None:
     if hasattr(config, "workerinput"):
         return
 
-    for name in _SEED_FILES:
-        (_SENSOR_DIR / name).unlink(missing_ok=True)
+    for target in _created_processed:
+        target.unlink(missing_ok=True)
     # Prune the now-empty dirs we created, stopping at data/processed.
     for directory in (_SENSOR_DIR, _SENSOR_DIR.parent):
         try:
