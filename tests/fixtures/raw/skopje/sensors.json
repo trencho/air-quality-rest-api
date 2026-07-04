@@ -1,0 +1,12 @@
+[
+    {
+        "sensorId": "1000",
+        "position": "41.99249998,21.4236110",
+        "comments": "MOEPP sensor at Centar",
+        "type": "0",
+        "description": "MOEPP Centar",
+        "status": "ACTIVE",
+        "cityName": "skopje",
+        "_id": "0d94f56c-30d1-4192-ab3f-65357eebd766"
+    }
+]

@@ -1,0 +1,117 @@
+[
+    {
+        "cityName": "skopje",
+        "siteName": "Skopje",
+        "siteTitle": "Skopje @ pulse.eco",
+        "siteUrl": "https://skopje.pulse.eco",
+        "countryCode": "MK",
+        "countryName": "Macedonia",
+        "cityLocation": {
+            "latitude": "42.0016",
+            "longitute": "21.4302"
+        },
+        "cityBorderPoints": [
+            {
+                "latitude": 41.913570470171734,
+                "longitute": 21.44634543384426
+            },
+            {
+                "latitude": 41.909993583069934,
+                "longitute": 21.403078704192893
+            },
+            {
+                "latitude": 41.928439,
+                "longitute": 21.3648833
+            },
+            {
+                "latitude": 41.939113834487976,
+                "longitute": 21.31173783048444
+            },
+            {
+                "latitude": 41.95392429962029,
+                "longitute": 21.27396528872531
+            },
+            {
+                "latitude": 41.98251408122526,
+                "longitute": 21.254048857615945
+            },
+            {
+                "latitude": 42.01274911724852,
+                "longitute": 21.27107620239258
+            },
+            {
+                "latitude": 42.03927267456135,
+                "longitute": 21.265411376953125
+            },
+            {
+                "latitude": 42.05686392824106,
+                "longitute": 21.270732879638672
+            },
+            {
+                "latitude": 42.06693209105822,
+                "longitute": 21.289272308349613
+            },
+            {
+                "latitude": 42.073048676112,
+                "longitute": 21.324634552001957
+            },
+            {
+                "latitude": 42.06010120710594,
+                "longitute": 21.357078552246097
+            },
+            {
+                "latitude": 42.108971713808685,
+                "longitute": 21.350197145730085
+            },
+            {
+                "latitude": 42.138510160980275,
+                "longitute": 21.406512571625534
+            },
+            {
+                "latitude": 42.14156507639792,
+                "longitute": 21.475876693765027
+            },
+            {
+                "latitude": 42.10387748625131,
+                "longitute": 21.532192119660433
+            },
+            {
+                "latitude": 42.06157959954994,
+                "longitute": 21.586447225096286
+            },
+            {
+                "latitude": 42.046977,
+                "longitute": 21.659659
+            },
+            {
+                "latitude": 42.02180407934226,
+                "longitute": 21.71762096102343
+            },
+            {
+                "latitude": 41.977848,
+                "longitute": 21.721801
+            },
+            {
+                "latitude": 41.93993104859892,
+                "longitute": 21.695251464843754
+            },
+            {
+                "latitude": 41.914643492538715,
+                "longitute": 21.665725708007816
+            },
+            {
+                "latitude": 41.88039992692813,
+                "longitute": 21.59568786621094
+            },
+            {
+                "latitude": 41.90181708846685,
+                "longitute": 21.533565666633518
+            },
+            {
+                "latitude": 41.894661796699886,
+                "longitute": 21.479310561197668
+            }
+        ],
+        "intialZoomLevel": 13
+    }
+]
