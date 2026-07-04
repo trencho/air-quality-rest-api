@@ -6,6 +6,7 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
+from werkzeug.exceptions import HTTPException
 from werkzeug.routing import ValidationError
 
 errors_blueprint = Blueprint("errors", __name__)
@@ -48,6 +49,15 @@ def handle_unexpected_error(error) -> tuple[Response, int]:
 
 @errors_blueprint.app_errorhandler(Exception)
 def handle_generic_exception(error) -> tuple[Response, int]:
+    # Preserve the intended status for HTTP errors (429 rate-limited, 405, ...) instead
+    # of masking every HTTPException as a 500. Only genuinely unexpected (non-HTTP)
+    # exceptions are 500s.
+    if isinstance(error, HTTPException):
+        return (
+            jsonify(error_message=error.name, details=error.description),
+            error.code,
+        )
+
     logger.exception(
         "Unexpected server error",
     )
