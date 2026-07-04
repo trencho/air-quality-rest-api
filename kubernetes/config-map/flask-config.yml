@@ -9,6 +9,7 @@ data:
   MONGODB_CONNECTION: "mongodb"
   MONGODB_HOSTNAME: "mongo:27017"
   PYTHONPATH: "/app/src"
+  REDIS_URL: "redis://redis:6379/0"
   REPO_NAME: "air-quality-data-dump"
   TZ: "Europe/Skopje"
   VOLUME_PATH: "/var/api"

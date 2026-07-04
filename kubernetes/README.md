@@ -86,6 +86,7 @@ kubectl apply -f kubernetes/sealed-secret/mongo-sealed-secret.yml
 kubectl apply -k kubernetes
 kubectl apply -f kubernetes/deployment/flask-deployment.yml
 kubectl apply -f kubernetes/deployment/mongo-deployment.yml
+kubectl apply -f kubernetes/deployment/redis-deployment.yml
 ```
 
 ###### Get deployed pods in namespace

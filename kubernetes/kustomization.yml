@@ -18,3 +18,4 @@ resources:
   - sealed-secret/mongo-sealed-secret.yml
   - service/flask-service.yml
   - service/mongo-service.yml
+  - service/redis-service.yml
