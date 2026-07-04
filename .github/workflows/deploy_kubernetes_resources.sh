@@ -10,6 +10,10 @@ echo "Deploying MongoDB first to avoid dependency issues..."
 kubectl apply -f "${KUBERNETES_DIR}/deployment/mongo-deployment.yml"
 kubectl rollout status deployment/mongo -n aqra --watch=true
 
+echo "Deploying Redis..."
+kubectl apply -f "${KUBERNETES_DIR}/deployment/redis-deployment.yml"
+kubectl rollout status deployment/redis -n aqra --watch=true
+
 echo "Deploying Flask API..."
 kubectl apply -f "${KUBERNETES_DIR}/deployment/flask-deployment.yml"
 kubectl rollout status deployment/flask -n aqra --watch=true
