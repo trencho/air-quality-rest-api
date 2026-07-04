@@ -2,6 +2,7 @@ from datetime import tzinfo
 from json import loads
 from logging import getLogger
 from math import atan2, modf
+from os import environ
 from typing import Optional
 
 from haversine import haversine_vector
@@ -10,7 +11,7 @@ from pytz import country_timezones, timezone
 from requests import get
 
 from api.config.cache import cache
-from definitions import CACHE_TIMEOUTS, COUNTRIES, DATA_RAW_PATH
+from definitions import CACHE_TIMEOUTS, COUNTRIES, DATA_RAW_PATH, ENABLED_COUNTRIES
 
 logger = getLogger(__name__)
 
@@ -94,13 +95,21 @@ def check_sensor(city_name: str, sensor_id: str) -> Optional[dict]:
     return None
 
 
+def enabled_country_codes() -> set:
+    # Defaults to every supported country; narrow with the ENABLED_COUNTRIES env var.
+    if configured := environ.get(ENABLED_COUNTRIES):
+        return {code.strip().upper() for code in configured.split(",") if code.strip()}
+    return set(COUNTRIES)
+
+
 def fetch_cities() -> list:
+    enabled = enabled_country_codes()
     try:
         return sorted(
             [
                 sort_city_coordinates(city)
                 for city in get("https://pulse.eco/rest/city").json()
-                if city["countryCode"] in COUNTRIES
+                if city["countryCode"] in enabled
             ],
             key=lambda i: i["cityName"],
         )
