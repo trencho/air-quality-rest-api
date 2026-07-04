@@ -75,8 +75,28 @@ CACHE_TIMEOUTS = {
     "1h": 3600,
 }
 
-# Country configuration
-COUNTRIES = {"MK": "Macedonia"}
+# Country configuration. COUNTRIES is the full catalogue of pulse.eco-supported
+# countries (the upstream data source). The active subset defaults to all of them and
+# can be narrowed with the ENABLED_COUNTRIES env var (comma-separated ISO codes, e.g.
+# "MK,RS,BG") — useful to bound the scheduler's fetch/train workload.
+ENABLED_COUNTRIES = "ENABLED_COUNTRIES"
+COUNTRIES = {
+    "AL": "Albania",
+    "BG": "Bulgaria",
+    "CH": "Switzerland",
+    "CY": "Cyprus",
+    "DE": "Germany",
+    "DK": "Denmark",
+    "GR": "Greece",
+    "HR": "Croatia",
+    "IE": "Ireland",
+    "MD": "Moldova",
+    "MK": "Macedonia",
+    "NL": "Netherlands",
+    "RO": "Romania",
+    "RS": "Serbia",
+    "US": "USA",
+}
 
 # Pollutant types and mappings
 POLLUTANTS = {

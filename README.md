@@ -2,8 +2,9 @@
 
 A Flask REST API that collects air-quality and weather data per city/sensor, trains machine-learning
 regression models on it, and serves **current readings, history, pollutant metrics, and multi-model
-forecasts** — with interactive Swagger docs and prediction/error plots. It currently covers sensors
-across North Macedonia (`MK`).
+forecasts** — with interactive Swagger docs and prediction/error plots. It covers the pulse.eco
+sensor network across all 15 supported countries by default (North Macedonia, Serbia, Bulgaria,
+Greece, Romania, Switzerland, and more); narrow the coverage with the `ENABLED_COUNTRIES` env var.
 
 ## Feature overview
 
@@ -84,6 +85,7 @@ the required variables at startup and exits if any are missing.
 | Variable                                                              | Purpose                                             |
 |----------------------------------------------------------------------|-----------------------------------------------------|
 | `APP_ENV`                                                            | `development` (in-memory repo, no scheduler) or `production` |
+| `ENABLED_COUNTRIES`                                                  | optional comma-separated ISO country codes to cover (e.g. `MK,RS,BG`); defaults to all 15 supported |
 | `MONGODB_CONNECTION` / `MONGODB_HOSTNAME` / `MONGO_DATABASE` / `MONGO_USERNAME` / `MONGO_PASSWORD` | MongoDB datasource (prod) |
 | `OPEN_WEATHER_TOKEN`                                                 | upstream weather/air-quality API token              |
 | `GITHUB_TOKEN` / `REPO_NAME`                                         | data-dump backup to a Git repository (scheduler)    |
