@@ -103,3 +103,7 @@ URL_PREFIX = "/api/v1"
 # with the RATE_LIMIT_STORAGE_URI env var (e.g. "redis://host:6379").
 RATE_LIMIT_STORAGE_URI = "RATE_LIMIT_STORAGE_URI"
 RATE_LIMIT_DEFAULTS = ["1000 per hour", "60 per minute"]
+
+# Prometheus metrics (prometheus-flask-exporter). Metrics are per-process; multi-worker
+# prod aggregation needs PROMETHEUS_MULTIPROC_DIR set plus a gunicorn worker hook.
+METRICS_PATH = "/metrics"
