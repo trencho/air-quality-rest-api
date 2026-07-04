@@ -3,6 +3,7 @@ from flask import Flask
 from api.blueprints.cities import cities_blueprint
 from api.blueprints.countries import countries_blueprint
 from api.blueprints.errors import errors_blueprint
+from api.blueprints.evaluation import evaluation_blueprint
 from api.blueprints.forecast import forecast_blueprint
 from api.blueprints.history import history_blueprint
 from api.blueprints.icon import icon_blueprint
@@ -17,6 +18,7 @@ def init_blueprints(app: Flask) -> None:
         cities_blueprint,
         countries_blueprint,
         errors_blueprint,
+        evaluation_blueprint,
         forecast_blueprint,
         history_blueprint,
         icon_blueprint,

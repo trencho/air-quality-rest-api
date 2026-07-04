@@ -1,0 +1,30 @@
+tags:
+  - evaluation
+summary: Returns forecast-quality metrics for one pollutant at a sensor
+description: >-
+  Returns the best model's name and its held-out error metrics (MAE, MAPE, MSE, RMSE)
+  for the given pollutant at a city/sensor.
+parameters:
+  - in: path
+    name: city_name
+    description: Name of the city
+    required: true
+    schema:
+      type: string
+  - in: path
+    name: sensor_id
+    description: Id of the sensor
+    required: true
+    schema:
+      type: string
+  - in: path
+    name: pollutant
+    description: Pollutant name (aqi, co, nh3, no, no2, o3, pm2_5, pm10, so2)
+    required: true
+    schema:
+      type: string
+responses:
+  200:
+    description: Returned the best model's error metrics for the pollutant.
+  404:
+    description: City/sensor not found, or no trained model exists for that pollutant.

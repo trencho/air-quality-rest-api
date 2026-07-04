@@ -40,6 +40,7 @@ All routes are prefixed with **`/api/v1`**. Swagger UI: **`/api/v1/apidocs/`**.
 | History    | `GET /cities/<city_name>/sensors/<sensor_id>/history/<data_type>/` · `GET /coordinates/<lat>,<lon>/history/<data_type>/` |
 | Pollutants | `GET /cities/<city_name>/sensors/<sensor_id>/pollutants/` · `GET /coordinates/<lat>,<lon>/pollutants/` |
 | Forecast   | `GET /cities/<city_name>/forecast/` · `GET /cities/<city_name>/sensors/<sensor_id>/forecast/` · `GET /cities/coordinates/<lat>,<lon>/forecast/` · `GET /sensors/coordinates/<lat>,<lon>/forecast/` |
+| Evaluation | `GET /cities/<city_name>/sensors/<sensor_id>/evaluation/` · `GET /cities/<city_name>/sensors/<sensor_id>/pollutants/<pollutant>/evaluation/` (best model + MAE/MAPE/MSE/RMSE) |
 | Plots      | `GET /plots/predictions/cities/<city_name>/sensors/<sensor_id>/pollutants/<pollutant>/` · `GET /plots/errors/cities/<city_name>/sensors/<sensor_id>/pollutants/<pollutant>/errors/<error_type>/` |
 | Health     | `GET /healthz/live`, `GET /healthz/ready`                                              |
 
