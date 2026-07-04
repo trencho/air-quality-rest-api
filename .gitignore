@@ -173,7 +173,9 @@ cython_debug/
 data/
 kubernetes/secret/
 logs/
-models/
+# Anchored to the repo root so it ignores the runtime models/ artifacts dir
+# WITHOUT also swallowing the tracked src/models/ package.
+/models/
 results/
 *.env
 !.gitkeep
