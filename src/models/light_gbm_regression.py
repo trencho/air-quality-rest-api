@@ -1,8 +1,6 @@
 from os import cpu_count
-from pathlib import Path
-from typing import override
 
-from lightgbm import Booster, LGBMRegressor
+from lightgbm import LGBMRegressor
 
 from .base_regression_model import BaseRegressionModel
 
@@ -49,13 +47,3 @@ class LightGBMRegressionModel(BaseRegressionModel):
             ],  # Number of samples for constructing bins
         }
         super().__init__(reg, param_grid)
-
-    @override
-    def save(self, model_path: str) -> None:
-        self.reg.booster_.save_model(Path(model_path) / f"{type(self).__name__}.mdl")
-
-    @override
-    def load(self, model_path: str) -> None:
-        self.reg._Booster = Booster(
-            model_file=Path(model_path) / f"{type(self).__name__}.mdl"
-        )
