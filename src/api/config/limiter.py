@@ -9,6 +9,7 @@ from definitions import (
     APP_ENV,
     ENV_DEV,
     ENV_PROD,
+    METRICS_PATH,
     RATE_LIMIT_DEFAULTS,
     RATE_LIMIT_STORAGE_URI,
     URL_PREFIX,
@@ -23,9 +24,12 @@ limiter = Limiter(
 
 
 @limiter.request_filter
-def _exempt_health_checks() -> bool:
-    # Liveness/readiness probes are hit frequently by k8s and must never be throttled.
-    return request.path.startswith(f"{URL_PREFIX}/healthz")
+def _exempt_monitoring_endpoints() -> bool:
+    # Health probes (k8s) and the Prometheus scrape endpoint are hit frequently and
+    # must never be throttled.
+    return (
+        request.path.startswith(f"{URL_PREFIX}/healthz") or request.path == METRICS_PATH
+    )
 
 
 def init_limiter(app: Flask) -> None:
