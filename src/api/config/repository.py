@@ -103,10 +103,10 @@ class InMemoryRepository(Repository):
         self.collections = {}
 
     def get(self, collection_name, filter=None, **kwargs):
-        collection = self.collections.get(collection_name, [])
+        collection = self.collections.get(collection_name, {})
         if filter:
-            for item in collection:
-                if all(item.get(key) == value for key, value in filter.items()):
+            for item in collection.values():
+                if self._matches_filter(item, filter):
                     return item
         return None
 
@@ -188,10 +188,10 @@ class InMemoryRepository(Repository):
 
     @staticmethod
     def _matches_filter(item, filter) -> bool:
-        for key, value in filter.items():
-            if key not in item.__dict__ or item.__dict__[key] != value:
-                return False
-        return True
+        # Items are stored as dicts (every collection) or as objects; mirror ``get``'s
+        # dict access instead of ``__dict__``, which a plain ``dict`` doesn't have.
+        data = item if isinstance(item, dict) else item.__dict__
+        return all(data.get(key) == value for key, value in filter.items())
 
 
 class RepositorySingleton:
