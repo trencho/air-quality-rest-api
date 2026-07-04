@@ -169,13 +169,12 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Project
-data/
+# Project — runtime artifact dirs, anchored to the repo root so they don't also
+# match same-named package dirs (e.g. /models/ vs the tracked src/models/).
+/data/
 kubernetes/secret/
-logs/
-# Anchored to the repo root so it ignores the runtime models/ artifacts dir
-# WITHOUT also swallowing the tracked src/models/ package.
+/logs/
 /models/
-results/
+/results/
 *.env
 !.gitkeep
