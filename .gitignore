@@ -172,7 +172,7 @@ cython_debug/
 # Project — runtime artifact dirs, anchored to the repo root so they don't also
 # match same-named package dirs (e.g. /models/ vs the tracked src/models/).
 /data/
-kubernetes/secret/
+kubernetes/secrets/
 /logs/
 /models/
 /results/
