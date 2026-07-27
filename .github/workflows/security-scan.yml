@@ -37,6 +37,7 @@ jobs:
           # an OSV-recognized name, so force the pip parser with the `<parse-as>:<path>` form.
           # Regenerate the locks when the requirements change.
           scan-args: |-
+            --no-resolve
             -L
             requirements.txt:requirements/prod.lock
             -L
