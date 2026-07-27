@@ -171,7 +171,7 @@ def recursive_forecast(
         DATA_PROCESSED_PATH / city_name / sensor_id, index_col="time"
     )
     if len(dataframe.index) == 0:
-        return Series()
+        return Series(dtype="float64")
 
     dataframe = dataframe.loc[datetime.now() - timedelta(weeks=52) : datetime.now()]
     target = dataframe[pollutant].tail(lags * 2 + 1)

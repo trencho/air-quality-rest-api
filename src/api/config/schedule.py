@@ -219,7 +219,7 @@ def import_data() -> None:
                         f"Error occurred while importing data from {file_path}",
                     )
         if not directories and not files:
-            root.rmdir()
+            Path(root).rmdir()
 
     DATA_EXTERNAL_PATH.mkdir(parents=True, exist_ok=True)
 

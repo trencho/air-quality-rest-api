@@ -43,7 +43,7 @@ def init_environment_variables() -> None:
 
     if missing_envs:
         logger.error(f"Missing environment variables: {', '.join(missing_envs)}")
-        exit(-1)
+        raise SystemExit(1)
 
 
 # TODO: Review this method for inserting duplicate values

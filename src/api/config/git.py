@@ -103,12 +103,10 @@ def create_archive(source: Path, destination: Path) -> None:
 def merge_csv_files(repo: Repository, file_name: str, data: str) -> str | None:
     try:
         with StringIO(data) as string_io_data:
-            local_file_content = read_csv_in_chunks(string_io_data.getvalue())
+            local_file_content = read_csv_in_chunks(string_io_data)
         repo_file = repo.get_contents(file_name)
         with BytesIO(repo_file.decoded_content) as bytes_io_data:
-            repo_file_content = read_csv_in_chunks(
-                Path(bytes_io_data.getvalue().decode("utf-8"))
-            )
+            repo_file_content = read_csv_in_chunks(bytes_io_data)
         combined_content = concat(
             [local_file_content, repo_file_content], ignore_index=True
         )
@@ -128,8 +126,12 @@ def update_git_files(
     file_names: list,
     repo_name: str,
     branch: str,
-    commit_message: str = f"Data Updated - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}",
+    commit_message: str = None,
 ) -> None:
+    if commit_message is None:
+        commit_message = (
+            f"Data Updated - {datetime.now().strftime('%H:%M:%S %d-%m-%Y')}"
+        )
     repo = GithubSingleton.get_instance().get_repository(repo_name)
     master_ref = repo.get_git_ref(f"heads/{branch}")
     master_sha = master_ref.object.sha

@@ -55,6 +55,13 @@ def test_closest_hour_rounds_to_nearest(minute, expected_hour):
     assert result == datetime(2024, 1, 1, expected_hour, 0)
 
 
+def test_closest_hour_rounds_up_past_midnight_without_overflow():
+    # 23:30 must roll over to 00:00 the next day; the old ``hour=hour+1`` raised
+    # ValueError (hour 24 out of range) instead of carrying into the date.
+    result = closest_hour(datetime(2024, 1, 1, 23, 30))
+    assert result == datetime(2024, 1, 2, 0, 0)
+
+
 def test_current_hour_is_truncated_to_the_hour():
     now_hour = current_hour()
     assert now_hour.minute == 0

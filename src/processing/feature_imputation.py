@@ -1,3 +1,4 @@
+from logging import getLogger
 from numbers import Number
 from typing import Optional
 
@@ -6,6 +7,8 @@ from pandas import DataFrame, factorize, get_dummies, isnull
 from scipy import stats
 from scipy.spatial.distance import cdist
 from scipy.stats import hmean
+
+logger = getLogger(__name__)
 
 
 def weighted_hamming(data: DataFrame):
@@ -75,10 +78,10 @@ def distance_matrix(
     is_mixed_type = not is_all_categorical and not is_all_numeric
 
     if numeric_distance not in possible_continuous_distances:
-        print(f"The continuous distance {numeric_distance} is not supported.")
+        logger.error(f"The continuous distance {numeric_distance} is not supported.")
         return None
     elif categorical_distance not in possible_binary_distances:
-        print(f"The binary distance {categorical_distance} is not supported.")
+        logger.error(f"The binary distance {categorical_distance} is not supported.")
         return None
 
     # Separate the data frame into categorical and numeric attributes and normalize numeric data
@@ -92,17 +95,19 @@ def distance_matrix(
         )
         data_categorical = data.iloc[:, [not x for x in is_numeric]]
 
-        # Replace missing values with column mean for numeric values and mode for categorical ones. With the mode,
-        # it triggers a warning: "SettingWithCopyWarning: A value is trying to be set on a copy of a slice from a
-        # DataFrame" but the value are properly replaced
-        data_numeric.fillna(data_numeric.mean(), inplace=True)
+        # Replace missing values with column mean for numeric values and mode for
+        # categorical ones. Reassign rather than use ``inplace=True``: under pandas
+        # Copy-on-Write, in-place fillna on a column/slice is a silent no-op.
+        data_numeric = data_numeric.fillna(data_numeric.mean())
         for x in data_categorical:
-            data_categorical[x].fillna(data_categorical[x].mode()[0], inplace=True)
+            data_categorical[x] = data_categorical[x].fillna(
+                data_categorical[x].mode()[0]
+            )
     elif is_all_numeric:
-        data.fillna(data.mean(), inplace=True)
+        data = data.fillna(data.mean())
     else:
         for x in data:
-            data[x].fillna(data[x].mode()[0], inplace=True)
+            data[x] = data[x].fillna(data[x].mode()[0])
 
     # "Dummifies" categorical variables in place
     if not is_all_numeric and not (
@@ -197,21 +202,23 @@ def knn_impute(
     is_target_numeric = all(isinstance(n, Number) for n in target)
 
     if number_observations < 3:
-        print("Not enough observations.")
+        logger.error("Not enough observations.")
         return None
     if attributes.shape[0] != number_observations:
-        print(
+        logger.error(
             "The number of observations in the attributes variable is not matching the target variable length."
         )
         return None
     if k_neighbors > number_observations or k_neighbors < 1:
-        print("The range of the number of neighbors is incorrect.")
+        logger.error("The range of the number of neighbors is incorrect.")
         return None
     if aggregation_method not in possible_aggregation_method:
-        print("The aggregation method is incorrect.")
+        logger.error("The aggregation method is incorrect.")
         return None
     if not is_target_numeric and aggregation_method != "mode":
-        print("The only method allowed for categorical target variable is the mode.")
+        logger.error(
+            "The only method allowed for categorical target variable is the mode."
+        )
         return None
 
     target = DataFrame(target)

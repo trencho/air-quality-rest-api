@@ -34,12 +34,13 @@ def calculate_row_index(row: Series) -> float:
 
 
 def closest_hour(t: datetime, tz: tzinfo = None) -> datetime:
+    rounded = t.replace(minute=0, second=0, microsecond=0) + timedelta(
+        hours=(1 if t.minute >= 30 else 0)
+    )
     if tz is not None:
-        return timezone(tz.__str__()).localize(
-            t.replace(hour=t.hour + t.minute // 30, minute=0, second=0, microsecond=0)
-        )
+        return timezone(tz.__str__()).localize(rounded)
 
-    return t.replace(hour=t.hour + t.minute // 30, minute=0, second=0, microsecond=0)
+    return rounded
 
 
 def current_hour(tz: tzinfo = None) -> datetime:
@@ -84,11 +85,11 @@ def flatten_json(nested_json: dict, exclude=None) -> dict:
     out = {}
 
     def flatten(x: (list, dict, str), name: str = "", exclude=exclude) -> None:
-        if type(x) is dict:
+        if isinstance(x, dict):
             for a in x:
                 if a not in exclude:
                     flatten(x[a], f"{name}{a}_")
-        elif type(x) is list:
+        elif isinstance(x, list):
             if len(x) == 1:
                 flatten(x[0], f"{name}")
             else:
