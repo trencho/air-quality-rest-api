@@ -32,5 +32,8 @@ jobs:
       - name: Check formatting (Black)
         run: black --check src tests definitions.py
 
+      - name: Lint imports (Ruff)
+        run: ruff check src tests definitions.py
+
       - name: Run tests
         run: pytest

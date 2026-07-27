@@ -5,4 +5,5 @@ pandas-stubs==3.0.3.260530
 pytest==9.1.1
 pytest-xdist[psutil]==3.8.0
 py-unused-deps==0.4.2
+ruff==0.16.0
 scipy-stubs==1.18.0.1

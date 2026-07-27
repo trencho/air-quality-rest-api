@@ -6,7 +6,6 @@ passed both ``columns=`` and ``axis=1``, which pandas 3 rejects, so the function
 ``ValueError`` on every call until the redundant ``axis`` was removed.
 """
 
-import pytest
 from numpy import nan
 from pandas import DataFrame
 

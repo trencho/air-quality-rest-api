@@ -217,6 +217,8 @@ rpds-py==2026.6.3
     # via
     #   jsonschema
     #   referencing
+ruff==0.16.0
+    # via -r requirements/dev.txt
 scikit-learn==1.9.0
     # via -r requirements/common.txt
 scipy==1.18.0
@@ -226,7 +228,7 @@ scipy==1.18.0
     #   scikit-learn
     #   statsmodels
     #   xgboost
-scipy-stubs==1.18.0.0
+scipy-stubs==1.18.0.1
     # via -r requirements/dev.txt
 seaborn==0.13.2
     # via -r requirements/common.txt
