@@ -1,0 +1,40 @@
+name: Security scan
+
+# Weekly OSV vulnerability scan of the dependency tree, deliberately decoupled from the test / deploy
+# gate: a newly-published advisory surfaces as a scheduled red (and notifies the owner) without ever
+# blocking a PR or a deploy. Uses the plain OSV-Scanner action (no SARIF upload), so no GitHub
+# Advanced Security is required; the job fails if OSV finds a known vulnerability. OSV reads the
+# pinned requirements files natively (common.txt is chained in via -r from dev/prod). Record any
+# reviewed, accepted advisory in osv-scanner.toml (scoped to the exact ID) so it goes red only when a
+# NEW one lands.
+on:
+  schedule:
+    - cron: "43 4 * * 1" # weekly, Monday 04:43 UTC
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  osv-scan:
+    name: OSV scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
+        with:
+          scan-args: |-
+            -L
+            requirements/common.txt
+            -L
+            requirements/dev.txt
+            -L
+            requirements/prod.txt

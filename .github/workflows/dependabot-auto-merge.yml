@@ -1,0 +1,57 @@
+# Self-gating Dependabot auto-merge. Waits for the CI `test` job (test.yml) to pass, then merges
+# patch/minor Dependabot PRs directly. Majors stay manual. No branch-protection or repo settings
+# required — the workflow's GITHUB_TOKEN merges once the named check is green. (This repo is public,
+# so native `gh pr merge --auto` is also available; the self-gated variant is used to avoid enabling
+# branch protection on a personal project.)
+#
+# `test` is the gate: test.yml runs on pull_request and exposes a job named `test`.
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  auto-merge:
+    # Gate on the PR's AUTHOR, not `github.actor` — the actor is whoever triggered this particular run,
+    # so any human touching the branch (an "Update branch" click, a rebase) makes the condition false
+    # and the job skips. This is the check GitHub's own Dependabot example uses.
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v3
+
+      - name: Wait for CI, then merge (patch/minor only)
+        if: ${{ steps.meta.outputs.update-type == 'version-update:semver-patch' || steps.meta.outputs.update-type == 'version-update:semver-minor' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          REQUIRED_CHECKS: "test"
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 60); do
+            pending=0
+            for name in $REQUIRED_CHECKS; do
+              row=$(gh api "repos/$REPO/commits/$SHA/check-runs" --paginate \
+                --jq ".check_runs[] | select(.name==\"$name\") | [.status,(.conclusion // \"\")] | @tsv" | tail -1)
+              if [ -z "$row" ]; then pending=1; continue; fi
+              status=$(printf '%s' "$row" | cut -f1)
+              concl=$(printf '%s' "$row" | cut -f2)
+              [ "$status" != "completed" ] && pending=1
+              if [ "$status" = "completed" ] && [ "$concl" != "success" ]; then
+                echo "required check '$name' concluded '$concl' — not merging."; exit 1
+              fi
+            done
+            if [ "$pending" -eq 1 ]; then echo "waiting for required checks..."; sleep 20; continue; fi
+            echo "all required checks green — merging."
+            gh pr merge "$PR_URL" --squash --delete-branch
+            exit 0
+          done
+          echo "timed out waiting for required checks."; exit 1
