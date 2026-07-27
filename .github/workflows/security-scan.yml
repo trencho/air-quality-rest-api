@@ -31,10 +31,12 @@ jobs:
       - name: OSV-Scanner
         uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
         with:
+          # The files are not named requirements.txt, so OSV can't infer the parser from the
+          # filename — force it with the `<parse-as>:<path>` syntax.
           scan-args: |-
             -L
-            requirements/common.txt
+            requirements.txt:requirements/common.txt
             -L
-            requirements/dev.txt
+            requirements.txt:requirements/dev.txt
             -L
-            requirements/prod.txt
+            requirements.txt:requirements/prod.txt
