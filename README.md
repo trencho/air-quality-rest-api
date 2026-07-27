@@ -100,16 +100,21 @@ the required variables at startup and exits if any are missing.
 ```bash
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install --no-cache-dir -r requirements/dev.txt
-python src/api/app.py                                   # http://127.0.0.1:5000  (docs at /api/v1/apidocs/)
+SKIP_DATA_FETCH=1 python src/api/app.py                 # http://127.0.0.1:5000  (docs at /api/v1/apidocs/)
 ```
 
-Dev uses the in-memory repository (no MongoDB required) and the committed `data/raw/*.json` seed.
+Dev uses the in-memory repository (no MongoDB required). `APP_ENV` defaults to `development`.
+`create_app()` fetches upstream location data from pulse.eco on startup — set `SKIP_DATA_FETCH=1`
+to run offline. Data-dependent endpoints (history/pollutants/forecast/plots) return 404 until
+`data/processed/<city>/<sensor>/*.csv` exist (in production the scheduler generates these; `data/`
+is gitignored, so nothing is seeded by default locally).
 
 ### Docker
 
 ```bash
 cd docker
-cp .env .env.local   # then fill in the values
+# create docker/.env with the production values (MONGO_*, OPEN_WEATHER_TOKEN, GITHUB_TOKEN, REPO_NAME, …);
+# compose reads docker/.env
 docker compose up --build
 ```
 
@@ -119,9 +124,11 @@ docker compose up --build
 pytest            # tests/ run in parallel (-n logical); see pytest.ini
 ```
 
-The tests are endpoint integration tests (Flask-Testing) run against the in-memory repository. Note
-that importing the app triggers `create_app()`, which fetches upstream location data — the suite is
-not fully hermetic and needs network access.
+The tests are endpoint integration tests (Flask-Testing) plus unit tests over the processing/modeling
+layers, run against the in-memory repository. The suite is **hermetic**: `tests/conftest.py` sets
+`SKIP_DATA_FETCH=1` (so `create_app()` does not fetch upstream data), disables the rate limiter, and
+seeds a trimmed skopje/MK fixture from `tests/fixtures/raw` into a gitignored `data/` dir (cleaned up
+on teardown). No network or MongoDB required.
 
 ## Formatting
 
