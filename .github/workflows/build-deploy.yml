@@ -140,6 +140,12 @@ jobs:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
           key: ${{ env.SSH_PRIVATE_KEY }}
+          # The action's default command_timeout is 10m, but flask's startupProbe
+          # allows up to 15 minutes for its boot-time data fetch and the deploy script
+          # blocks on `kubectl rollout status`. Without this the SSH step is killed
+          # mid-rollout and the deploy reports failure for a pod that was starting
+          # normally.
+          command_timeout: 25m
           script: |
             set -e # Stop execution on any error
 
