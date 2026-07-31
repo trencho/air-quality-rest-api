@@ -178,3 +178,11 @@ kubernetes/secrets/
 /results/
 *.env
 !.gitkeep
+
+# OpenVPN profiles are ignored by default: a profile carrying inline <key>, <cert> or
+# <tls-crypt> blocks is a credential, and this repository is public. The one exception
+# below is the deploy's config, which holds only PATHS — the actual ca.crt, client.crt
+# and tls-crypt.key are written at runtime from GitHub secrets. Keep it that way; key
+# material belongs in a secret, never in a tracked file.
+*.ovpn
+!.github/workflows/client.ovpn
