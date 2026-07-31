@@ -24,17 +24,94 @@ env:
 permissions:
   contents: read
 
+# Two quick pushes previously raced on the same server directory, both running
+# git reset --hard concurrently. Deploys now queue instead, and an in-flight one
+# is never cancelled half-way through a rollout.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
   test:
     uses: ./.github/workflows/test.yml
 
-  deploy:
+  # The image is built HERE, on the runner, and pushed to GHCR -- not on the
+  # deploy host.
+  #
+  # It used to be built on the node by build_docker_images.sh (`docker compose
+  # build`) and consumed with `imagePullPolicy: Never`. That silently stopped
+  # working when the node moved to containerd: `docker build` writes to Docker's
+  # image store, kubelet reads containerd's, and the two are separate. flask sat
+  # in ErrImageNeverPull and /api/v1/* returned 503, while `docker images` on the
+  # node cheerfully listed an image the cluster could not see.
+  build-and-push:
+    name: Build and push the image
     needs: test
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      # Required to push to GHCR. Scoped to this job, not granted workflow-wide.
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3.11.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Two tags: :latest for the Deployment to track, and the commit SHA so a
+      # specific build can be identified and rolled back to.
+      - name: Build and push
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    # Nothing is deployed unless an image was actually published.
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
+
+      # OPENVPN_CONFIG holds a *path*, and it is a secret, so when the file is
+      # missing the VPN action reports `config file '***' not found` -- masked,
+      # and therefore impossible to act on. That is exactly what happened in
+      # aqra-frontend when the .ovpn was deleted as "unreferenced": the only
+      # reference lived in the secret, so grep found nothing and two days went
+      # into diagnosing it.
+      #
+      # Fail here instead, before the two-minute apt install, and say which file
+      # this repository actually ships.
+      - name: Verify the OpenVPN config file exists
+        run: |
+          if [ ! -f "${OPENVPN_CONFIG}" ]; then
+            echo "::error::OPENVPN_CONFIG names a file that is not in the checkout."
+            echo "The secret must hold a path, relative to the repository root, to an"
+            echo "OpenVPN config. This repository ships one at:"
+            echo "    .github/workflows/client.ovpn"
+            echo "Present in .github/workflows right now:"
+            ls -A .github/workflows
+            exit 1
+          fi
+          echo "OpenVPN config found."
 
       - name: Install OpenVPN
         run: |
@@ -44,9 +121,9 @@ jobs:
       - name: Create necessary OpenVPN key files
         run: |
           sudo mkdir -p /etc/openvpn
-          echo "${{ secrets.CA_CERT }}" | sudo tee /etc/openvpn/ca.crt > /dev/null
-          echo "${{ secrets.CLIENT_CERT }}" | sudo tee /etc/openvpn/client.crt > /dev/null
-          echo "${{ secrets.TLS_CRYPT_KEY }}" | sudo tee /etc/openvpn/tls-crypt.key > /dev/null
+          echo "${CA_CERT}" | sudo tee /etc/openvpn/ca.crt > /dev/null
+          echo "${CLIENT_CERT}" | sudo tee /etc/openvpn/client.crt > /dev/null
+          echo "${TLS_CRYPT_KEY}" | sudo tee /etc/openvpn/tls-crypt.key > /dev/null
 
       - name: Connect to VPN
         uses: kota65535/github-openvpn-connect-action@v3.1.0
@@ -94,7 +171,6 @@ jobs:
             find .github/workflows -type f -name "*.sh" -exec chmod +x {} +
 
             echo "Executing deployment scripts..."
-            .github/workflows/build_docker_images.sh
             .github/workflows/deploy_kubernetes_resources.sh
 
             echo "Restarting Kubernetes Deployments..."

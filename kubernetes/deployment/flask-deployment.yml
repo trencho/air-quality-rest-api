@@ -25,8 +25,13 @@ spec:
                 name: flask-config
             - secretRef:
                 name: flask-secret
-          image: aqra-flask
-          imagePullPolicy: Never
+          # Built by CI and pulled from GHCR, not built on the node. The old
+          # `aqra-flask` / `Never` pairing required a node-local image, and
+          # `docker compose build` writes to Docker's image store while kubelet
+          # reads containerd's -- so this Deployment sat in ErrImageNeverPull and
+          # /api/v1/* returned 503. Same bug, same fix, as aqra-frontend PR #10.
+          image: ghcr.io/trencho/air-quality-rest-api:latest
+          imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 1
             httpGet:

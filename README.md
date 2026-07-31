@@ -140,6 +140,22 @@ black --check .   # verify (use before committing)
 ## Deployment
 
 Production runs as a **Docker Compose** stack (Flask image + MongoDB) or on **Kubernetes**
-(`kubernetes/`: deployments, sealed secrets, cert-manager issuers, MetalLB, ingress-nginx). CI
-(`.github/workflows/build-deploy.yml`) connects to the host over OpenVPN + SSH and builds/deploys on
-`master`. See `docker/README.md` and `kubernetes/README.md`.
+(`kubernetes/`: deployments, sealed secrets, cert-manager issuers, MetalLB, ingress-nginx). See
+`docker/README.md` and `kubernetes/README.md`.
+
+On `master`, `.github/workflows/build-deploy.yml` runs the tests, **builds the image on the
+runner and pushes it to `ghcr.io/trencho/air-quality-rest-api`**, then connects to the host over
+OpenVPN + SSH and applies the manifests. The node pulls the image; **nothing is built there**.
+It used to be: `docker compose build` on the node wrote to Docker's image store while kubelet
+read containerd's, so the Deployment sat in `ErrImageNeverPull` and `/api/v1/*` returned 503.
+
+Two things worth knowing before touching that pipeline:
+
+- **A merge to `master` dispatches a production deploy.** Know the cluster's state first.
+- **`.github/workflows/client.ovpn` must not be deleted.** Nothing in the tree references it —
+  the `OPENVPN_CONFIG` secret holds its *path*. The workflow now fails fast and names the file
+  if it goes missing, because the VPN action's own error masks the path as `***`.
+
+MongoDB is pinned to **`mongo:4.4`**, deliberately not to a patch version and deliberately not
+newer: this node's CPU has no AVX, which MongoDB 5.0+ requires, and the floating `4.4` tag is
+what is already running — pinning tighter would roll the database on the next apply.

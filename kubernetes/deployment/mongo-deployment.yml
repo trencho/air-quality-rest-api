@@ -25,15 +25,33 @@ spec:
                 name: mongo-config
             - secretRef:
                 name: mongo-secret
-          image: aqra-mongo
-          imagePullPolicy: Never
+          # This manifest was stale in three ways at once, and applying it as it
+          # stood would have taken the database down before the flask fix below
+          # ever landed -- deploy_kubernetes_resources.sh applies mongo first,
+          # under `set -e`, and blocks on its rollout.
+          #
+          # 1. `image: aqra-mongo` with `imagePullPolicy: Never` needed an image
+          #    built on the node, which no longer works there (Docker's store vs
+          #    containerd's). The cluster has been running the public image for
+          #    months; the repo never caught up.
+          # 2. The tag is `4.4` and NOT pinned to a patch, which is the one place
+          #    this repo's pin-exactly convention is deliberately not followed:
+          #    4.4 is what is actually running, so this matches it and `apply`
+          #    causes no rollout. Pinning to 4.4.30 would restart the database.
+          #    MongoDB 5.0+ is not an option at all -- this node's CPU has no AVX.
+          # 3. The probe ran `mongosh`, which does not ship in 4.4 (it arrived in
+          #    5.0). So the liveness probe could only ever fail. Combined with
+          #    `failureThreshold: 1` and `timeoutSeconds: 60`, that is what drove
+          #    mongo's ~1,050 restarts.
+          image: mongo:4.4
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             exec:
               command:
-                - mongosh
+                - mongo
                 - --eval
                 - db.adminCommand("ping")
-            failureThreshold: 1
+            failureThreshold: 3
             initialDelaySeconds: 60
             periodSeconds: 300
             timeoutSeconds: 60

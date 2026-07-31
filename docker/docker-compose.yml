@@ -29,7 +29,10 @@ services:
       REPO_NAME: ${REPO_NAME:-}
       TZ: ${TZ:-}
       VOLUME_PATH: ${VOLUME_PATH:-}
-    image: aqra-flask:latest
+    # Same name CI publishes and the cluster pulls, so a local `compose build`
+    # and the deployed image cannot drift apart in naming. Compose still builds
+    # it locally; the cluster pulls the CI-built one.
+    image: ghcr.io/trencho/air-quality-rest-api:latest
     networks:
       - network
     ports:
