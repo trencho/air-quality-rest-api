@@ -30,9 +30,30 @@ echo "Kubernetes API server reachable - proceeding with the deploy."
 deploy_and_wait() {
   local name=$1
   local timeout=${2:-10m}
+  local force_restart=${3:-no}
 
   echo "Deploying ${name}..."
   kubectl apply -f "${KUBERNETES_DIR}/deployment/${name}-deployment.yml"
+
+  # A mutable tag does not roll a Deployment. flask is deployed as :latest, so once
+  # its spec has settled, `kubectl apply` is a no-op even though CI just pushed a new
+  # image under that tag -- Kubernetes compares the spec, not the registry digest.
+  #
+  # That is not hypothetical: a NumPy fix was built and pushed, and the node kept
+  # crash-looping the SAME pod for another 69 minutes (x324 restarts) on the old
+  # image, reporting a stale error that looked exactly like the fix having failed.
+  #
+  # rollout restart forces a new pod, which (imagePullPolicy: Always) pulls the
+  # current tag. Only for mutable-tag workloads: mongo and redis are pinned, and
+  # restarting the database on every deploy would be gratuitous.
+  #
+  # The better end state is deploying by immutable digest or the :${GITHUB_SHA} tag
+  # CI already publishes, so a rollout is driven by a real spec change. That needs
+  # image substitution at apply time and is deliberately left as a follow-up.
+  if [ "${force_restart}" = "restart" ]; then
+    echo "Forcing a new ${name} pod so it pulls the current mutable tag..."
+    kubectl rollout restart "deployment/${name}" -n aqra
+  fi
 
   local generation observed
   generation=$(kubectl get "deployment/${name}" -n aqra -o jsonpath='{.metadata.generation}')
@@ -67,5 +88,6 @@ kubectl apply -k ${KUBERNETES_DIR}
 deploy_and_wait mongo 10m
 deploy_and_wait redis 10m
 # Longer: flask's create_app() blocks on a bulk data fetch before the worker binds, and
-# its startupProbe allows 15 minutes for that.
-deploy_and_wait flask 20m
+# its startupProbe allows 15 minutes for that. "restart" because its image is the mutable
+# :latest tag -- see the note in deploy_and_wait.
+deploy_and_wait flask 20m restart
