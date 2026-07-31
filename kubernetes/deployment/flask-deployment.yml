@@ -6,6 +6,11 @@ metadata:
   name: flask
   namespace: aqra
 spec:
+  # Must exceed the startupProbe budget below (90 x 10s = 15 min), or the Deployment
+  # reports ProgressDeadlineExceeded -- and `kubectl rollout status` fails the deploy --
+  # while the pod is still legitimately starting. The default is 600s, which is shorter
+  # than this container's own worst-case boot.
+  progressDeadlineSeconds: 1200
   replicas: 1
   selector:
     matchLabels:
@@ -32,22 +37,45 @@ spec:
           # /api/v1/* returned 503. Same bug, same fix, as aqra-frontend PR #10.
           image: ghcr.io/trencho/air-quality-rest-api:latest
           imagePullPolicy: Always
-          livenessProbe:
-            failureThreshold: 1
+          # This container cannot serve anything until a bulk data fetch finishes.
+          # create_app() calls init_data() BEFORE returning (src/api/config/__init__.py),
+          # and gunicorn imports the factory, so the worker does not bind a port until
+          # that pulse.eco fetch completes. On a cold volume that is minutes.
+          #
+          # The old settings could not survive that. Liveness had failureThreshold: 1
+          # with initialDelaySeconds: 60 and timeoutSeconds: 60, so a container that
+          # was not answering by ~t+120s was killed and restarted straight back into
+          # the same race -- an unwinnable crash loop, whatever the image. It is the
+          # same failureThreshold: 1 pattern that drove mongo's ~1,050 restarts.
+          #
+          # A startupProbe is the mechanism built for exactly this: while it is
+          # running, liveness and readiness are disabled entirely, so a slow boot can
+          # never be mistaken for a hung process. 90 x 10s = 15 minutes of grace.
+          startupProbe:
+            failureThreshold: 90
             httpGet:
               path: /api/v1/healthz/live
               port: 80
-            initialDelaySeconds: 60
-            periodSeconds: 300
-            timeoutSeconds: 60
+            periodSeconds: 10
+          # Takes over only once startupProbe has succeeded, so no initialDelaySeconds
+          # is needed here -- boot time is the startup probe's job, not liveness's.
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/healthz/live
+              port: 80
+            periodSeconds: 30
+            timeoutSeconds: 10
+          # periodSeconds was 300: a readiness check that missed its first attempt did
+          # not retry for five minutes, so a perfectly healthy pod stayed out of
+          # service -- and the Service kept returning 503 -- for most of that.
           readinessProbe:
-            failureThreshold: 2
+            failureThreshold: 3
             httpGet:
               path: /api/v1/healthz/ready
               port: 80
-            initialDelaySeconds: 60
-            periodSeconds: 300
-            timeoutSeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 10
           name: flask
           ports:
             - containerPort: 80
