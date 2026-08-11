@@ -71,7 +71,7 @@ jobs:
       # Two tags: :latest for the Deployment to track, and the commit SHA so a
       # specific build can be identified and rolled back to.
       - name: Build and push
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v7.3.0
         with:
           context: .
           file: docker/Dockerfile
