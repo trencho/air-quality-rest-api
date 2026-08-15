@@ -13,15 +13,15 @@ attrs==26.1.0
     #   referencing
 blinker==1.9.0
     # via flask
-cachelib==0.14.0
+cachelib==0.15.4
     # via flask-caching
 certifi==2026.7.22
     # via requests
-cffi==2.1.0
+cffi==2.1.1
     # via
     #   cryptography
     #   pynacl
-charset-normalizer==3.4.9
+charset-normalizer==3.5.1
     # via requests
 click==8.4.2
     # via flask
@@ -58,7 +58,7 @@ flask-limiter==4.1.1
     # via -r requirements/common.txt
 fonttools==4.63.0
     # via matplotlib
-greenlet==3.5.4
+greenlet==3.5.5
     # via sqlalchemy
 gunicorn==26.0.0
     # via -r requirements/common.txt
@@ -114,7 +114,7 @@ numpy==2.5.1
     #   xgboost
 ordered-set==4.1.0
     # via flask-limiter
-packaging==26.2
+packaging==26.3
     # via
     #   flasgger
     #   gunicorn
@@ -156,7 +156,7 @@ pytz==2026.3.post1
     # via -r requirements/common.txt
 pyyaml==6.0.3
     # via flasgger
-redis==8.0.1
+redis==8.1.0
     # via -r requirements/common.txt
 referencing==0.37.0
     # via
@@ -187,7 +187,7 @@ six==1.17.0
     #   python-dateutil
 sqlalchemy==2.0.51
     # via -r requirements/common.txt
-starlette==1.3.1
+starlette==1.6.0
     # via -r requirements/common.txt
 statsmodels==0.14.6
     # via -r requirements/common.txt
@@ -217,7 +217,7 @@ werkzeug==3.1.8
     #   -r requirements/common.txt
     #   flask
     #   flask-cors
-wrapt==2.2.2
+wrapt==2.3.0
     # via deprecated
-xgboost==3.3.0
+xgboost==3.4.0
     # via -r requirements/common.txt
