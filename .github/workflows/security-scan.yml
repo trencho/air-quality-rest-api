@@ -9,7 +9,7 @@ name: Security scan
 # NEW one lands.
 on:
   schedule:
-    - cron: "43 4 * * 1" # weekly, Monday 04:43 UTC
+    - cron: "03 7 * * 1" # weekly, Monday 07:03 UTC - fleet slot (minutes staggered per repo)
   push:
     branches: [master]
   pull_request:

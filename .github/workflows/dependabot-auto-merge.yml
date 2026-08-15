@@ -1,5 +1,6 @@
 # Self-gating Dependabot auto-merge. Waits for the CI `test` job (test.yml) to pass, then merges
-# patch/minor Dependabot PRs directly. Majors stay manual. No branch-protection or repo settings
+# Dependabot PRs directly - EVERY update type, majors included (workbench 0.1.18); only a
+# pre-release target is held. No branch-protection or repo settings
 # required — the workflow's GITHUB_TOKEN merges once the named check is green. (This repo is public,
 # so native `gh pr merge --auto` is also available; the self-gated variant is used to avoid enabling
 # branch protection on a personal project.)
@@ -26,8 +27,42 @@ jobs:
         id: meta
         uses: dependabot/fetch-metadata@v3
 
-      - name: Wait for CI, then merge (patch/minor only)
-        if: ${{ steps.meta.outputs.update-type == 'version-update:semver-patch' || steps.meta.outputs.update-type == 'version-update:semver-minor' }}
+      # Pre-release guard: the one thing that does NOT auto-merge. Registries expose a release
+      # channel, but the docker/docker-compose ecosystems match image TAGS, which carry none -- so
+      # `python:3.14.6-slim` -> `python:3.15.0rc1-slim` scores an ordinary MINOR and would merge
+      # into a production image (it did, 2026-08-15). It cannot be expressed in dependabot.yml:
+      # ignore.versions takes version RANGES, not globs (dependabot-core#15154).
+      #
+      # `new-version` is empty on a GROUPED PR, so the raw metadata JSON is checked too: if any
+      # updated dependency looks like a pre-release, the whole PR is held. Failing toward "hold"
+      # is deliberate -- a missed merge is a nuisance, a shipped release candidate is an incident.
+      - name: Check for a pre-release target
+        id: prerelease
+        env:
+          NEW_VERSION: ${{ steps.meta.outputs.new-version }}
+          UPDATED_JSON: ${{ steps.meta.outputs.updated-dependencies-json }}
+        run: |
+          set -euo pipefail
+          pattern='[-._]?(rc|alpha|beta|dev|pre|preview|snapshot|nightly|canary|next|insiders)'
+          held=false
+          if printf '%s' "$NEW_VERSION" | grep -qiE "$pattern"; then held=true; fi
+          if printf '%s' "$UPDATED_JSON" | grep -qiE "\"[^\"]*$pattern[^\"]*\""; then held=true; fi
+          echo "held=$held" >> "$GITHUB_OUTPUT"
+          if [ "$held" = true ]; then
+            echo "pre-release target detected (new-version='$NEW_VERSION') - not auto-merging."
+          fi
+
+      - name: Explain a held pre-release
+        if: ${{ steps.prerelease.outputs.held == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          NEW_VERSION: ${{ steps.meta.outputs.new-version }}
+        run: |
+          gh pr comment "$PR_URL" --body "Held: this bump targets a **pre-release** version (\`$NEW_VERSION\`). Every other update type auto-merges; pre-releases need a human to confirm it is intended."
+
+      - name: Wait for CI, then merge
+        if: ${{ steps.prerelease.outputs.held == 'false' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}

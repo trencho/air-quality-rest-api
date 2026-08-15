@@ -1,0 +1,99 @@
+# Monthly GHCR retention — prunes the container versions every build leaves behind. Drop into a
+# target project as .github/workflows/package-retention.yml, but ONLY if the repo publishes images.
+# See references/dependency-automation-guide.md.
+#
+# WHY THIS EXISTS. A repo that tags `:latest` AND `:<sha>` on every merge accumulates two kinds of
+# rubbish, neither of which anything cleans up:
+#   1. One permanent version per build. A year of merges is a year of image versions.
+#   2. An UNTAGGED orphan every time `:latest` moves. Re-tagging does not delete the manifest it
+#      used to point at; it just leaves it nameless. These are pure waste — nothing can pull them
+#      by tag, and no deploy can roll back to one.
+#
+# GitHub Actions *caches* are the other thing that piles up, and they need no job here: they evict
+# themselves after 7 idle days and at a 10 GB per-repo ceiling. Container versions never expire.
+#
+# ---------------------------------------------------------------------------------------------
+# DELETION IS IRREVERSIBLE. Read before enabling.
+#
+#   - Run it once via `workflow_dispatch` and read the inventory step's output BEFORE trusting the
+#     schedule. The inventory is read-only and always runs first.
+#   - Pass 1 (untagged) is on by default and is the safe one: an untagged version is unreachable
+#     by tag and cannot be a rollback target.
+#   - Pass 2 (prune old tagged builds) ships COMMENTED OUT. It deletes real, addressable images.
+#     Enable it only after the inventory has shown you what is actually there.
+#   - `package-name` must name the package, not the repo, when they differ (a monorepo publishing
+#     several images needs one job per package).
+#   - GITHUB_TOKEN can only delete a package that is LINKED to this repository. An unlinked
+#     package needs a PAT with `delete:packages` in a secret instead.
+#
+# Canonical shape (keep identical across repos so parity is checkable):
+#   file:    package-retention.yml
+#   name:    Package retention
+#   job id:  prune
+#   trigger: monthly schedule + workflow_dispatch
+name: Package retention
+
+on:
+  schedule:
+    - cron: "0 9 1-7 * 1" # first Monday of the month, 09:00 UTC — an hour after dependency-cleanup
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: package-retention
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    name: Prune old container versions
+    runs-on: ubuntu-latest
+    steps:
+      # Read-only. This is what you check before enabling pass 2 — and what tells you whether the
+      # job is even worth running (a repo with 12 versions does not need pruning).
+      - name: Inventory
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE: ${{ github.event.repository.name }}
+        run: |
+          set -uo pipefail
+          # `|| true` throughout: the API 404s until the first image is published, and a failed
+          # inventory must not stop the prune (or, worse, fail the job silently at 09:00 on a Monday).
+          versions=$(gh api "/repos/${{ github.repository }}/packages/container/$PACKAGE/versions" \
+                       --paginate 2>/dev/null || echo '[]')
+          total=$(printf '%s' "$versions" | jq -s '[.[][]] | length' 2>/dev/null || echo 0)
+          untagged=$(printf '%s' "$versions" \
+                     | jq -s '[.[][] | select(((.metadata.container.tags) // []) | length == 0)] | length' \
+                       2>/dev/null || echo 0)
+          {
+            echo "## Container versions for \`$PACKAGE\`"
+            echo
+            echo "- total: **$total**"
+            echo "- untagged (orphaned by a \`:latest\` re-tag): **$untagged**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # --- Pass 1: untagged orphans. Safe, and usually the bulk of the waste. ---
+      - name: Delete untagged versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ github.event.repository.name }}
+          package-type: container
+          delete-only-untagged-versions: "true"
+          min-versions-to-keep: "0"
+
+      # --- Pass 2: old tagged builds. DESTRUCTIVE — enable only after reading the inventory. ---
+      #
+      # `min-versions-to-keep` counts from the newest, so 10 leaves the ten most recent builds as
+      # rollback targets. `ignore-versions` is a regex over the version NAME; for a container that
+      # name is the digest, NOT the tag, so it cannot be used to protect `:latest` — the
+      # keep-newest-N behaviour is what protects it, since `:latest` always points at a recent
+      # build. If your deploy pins an OLD tag, do not enable this without excluding it another way.
+      #
+      # - name: Prune old tagged versions
+      #   uses: actions/delete-package-versions@v5
+      #   with:
+      #     package-name: ${{ github.event.repository.name }}
+      #     package-type: container
+      #     min-versions-to-keep: "10"
