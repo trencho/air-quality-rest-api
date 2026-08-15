@@ -29,7 +29,7 @@ colorama==0.4.6
     # via click
 contourpy==1.3.3
     # via matplotlib
-cryptography==49.0.0
+cryptography==50.0.0
     # via pyjwt
 cycler==0.12.1
     # via matplotlib
