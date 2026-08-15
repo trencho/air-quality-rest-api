@@ -9,7 +9,7 @@ gunicorn==26.0.0
 haversine==2.9.0
 lightgbm==4.7.0
 matplotlib==3.11.1
-numpy==2.5.1
+numpy==2.5.2
 pandas==3.0.5
 prometheus-flask-exporter==0.23.2
 psutil==7.2.2
@@ -20,7 +20,7 @@ redis==8.1.0
 requests==2.34.2
 scikit-learn==1.9.0
 scipy==1.18.0
-SQLAlchemy==2.0.51
+SQLAlchemy==2.0.52
 seaborn==0.13.2
 starlette==1.6.0
 statsmodels==0.14.6
