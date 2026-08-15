@@ -41,6 +41,25 @@ jobs:
             test
         run: |
           set -euo pipefail
+
+          # master requires status checks with `strict` (branch must be up to date), because a merge
+          # performed by GITHUB_TOKEN raises no workflow events -- so nothing re-verifies master
+          # after an auto-merge, and two PRs that were each green against an older base can combine
+          # into a broken tree. `strict` closes that by making the PR's green CI the merge result.
+          #
+          # This workflow merges directly instead of queueing GitHub's native auto-merge, so it has
+          # to handle "behind" itself. It asks DEPENDABOT to rebase rather than updating the branch
+          # here: a branch updated with GITHUB_TOKEN creates no CI run (same anti-recursion rule),
+          # which would leave the branch up to date with no checks on the new head -- permanently
+          # unable to satisfy the gate. Dependabot's own push does trigger CI, and the resulting
+          # `synchronize` event re-runs this workflow against the new head.
+          state=$(gh pr view "$PR_URL" --json mergeStateStatus --jq .mergeStateStatus)
+          if [ "$state" = "BEHIND" ]; then
+            gh pr comment "$PR_URL" --body '@dependabot rebase'
+            echo "branch is behind master; asked Dependabot to rebase. A later run will merge it."
+            exit 0
+          fi
+
           for _ in $(seq 1 60); do
             pending=0
             while IFS= read -r name; do
