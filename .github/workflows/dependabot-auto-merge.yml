@@ -33,12 +33,18 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           REPO: ${{ github.repository }}
           SHA: ${{ github.event.pull_request.head.sha }}
-          REQUIRED_CHECKS: "test"
+          # One check-run NAME per line. That is a job's `name:` when it has one, and its job id
+          # otherwise; naming the wrong one makes this loop wait for a check that never appears
+          # and time out instead of merging. One per line so a name containing spaces (e.g.
+          # "build + test (JDK 25)") is not split apart by word-splitting.
+          REQUIRED_CHECKS: |
+            test
         run: |
           set -euo pipefail
           for _ in $(seq 1 60); do
             pending=0
-            for name in $REQUIRED_CHECKS; do
+            while IFS= read -r name; do
+              [ -n "$name" ] || continue
               row=$(gh api "repos/$REPO/commits/$SHA/check-runs" --paginate \
                 --jq ".check_runs[] | select(.name==\"$name\") | [.status,(.conclusion // \"\")] | @tsv" | tail -1)
               if [ -z "$row" ]; then pending=1; continue; fi
@@ -48,7 +54,7 @@ jobs:
               if [ "$status" = "completed" ] && [ "$concl" != "success" ]; then
                 echo "required check '$name' concluded '$concl' — not merging."; exit 1
               fi
-            done
+            done <<< "$REQUIRED_CHECKS"
             if [ "$pending" -eq 1 ]; then echo "waiting for required checks..."; sleep 20; continue; fi
             echo "all required checks green — merging."
             gh pr merge "$PR_URL" --squash --delete-branch
