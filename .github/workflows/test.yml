@@ -24,6 +24,51 @@ jobs:
           cache: pip
           cache-dependency-path: requirements/dev.txt
 
+      # security-scan.yml points OSV at requirements/prod.lock and dev.lock, NOT at the .txt
+      # manifests. Dependabot bumps the manifests and never the locks, so without this they drift
+      # apart and the scan quietly audits a tree nobody installs -- a green scan on the wrong input,
+      # which is worse than a red one because nothing prompts you to look. It drifted twice in
+      # August 2026, the second time within an hour of being fixed by hand (PR #30).
+      #
+      # This compares the DECLARED pins against each lock's entry for the same package. It
+      # deliberately does NOT recompile-and-diff: recompiling resolves against the live index, so any
+      # newly released transitive would fail CI on an unrelated PR.
+      - name: Locks agree with the manifests
+        run: |
+          python - <<'PY'
+          import re, sys
+          def pins(path):
+              out = {}
+              for line in open(path, encoding="utf-8"):
+                  line = line.split("#")[0].strip()
+                  if not line or line.startswith(("-r", "-c", "--")):
+                      continue
+                  m = re.match(r"^([A-Za-z0-9._-]+)\[?[^\]]*\]?==([^\s;]+)", line)
+                  if m:
+                      out[m.group(1).lower().replace("_", "-")] = m.group(2)
+              return out
+          common = pins("requirements/common.txt")
+          failed = False
+          for variant in ("prod", "dev"):
+              declared = dict(common)
+              declared.update(pins(f"requirements/{variant}.txt"))
+              locked = pins(f"requirements/{variant}.lock")
+              bad = [(n, v, locked[n]) for n, v in declared.items() if n in locked and locked[n] != v]
+              missing = [n for n in declared if n not in locked]
+              for n, v, l in bad:
+                  print(f"::error::{variant}: {n} declared {v}, requirements/{variant}.lock pins {l}")
+              for n in missing:
+                  print(f"::error::{variant}: {n} is declared but absent from requirements/{variant}.lock")
+              if bad or missing:
+                  failed = True
+              else:
+                  print(f"{variant}: lock agrees with the manifest ({len(declared)} declared pins checked)")
+          if failed:
+              print("Regenerate: uv pip compile requirements/<variant>.txt --python-version 3.14 "
+                    "--strip-extras --no-header -o requirements/<variant>.lock  (then restore the header)")
+              sys.exit(1)
+          PY
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
