@@ -2,25 +2,43 @@
 # target project as .github/workflows/package-retention.yml, but ONLY if the repo publishes images.
 # See references/dependency-automation-guide.md.
 #
-# WHY THIS EXISTS. A repo that tags `:latest` AND `:<sha>` on every merge accumulates two kinds of
-# rubbish, neither of which anything cleans up:
-#   1. One permanent version per build. A year of merges is a year of image versions.
-#   2. An UNTAGGED orphan every time `:latest` moves. Re-tagging does not delete the manifest it
-#      used to point at; it just leaves it nameless. These are pure waste — nothing can pull them
-#      by tag, and no deploy can roll back to one.
+# WHY THIS EXISTS. A repo that tags `:latest` AND `:<sha>` on every merge accumulates one permanent
+# version per build, and container versions never expire. (GitHub Actions *caches* are the other
+# thing that piles up, and they need no job here: they evict themselves after 7 idle days and at a
+# 10 GB per-repo ceiling.)
 #
-# GitHub Actions *caches* are the other thing that piles up, and they need no job here: they evict
-# themselves after 7 idle days and at a 10 GB per-repo ceiling. Container versions never expire.
+# ---------------------------------------------------------------------------------------------
+# READ THIS FIRST: "UNTAGGED" DOES NOT MEAN "UNREFERENCED".
+#
+# An earlier version of this template deleted every untagged version, on the stated grounds that an
+# untagged version is unreachable by tag and cannot be a rollback target. That is FALSE, and acting
+# on it destroyed a real package on 2026-08-16: all nine tags survived and not one of them resolved.
+#
+# `docker/build-push-action` v6+ attaches provenance attestations by default, so what a tag points
+# at is an OCI **image index**, not an image. The index is the tagged version; the per-platform
+# image manifest and the attestation manifest underneath it are separate versions that carry NO
+# TAG OF THEIR OWN. Delete the untagged children and the tag still lists, still resolves to an
+# index, and pulls nothing — every layer it names is gone. Multi-arch images have the same shape
+# for the same reason.
+#
+# There is a second consequence worth internalising: when a repo tags every build with its commit
+# SHA, moving `:latest` orphans nothing, because the old index keeps its SHA tag. So on a
+# SHA-tagging repo almost every untagged version IS a live index child, and the honest expected
+# result of pass 1 is that it deletes NOTHING. Pass 2 is the real cleanup there.
+#
+# This template therefore resolves the reference graph from the registry before deleting anything:
+# a version is deletable only if it is untagged AND no tagged index points at it.
 #
 # ---------------------------------------------------------------------------------------------
 # DELETION IS IRREVERSIBLE. Read before enabling.
 #
-#   - Run it once via `workflow_dispatch` and read the inventory step's output BEFORE trusting the
-#     schedule. The inventory is read-only and always runs first.
-#   - Pass 1 (untagged) is on by default and is the safe one: an untagged version is unreachable
-#     by tag and cannot be a rollback target.
-#   - Pass 2 (prune old tagged builds) ships COMMENTED OUT. It deletes real, addressable images.
-#     Enable it only after the inventory has shown you what is actually there.
+#   - Run it once via `workflow_dispatch` and read the inventory in the job summary BEFORE trusting
+#     the schedule. The inventory is read-only and always runs first.
+#   - Pass 1 (untagged) now skips itself entirely when the graph is unavailable or when nothing is
+#     safely deletable. It fails toward keeping: no graph, no deletion.
+#   - Pass 2 (prune old tagged builds) ships COMMENTED OUT. It deletes real, addressable images —
+#     but it is the correct pass, because deleting a tagged index makes its children unreferenced
+#     and pass 1 can then collect them on the following month.
 #   - `package-name` must name the package, not the repo, when they differ (a monorepo publishing
 #     several images needs one job per package).
 #   - GITHUB_TOKEN can only delete a package that is LINKED to this repository. An unlinked
@@ -51,37 +69,129 @@ jobs:
     name: Prune old container versions
     runs-on: ubuntu-latest
     steps:
-      # Read-only. This is what you check before enabling pass 2 — and what tells you whether the
-      # job is even worth running (a repo with 12 versions does not need pruning).
-      - name: Inventory
+      # Read-only. Resolves the reference graph AND reports the inventory. Everything downstream
+      # keys off `deletable`, which is 0 unless this step positively proved a version is safe to
+      # remove — so any failure here disables the deletion rather than widening it.
+      - name: Resolve reference graph and inventory
+        id: graph
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGE: ${{ github.event.repository.name }}
+          OWNER: ${{ github.repository_owner }}
         run: |
           set -uo pipefail
-          # `|| true` throughout: the API 404s until the first image is published, and a failed
-          # inventory must not stop the prune (or, worse, fail the job silently at 09:00 on a Monday).
-          versions=$(gh api "/repos/${{ github.repository }}/packages/container/$PACKAGE/versions" \
-                       --paginate 2>/dev/null || echo '[]')
-          total=$(printf '%s' "$versions" | jq -s '[.[][]] | length' 2>/dev/null || echo 0)
-          untagged=$(printf '%s' "$versions" \
-                     | jq -s '[.[][] | select(((.metadata.container.tags) // []) | length == 0)] | length' \
-                       2>/dev/null || echo 0)
+
+          # Registry auth: ghcr.io takes the Actions token base64-encoded as a bearer token.
+          REG_TOKEN=$(printf '%s' "$GITHUB_TOKEN" | base64 -w0)
+          REG="https://ghcr.io/v2/${OWNER}/${PACKAGE}"
+          ACCEPT='application/vnd.oci.image.index.v1+json,application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json'
+
+          # 1. Every tag, and every digest any tagged index points at. A tag that cannot be
+          #    resolved contributes nothing, which is the safe direction only because a failure
+          #    to build the graph disables deletion outright (see `graph_ok` below).
+          graph_ok=1
+          tags=$(curl -sf -H "Authorization: Bearer $REG_TOKEN" "$REG/tags/list" \
+                 | jq -r '.tags[]? // empty') || graph_ok=0
+
+          : > referenced.txt
+          if [ "$graph_ok" = "1" ]; then
+            while IFS= read -r tag; do
+              [ -n "$tag" ] || continue
+              body=$(curl -sf -H "Authorization: Bearer $REG_TOKEN" -H "Accept: $ACCEPT" \
+                       "$REG/manifests/$tag") || { graph_ok=0; break; }
+              # The tagged version itself, plus every child of an index.
+              printf '%s' "$body" | jq -r '.manifests[]?.digest // empty' >> referenced.txt
+            done <<< "$tags"
+          fi
+
+          # 2. Every version GitHub knows about. NOTE the route: packages are owned by a USER or an
+          #    ORG, and there is no /repos/{owner}/{repo}/packages/... endpoint — an earlier version
+          #    of this template called exactly that, got a 404, swallowed it, and reported an
+          #    inventory of zero forever.
+          owner_type=$(gh api "repos/${{ github.repository }}" --jq '.owner.type' 2>/dev/null || echo '')
+          case "$owner_type" in
+            Organization) base="orgs/${OWNER}" ;;
+            User)         base="users/${OWNER}" ;;
+            *)            base='' ;;
+          esac
+
+          versions='[]'
+          if [ -n "$base" ]; then
+            versions=$(gh api "${base}/packages/container/${PACKAGE}/versions" --paginate 2>/dev/null \
+                       | jq -s '[.[][]]' 2>/dev/null) || versions='[]'
+          fi
+          [ -n "$versions" ] || versions='[]'
+
+          total=$(printf '%s' "$versions" | jq 'length')
+          untagged_all=$(printf '%s' "$versions" \
+            | jq '[.[] | select(((.metadata.container.tags) // []) | length == 0)] | length')
+
+          sort -u referenced.txt > referenced.sorted || true
+          ref_count=$(wc -l < referenced.sorted | tr -d ' ')
+
+          # 3. Deletable = untagged AND referenced by no tagged index.
+          deletable_json=$(printf '%s' "$versions" | jq -c --rawfile refs referenced.sorted '
+            ($refs | split("\n") | map(select(length > 0))) as $r
+            | [ .[]
+                | select(((.metadata.container.tags) // []) | length == 0)
+                | select(.name as $d | ($r | index($d)) | not) ]')
+          deletable=$(printf '%s' "$deletable_json" | jq 'length')
+          kept=$((untagged_all - deletable))
+
+          # If the graph could not be built we do not know what is referenced, so nothing is safe.
+          if [ "$graph_ok" != "1" ] || [ "$ref_count" = "0" ]; then
+            deletable=0
+            graph_note="**graph unavailable — deletion disabled for this run**"
+          else
+            graph_note="graph resolved from ${ref_count} referenced digest(s)"
+          fi
+
           {
             echo "## Container versions for \`$PACKAGE\`"
             echo
             echo "- total: **$total**"
-            echo "- untagged (orphaned by a \`:latest\` re-tag): **$untagged**"
+            echo "- untagged: **$untagged_all**"
+            echo "- untagged but REFERENCED by a tagged index (kept): **$kept**"
+            echo "- safely deletable: **$deletable**"
+            echo
+            echo "$graph_note"
+            if [ "$deletable" = "0" ]; then
+              echo
+              echo "Nothing to delete. On a repo that tags every build with its commit SHA this is"
+              echo "the expected result — moving \`:latest\` orphans nothing, so untagged versions"
+              echo "are index children of live tags. Pass 2 is the cleanup that applies there."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # --- Pass 1: untagged orphans. Safe, and usually the bulk of the waste. ---
-      - name: Delete untagged versions
+          # `ignore-versions` is a regex over the version NAME, which for a container is the digest.
+          if [ "$ref_count" != "0" ]; then
+            ignore="^($(paste -sd'|' referenced.sorted))$"
+          else
+            ignore='^$'
+          fi
+          {
+            echo "deletable=$deletable"
+            echo "ignore=$ignore"
+          } >> "$GITHUB_OUTPUT"
+
+      # --- Pass 1: genuinely unreferenced untagged versions. ---
+      # Skipped unless the step above positively identified something safe to remove. `ignore-versions`
+      # is belt-and-braces on top of that: even if the action's own selection is broader than ours,
+      # every digest a live tag depends on is excluded by name.
+      - name: Delete unreferenced untagged versions
+        if: steps.graph.outputs.deletable != '0'
         uses: actions/delete-package-versions@v5
         with:
           package-name: ${{ github.event.repository.name }}
           package-type: container
           delete-only-untagged-versions: "true"
           min-versions-to-keep: "0"
+          ignore-versions: ${{ steps.graph.outputs.ignore }}
+
+      - name: Report a skipped pass 1
+        if: steps.graph.outputs.deletable == '0'
+        run: echo "pass 1 skipped - nothing is both untagged and unreferenced (see the job summary)"
 
       # --- Pass 2: old tagged builds. DESTRUCTIVE — enable only after reading the inventory. ---
       #
@@ -90,6 +200,9 @@ jobs:
       # name is the digest, NOT the tag, so it cannot be used to protect `:latest` — the
       # keep-newest-N behaviour is what protects it, since `:latest` always points at a recent
       # build. If your deploy pins an OLD tag, do not enable this without excluding it another way.
+      #
+      # Deleting a tagged index leaves its children unreferenced, so pass 1 collects them on the
+      # following run. That ordering is why pass 2 is the real cleanup on a SHA-tagging repo.
       #
       # - name: Prune old tagged versions
       #   uses: actions/delete-package-versions@v5
