@@ -43,13 +43,38 @@ jobs:
           UPDATED_JSON: ${{ steps.meta.outputs.updated-dependencies-json }}
         run: |
           set -euo pipefail
-          pattern='[-._]?(rc|alpha|beta|dev|pre|preview|snapshot|nightly|canary|next|insiders)'
+          # A token counts only where it is not buried inside a longer alphabetic word: `3.15.0rc1`
+          # is held, while `26.7.0-alpine` and `1.31-alpine` are ordinary releases and pass. Longest
+          # alternatives first so `preview` is reported as itself rather than as `pre`.
+          pattern='(^|[^a-zA-Z])(preview|insiders|snapshot|nightly|canary|alpha|beta|next|dev|pre|rc)([^a-zA-Z]|$)'
           held=false
-          if printf '%s' "$NEW_VERSION" | grep -qiE "$pattern"; then held=true; fi
-          if printf '%s' "$UPDATED_JSON" | grep -qiE "\"[^\"]*$pattern[^\"]*\""; then held=true; fi
+          offender=""
+          if [ -n "${NEW_VERSION:-}" ] && printf '%s' "$NEW_VERSION" | grep -qiE "$pattern"; then
+            held=true
+            offender="$NEW_VERSION"
+          fi
+          if [ -n "${UPDATED_JSON:-}" ]; then
+            # jq ships on GitHub-hosted runners. On a self-hosted one without it this holds every
+            # PR, so say which of the two failures it is -- an unexplained fleet-wide freeze is
+            # exactly how the 0.1.18 bug went unnoticed for a day.
+            if ! command -v jq >/dev/null 2>&1; then
+              held=true
+              offender="jq unavailable - cannot inspect grouped metadata"
+            elif versions=$(printf '%s' "$UPDATED_JSON" | jq -r '.[]?.newVersion // empty'); then
+              hit=$(printf '%s\n' "$versions" | grep -iE "$pattern" | head -n 1 || true)
+              if [ -n "$hit" ]; then
+                held=true
+                offender="$hit"
+              fi
+            else
+              held=true
+              offender="unparseable metadata"
+            fi
+          fi
           echo "held=$held" >> "$GITHUB_OUTPUT"
+          echo "offender=$offender" >> "$GITHUB_OUTPUT"
           if [ "$held" = true ]; then
-            echo "pre-release target detected (new-version='$NEW_VERSION') - not auto-merging."
+            echo "pre-release target detected ('$offender') - not auto-merging."
           fi
 
       - name: Explain a held pre-release
@@ -57,9 +82,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-          NEW_VERSION: ${{ steps.meta.outputs.new-version }}
+          # The offending VALUE, not `new-version` -- which is empty on exactly the
+          # grouped PRs the metadata check exists to cover.
+          OFFENDER: ${{ steps.prerelease.outputs.offender }}
         run: |
-          gh pr comment "$PR_URL" --body "Held: this bump targets a **pre-release** version (\`$NEW_VERSION\`). Every other update type auto-merges; pre-releases need a human to confirm it is intended."
+          gh pr comment "$PR_URL" --body "Held: this bump targets a **pre-release** version (\`$OFFENDER\`). Every other update type auto-merges; pre-releases need a human to confirm it is intended."
 
       - name: Wait for CI, then merge
         if: ${{ steps.prerelease.outputs.held == 'false' }}
