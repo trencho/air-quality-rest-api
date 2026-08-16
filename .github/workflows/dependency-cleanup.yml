@@ -79,7 +79,12 @@ jobs:
       #   # lift-when: npm-peer <host-pkg> allows <peer-pkg> >=<version>
       #   # lift-when: npm-latest <pkg> >=<version>
       #   # lift-when: pypi-latest <pkg> >=<version>
+      #   # lift-when: eol-lts <endoflife-product> <cycle>
       #   # lift-when: manual <free text>   (reported verbatim, never auto-tested)
+      #
+      # `eol-lts` is what connects references/runtime-lts-policy.md to the thing that actually
+      # performs the bumps. A runtime base image is held at the current LTS major, and this clears
+      # the hold on the day the next major ENTERS LTS - not the day it is released.
       #
       # Anything unrecognised is reported as needing a human rather than silently passing — an
       # unparsed hold must not read as a cleared one.
@@ -154,6 +159,42 @@ jobs:
                   clear="**YES — lift it**"
                 else
                   clear="no, not published yet"
+                fi
+                ;;
+              eol-lts)
+                # eol-lts <product> <cycle> -- clears when THAT cycle has entered LTS.
+                #
+                # The `lts` field is NOT one type across products, and getting this wrong is the
+                # exact bug this form exists to prevent:
+                #   nodejs           -> a DATE ("2026-10-28"). A future date means NOT YET LTS, so a
+                #                       truthiness test reads an unreleased LTS as a released one.
+                #   eclipse-temurin  -> a BOOLEAN (true/false).
+                #   either           -> false, meaning that cycle is never an LTS.
+                # There is also no `java` product; Java resolves per distribution.
+                product=$(printf '%s' "$hold" | awk '{print $2}')
+                cycle=$(printf '%s' "$hold" | awk '{print $3}')
+                json=$(curl -fsSL "https://endoflife.date/api/${product}.json" 2>/dev/null || true)
+                if [ -z "$json" ]; then
+                  now="\`$product\` unreachable"; clear="could not check"
+                else
+                  lts=$(printf '%s' "$json" | jq -r --arg c "$cycle" \
+                          '.[] | select((.cycle|tostring) == $c) | (.lts|tostring)' 2>/dev/null | head -1)
+                  today=$(date -u +%F)
+                  case "$lts" in
+                    "")        now="\`$product\` has no cycle \`$cycle\`"; clear="could not check" ;;
+                    "true")    now="\`$product $cycle\` is LTS";           clear="**YES - lift it**" ;;
+                    "false")   now="\`$product $cycle\` is not an LTS line"; clear="no, never LTS" ;;
+                    null)      now="\`$product $cycle\` has no \`lts\` field"; clear="could not check" ;;
+                    *)
+                      now="\`$product $cycle\` LTS on $lts"
+                      # String compare is correct and total for ISO-8601 dates.
+                      if [ "$lts" \< "$today" ] || [ "$lts" = "$today" ]; then
+                        clear="**YES - lift it**"
+                      else
+                        clear="no, not LTS until $lts"
+                      fi
+                      ;;
+                  esac
                 fi
                 ;;
               manual) now="_not machine-testable_" ;;
