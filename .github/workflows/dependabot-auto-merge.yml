@@ -138,7 +138,24 @@ jobs:
             done <<< "$REQUIRED_CHECKS"
             if [ "$pending" -eq 1 ]; then echo "waiting for required checks..."; sleep 20; continue; fi
             echo "all required checks green — merging."
-            gh pr merge "$PR_URL" --squash --delete-branch
-            exit 0
+            if gh pr merge "$PR_URL" --squash --delete-branch; then
+              exit 0
+            fi
+            # The merge can be refused because the branch fell behind DURING the wait above. The
+            # BEHIND check before this loop cannot see that: a sibling PR landing mid-loop is the
+            # common case, not an edge one, and recreating several Dependabot PRs at once
+            # guarantees it. Hand it back to Dependabot rather than failing the run -- a branch
+            # updated with GITHUB_TOKEN would get no CI on the new head (the same anti-recursion
+            # rule as above) and could never satisfy the gate.
+            state=$(gh pr view "$PR_URL" --json mergeStateStatus --jq .mergeStateStatus)
+            if [ "$state" = "BEHIND" ]; then
+              gh pr comment "$PR_URL" --body '@dependabot rebase'
+              echo "merge refused: branch fell behind during the wait; asked Dependabot to rebase."
+              exit 0
+            fi
+            # Any other refusal is real and must stay loud. One seen in the wild: GitHub blocks a
+            # GITHUB_TOKEN merge of a PR that edits a workflow file ("refusing to allow a GitHub
+            # App to create or update workflow ... without `workflows` permission").
+            echo "merge refused while mergeStateStatus=$state."; exit 1
           done
           echo "timed out waiting for required checks."; exit 1
