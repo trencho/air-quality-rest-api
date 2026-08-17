@@ -101,7 +101,7 @@ jobs:
           echo -e "\n## Unused dependencies (deptry)\n" >> report.md
           echo '```' >> report.md
           req=$(ls requirements/*.txt requirements.txt 2>/dev/null | paste -sd, -)
-          pipx run deptry . ${req:+--requirements-files "$req"} >> report.md 2>&1 || true
+          pipx run deptry . --no-ansi ${req:+--requirements-files "$req"} >> report.md 2>&1 || true
           echo '```' >> report.md
 
       # ============================================================================================
