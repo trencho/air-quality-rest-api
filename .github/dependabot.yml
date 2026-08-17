@@ -62,21 +62,8 @@ updates:
     commit-message:
       prefix: chore
 
-  # Kubernetes manifests (27 files under /kubernetes) - TRIAL, this repo only.
-  #
-  # Handled by the `docker` ecosystem pointed at the manifest directory: the `kubernetes_updates`
-  # feature flag was removed (dependabot-core#6144) and "update Docker image on Kubernetes
-  # deployment files" (#2217) is closed. But the PUBLIC ecosystem table does not list Kubernetes,
-  # so this is deliberately enabled on ONE repo first. If a PR appears for a manifest image tag,
-  # roll the same block out to aqra-frontend (6 manifests); if nothing appears after a couple of
-  # weekly runs, delete this block rather than leaving a config that implies coverage it lacks.
-  - package-ecosystem: docker
-    directory: /kubernetes
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: Europe/Skopje
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: chore
+  # A Kubernetes-manifest block lived here as a TRIAL (docker ecosystem pointed at
+  # /kubernetes). It was removed on 2026-08-18 having met its own stated delete criterion:
+  # several weekly runs across 2026-08-15 and 08-17 produced ZERO manifest PRs. Kubernetes
+  # is not on Dependabot's public ecosystem table, and a config that implies coverage it
+  # does not have is worse than no config. Do not roll it to aqra-frontend.
