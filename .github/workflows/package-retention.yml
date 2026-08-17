@@ -53,7 +53,11 @@ name: Package retention
 
 on:
   schedule:
-    - cron: "0 9 1-7 * 1" # first Monday of the month, 09:00 UTC — an hour after dependency-cleanup
+    # WEEKLY, gated to the first week by the `gate` job below — NOT "0 9 1-7 * 1".
+    # cron ORs a restricted day-of-month with a restricted day-of-week, so `1-7 * 1` reads
+    # "days 1-7 OR every Monday". A pass that can DELETE must run as often as its header
+    # claims and no more; this one was running ~5x a month. Observed 2026-08-17.
+    - cron: "0 9 * * 1" # Mondays, 09:00 UTC — an hour after dependency-cleanup
   workflow_dispatch:
 
 permissions:
@@ -65,8 +69,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # The schedule above fires every Monday; this decides whether it is the first one of the month.
+  # It exists because cron cannot express "first Monday" — see the note on the schedule.
+  gate:
+    name: First-week gate
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.week.outputs.run }}
+    steps:
+      - name: Is this the first week?
+        id: week
+        run: |
+          # A manual dispatch is NEVER date-gated: you asked for it, you get it.
+          #
+          # `%-d` is UNPADDED and the test is plain `[ ]`, not `[[ ]]`/`(( ))`, both on purpose.
+          # `%d` yields "08"/"09" and bash reads a leading zero as octal in arithmetic contexts,
+          # so `[[ 08 -le 7 ]]` dies with "value too great for base". At THIS threshold the error
+          # happens to land on the answer we wanted anyway (day 8 skips either way), so it is a
+          # fragility rather than a live bug -- but it prints an error twice a month and turns
+          # into a wrong answer the moment the window moves (`[[ 09 -le 10 ]]` errors to false).
+          # Unpadded input compared with `[ ]` is base-10 and correct at any threshold.
+          if [ "${{ github.event_name }}" != "schedule" ] || [ "$(date -u +%-d)" -le 7 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Not the first week of the month; skipping the retention pass." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   prune:
     name: Prune old container versions
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       # Read-only. Resolves the reference graph AND reports the inventory. Everything downstream

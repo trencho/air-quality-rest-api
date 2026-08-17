@@ -22,7 +22,11 @@ name: Dependency cleanup
 
 on:
   schedule:
-    - cron: "0 8 1-7 * 1" # first Monday of the month, 08:00 UTC — after the weekly bumps have landed
+    # WEEKLY, gated to the first week by the `gate` job below — NOT "0 8 1-7 * 1".
+    # cron ORs a restricted day-of-month with a restricted day-of-week, so `1-7 * 1` reads
+    # "days 1-7 OR every Monday" and fires ~5 times a month. Observed 2026-08-17 (a Monday
+    # outside the first week) on all nine repos running this job.
+    - cron: "0 8 * * 1" # Mondays, 08:00 UTC — after the weekly bumps have landed
   workflow_dispatch:
 
 permissions:
@@ -34,8 +38,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The schedule above fires every Monday; this decides whether it is the first one of the month.
+  # It exists because cron cannot express "first Monday" — see the note on the schedule.
+  gate:
+    name: First-week gate
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.week.outputs.run }}
+    steps:
+      - name: Is this the first week?
+        id: week
+        run: |
+          # A manual dispatch is NEVER date-gated: you asked for it, you get it.
+          #
+          # `%-d` is UNPADDED and the test is plain `[ ]`, not `[[ ]]`/`(( ))`, both on purpose.
+          # `%d` yields "08"/"09" and bash reads a leading zero as octal in arithmetic contexts,
+          # so `[[ 08 -le 7 ]]` dies with "value too great for base". At THIS threshold the error
+          # happens to land on the answer we wanted anyway (day 8 skips either way), so it is a
+          # fragility rather than a live bug -- but it prints an error twice a month and turns
+          # into a wrong answer the moment the window moves (`[[ 09 -le 10 ]]` errors to false).
+          # Unpadded input compared with `[ ]` is base-10 and correct at any threshold.
+          if [ "${{ github.event_name }}" != "schedule" ] || [ "$(date -u +%-d)" -le 7 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Not the first week of the month; skipping the monthly report." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   cleanup:
     name: Dependency cleanup
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -67,7 +100,8 @@ jobs:
         run: |
           echo -e "\n## Unused dependencies (deptry)\n" >> report.md
           echo '```' >> report.md
-          pipx run deptry . >> report.md 2>&1 || true
+          req=$(ls requirements/*.txt requirements.txt 2>/dev/null | paste -sd, -)
+          pipx run deptry . ${req:+--requirements-files "$req"} >> report.md 2>&1 || true
           echo '```' >> report.md
 
       # ============================================================================================
@@ -217,11 +251,24 @@ jobs:
             if [ -n "$pinned" ]; then
               found=1
               name=${pinned%@*}; have=${pinned#*@}; have=${have%%+*}
+
+              # WHICH PACKAGE CARRIES THE LINE YOU ARE ON. `yarn` on npm is Yarn *classic* and its
+              # latest is 1.22.22 — frozen since 2024. Yarn 2+ ("Berry") ships as `@yarnpkg/cli`.
+              # Querying `yarn` for a Berry repo reports 4.18.0 as behind 1.22.22 and recommends a
+              # DOWNGRADE across three majors, which would break the repo. Observed 2026-08-17.
+              query=$name
+              if [ "$name" = "yarn" ] && [ "${have%%.*}" -ge 2 ] 2>/dev/null; then
+                query="@yarnpkg/cli"
+              fi
+
               # `|| true` on every probe: `pipefail` is on, so an offline registry or a grep with
               # no match would otherwise fail the step and lose the whole report.
-              latest=$(npm view "$name" version 2>/dev/null || true)
-              if [ -n "$latest" ] && [ "$have" != "$latest" ]; then
-                echo "- \`packageManager\`: **$name@$have** -> latest **$latest**." >> report.md
+              latest=$(npm view "$query" version 2>/dev/null || true)
+              if [ -z "$latest" ]; then
+                # A lookup that could not run must never print as a recommendation.
+                echo "- \`packageManager\`: \`$pinned\` — could not reach the registry for \`$query\`." >> report.md
+              elif [ "$have" != "$latest" ]; then
+                echo "- \`packageManager\`: **$name@$have** -> latest **$latest** (from \`$query\`)." >> report.md
                 echo "  Update with \`corepack use $name@$latest\` (Dependabot cannot: dependabot-core#4830)." >> report.md
               else
                 echo "- \`packageManager\`: \`$pinned\` is current." >> report.md
@@ -233,13 +280,22 @@ jobs:
           if [ -f "$wrapper" ]; then
             found=1
             have=$(grep -oP '(?<=apache-maven-)[0-9.]+(?=-bin)' "$wrapper" 2>/dev/null | head -1 || true)
+
+            # NEITHER `<latest>` NOR `<release>` IS NECESSARILY STABLE. Central currently reports
+            # both as `4.0.0-rc-6` for apache-maven, so reading either recommends a release
+            # candidate for production builds (observed 2026-08-17). Take the version list, drop
+            # anything carrying a pre-release token, and pick the highest that remains.
             latest=$(curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/maven-metadata.xml 2>/dev/null \
-                     | grep -oP '(?<=<release>)[^<]+' | head -1 || true)
-            if [ -n "$latest" ] && [ "$have" != "$latest" ]; then
-              echo "- Maven wrapper: **$have** -> latest **$latest**. Update with \`./mvnw wrapper:wrapper -Dmaven=$latest\`." >> report.md
+                     | grep -oP '(?<=<version>)[^<]+' \
+                     | grep -vEi -- '-(rc|alpha|beta|m|milestone|preview|snapshot)' \
+                     | sort -V | tail -1 || true)
+            if [ -z "$latest" ]; then
+              echo "- Maven wrapper: \`$have\` — could not resolve a stable release from Central." >> report.md
+            elif [ "$have" != "$latest" ]; then
+              echo "- Maven wrapper: **$have** -> newest **stable** **$latest**. Update with \`./mvnw wrapper:wrapper -Dmaven=$latest\`." >> report.md
               echo "  (Dependabot support merged 2026-08-11 but is flag-gated off — adopt it when it ships and drop this check.)" >> report.md
             else
-              echo "- Maven wrapper: \`$have\` is current." >> report.md
+              echo "- Maven wrapper: \`$have\` is the newest stable release." >> report.md
             fi
           fi
 
