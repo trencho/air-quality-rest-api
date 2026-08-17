@@ -25,7 +25,9 @@ Greece, Romania, Switzerland, and more); narrow the coverage with the `ENABLED_C
 - **pandas / numpy / scipy / scikit-learn / statsmodels** and the model backends
   **LightGBM / Random Forest / XGBoost**; **matplotlib / seaborn** for plots.
 - **MongoDB** (via **pymongo**) in prod; an in-memory repository in dev. **SQLAlchemy** backs the
-  APScheduler job store.
+  APScheduler job store. Note the two production paths run **different MongoDB majors**: the
+  compose stack builds `aqra-mongo` from `mongo:8.3.4`, while the Kubernetes deployment pins
+  `mongo:4.4` because the node lacks AVX, which MongoDB 5+ requires.
 - **Black** (formatting) · **pytest** + **Flask-Testing** (tests).
 
 ## API
