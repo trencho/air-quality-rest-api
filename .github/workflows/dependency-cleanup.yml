@@ -80,6 +80,17 @@ jobs:
             echo
             echo "Report only — nothing here has been changed. Each section says what to do."
           } > report.md
+          # Every step runs in its OWN shell, so the findings tally cannot be a variable. It is a
+          # file beside report.md, which is how report.md itself survives between steps.
+          #
+          # ONLY the two deterministic sections tally: a hold that cleared, an un-annotated hold, a
+          # package manager or wrapper behind its newest stable. The unused-dependency detectors
+          # deliberately do NOT — their output is a tool dump whose findings are candidates, not
+          # facts (every Spring Boot starter reads as "unused", every first-party module as
+          # "undeclared"), so counting them would reopen this issue every month forever. The
+          # closing comment says which sections were counted, so "closed as clear" is never read
+          # as a claim about the section that was not.
+          : > actionable.txt
 
       # ============================================================================================
       # (1) UNUSED DEPENDENCIES for this repo's stack (python).
@@ -139,6 +150,7 @@ jobs:
             if grep -q '^\s*ignore:' "$conf"; then
               echo "> **Un-annotated holds.** \`$conf\` has \`ignore:\` entries but no \`# lift-when:\` lines," >> report.md
               echo "> so nothing can re-test them. Annotate each one — see the dependabot template." >> report.md
+              echo "un-annotated holds" >> actionable.txt
             else
               echo "_No held versions._" >> report.md
             fi
@@ -214,8 +226,22 @@ jobs:
                   lts=$(printf '%s' "$json" | jq -r --arg c "$cycle" \
                           '.[] | select((.cycle|tostring) == $c) | (.lts|tostring)' 2>/dev/null | head -1)
                   today=$(date -u +%F)
+                  # A cycle the product has not shipped yet is a DEFINITE "keep holding", not a
+                  # failure to look. A Java hold must name the next LTS (29), which endoflife.date
+                  # will not list until it exists — so the correct annotation would otherwise read
+                  # as broken for a year and invite someone to "fix" it by naming a nearer,
+                  # non-LTS cycle.
+                  maxc=$(printf '%s' "$json" | jq -r \
+                           '[.[].cycle | tostring | select(test("^[0-9]+$")) | tonumber] | max // empty' 2>/dev/null || true)
                   case "$lts" in
-                    "")        now="\`$product\` has no cycle \`$cycle\`"; clear="could not check" ;;
+                    "")
+                      if printf '%s' "$cycle" | grep -qE '^[0-9]+$' && [ -n "$maxc" ] && [ "$cycle" -gt "$maxc" ]; then
+                        now="\`$product $cycle\` is unreleased (newest cycle is $maxc)"
+                        clear="no, not released yet"
+                      else
+                        now="\`$product\` has no cycle \`$cycle\`"; clear="could not check"
+                      fi
+                      ;;
                     "true")    now="\`$product $cycle\` is LTS";           clear="**YES - lift it**" ;;
                     "false")   now="\`$product $cycle\` is not an LTS line"; clear="no, never LTS" ;;
                     null)      now="\`$product $cycle\` has no \`lts\` field"; clear="could not check" ;;
@@ -235,6 +261,8 @@ jobs:
               *)      now="_unrecognised \`lift-when\` form_" ;;
             esac
             echo "| $hold | $now | $clear |" >> report.md
+            # A cleared hold is the one thing in this section that asks for work.
+            case "$clear" in *"lift it"*) echo "hold cleared: $hold" >> actionable.txt ;; esac
           done
 
       # ============================================================================================
@@ -270,6 +298,7 @@ jobs:
               elif [ "$have" != "$latest" ]; then
                 echo "- \`packageManager\`: **$name@$have** -> latest **$latest** (from \`$query\`)." >> report.md
                 echo "  Update with \`corepack use $name@$latest\` (Dependabot cannot: dependabot-core#4830)." >> report.md
+                echo "packageManager behind: $name@$have -> $latest" >> actionable.txt
               else
                 echo "- \`packageManager\`: \`$pinned\` is current." >> report.md
               fi
@@ -294,6 +323,7 @@ jobs:
             elif [ "$have" != "$latest" ]; then
               echo "- Maven wrapper: **$have** -> newest **stable** **$latest**. Update with \`./mvnw wrapper:wrapper -Dmaven=$latest\`." >> report.md
               echo "  (Dependabot support merged 2026-08-11 but is flag-gated off — adopt it when it ships and drop this check.)" >> report.md
+              echo "maven wrapper behind: $have -> $latest" >> actionable.txt
             else
               echo "- Maven wrapper: \`$have\` is the newest stable release." >> report.md
             fi
@@ -303,22 +333,71 @@ jobs:
           true
 
       # ============================================================================================
-      # (4) Publish — ONE issue per month, created or updated in place so the tracker does not fill
-      # up with a dozen near-identical reports.
+      # (4) Publish — the tracker must show CURRENT state, not an archive of every run.
+      #
+      # The version before 2026-08-18 only ever created or edited. It never closed anything, and it
+      # never asked whether the report contained a finding — so a clean month still left an issue
+      # open, and because the title carries YYYY-MM, September opened a second one beside it. The
+      # fleet reached nine permanently-open issues, six of them still advising a Yarn DOWNGRADE and
+      # a Maven release candidate that had been fixed the day after they were written. An issue
+      # nobody can trust is worse than no issue: it trains you to stop reading the tracker.
+      #
+      # So: findings -> open (or reopen) and edit. No findings -> close, saying why. Either way,
+      # every older month closes as superseded, which is what stops the pile-up.
       # ============================================================================================
-      - name: Open or update the cleanup issue
+      - name: Publish the cleanup issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           title="Dependency cleanup — $(date -u +%Y-%m)"
+          count=$(wc -l < actionable.txt | tr -d ' ')
           cat report.md >> "$GITHUB_STEP_SUMMARY"
-          existing=$(gh issue list --state open --search "$title in:title" --json number,title \
+
+          # Search BOTH states. Looking only at open issues means a human who closed this month's
+          # issue gets a duplicate created beside it on the next run.
+          existing=$(gh issue list --state all --search "$title in:title" --json number,title,state \
                      --jq "map(select(.title==\"$title\")) | .[0].number // empty")
-          if [ -n "$existing" ]; then
-            gh issue edit "$existing" --body-file report.md
-            echo "updated issue #$existing"
+
+          if [ "$count" -gt 0 ]; then
+            if [ -n "$existing" ]; then
+              gh issue edit "$existing" --body-file report.md
+              gh issue reopen "$existing" 2>/dev/null || true
+              echo "updated issue #$existing ($count actionable)"
+              current="$existing"
+            else
+              gh issue create --title "$title" --body-file report.md --label dependencies 2>/dev/null \
+                || gh issue create --title "$title" --body-file report.md
+              current=$(gh issue list --state open --search "$title in:title" --json number,title \
+                        --jq "map(select(.title==\"$title\")) | .[0].number // empty")
+              echo "opened issue #$current ($count actionable)"
+            fi
           else
-            gh issue create --title "$title" --body-file report.md --label dependencies 2>/dev/null \
-              || gh issue create --title "$title" --body-file report.md
+            current=""
+            if [ -n "$existing" ]; then
+              gh issue edit "$existing" --body-file report.md
+              gh issue comment "$existing" --body \
+                "Closed automatically: this run found nothing actionable in the counted sections (held versions, package-manager currency). The unused-dependency section is advisory and is not counted — read it in the body above. Reopens by itself if a later run finds something."
+              gh issue close "$existing" 2>/dev/null || true
+              echo "closed issue #$existing (nothing actionable)"
+            else
+              echo "nothing actionable and no existing issue — created none"
+            fi
           fi
+
+          # Supersede every EARLIER month. Without this the tracker grows by one issue per repo per
+          # month forever, and the oldest — the least accurate — sit at the top of the list.
+          gh issue list --state open --search "Dependency cleanup in:title" --json number,title \
+            --jq '.[] | [.number, .title] | @tsv' \
+          | while IFS=$'\t' read -r num t; do
+              case "$t" in
+                "Dependency cleanup — "*) ;;
+                *) continue ;;
+              esac
+              [ "$t" = "$title" ] && continue
+              [ -n "$current" ] && [ "$num" = "$current" ] && continue
+              gh issue comment "$num" --body \
+                "Superseded by the ${title#Dependency cleanup — } run. Each report describes the tree as it was on the day it ran; this one is no longer current."
+              gh issue close "$num" 2>/dev/null || true
+              echo "closed superseded issue #$num"
+            done
