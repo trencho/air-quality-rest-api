@@ -204,18 +204,20 @@ def test_returns_an_empty_forecast_when_neither_source_has_one(
 def test_fetch_city_data_fetches_when_the_api_is_unlocked(monkeypatch, tmp_path):
     """The guard was inverted, so this never fetched anything.
 
-    ``check_api_lock()`` is ``not lock_file.exists()`` -- True means UNLOCKED. The guard
-    read ``if check_api_lock(): return``, the exact inverse of the one in its only caller
-    (``fetch_hourly_data`` bails on ``not check_api_lock()``). So it returned immediately
-    whenever OpenWeather was callable, and was only ever reached when the outer job had
-    already bailed: it fetched nothing under either condition.
+    The predicate is ``api_is_available()`` now; it was ``check_api_lock()``, which reads
+    as "is it locked?" while returning ``not lock_file.exists()`` -- the opposite. This
+    guard was written ``if check_api_lock(): return``, the exact inverse of the one in its
+    only caller (``fetch_hourly_data`` bailed on ``not check_api_lock()``), so it returned
+    immediately whenever OpenWeather was callable and was only ever reached when the outer
+    job had already bailed: it fetched nothing under either condition, for 402 days.
 
     Nothing failed and nothing raised, which is why it survived. The tally in
     ``fetch_hourly_data`` is what would have shown it -- every sensor skipped, every run.
+    The rename is what stops it recurring: ``if not api_is_available()`` cannot be misread.
     """
     monkeypatch.setattr(blueprints, "DATA_RAW_PATH", tmp_path / "raw")
     monkeypatch.setattr(blueprints, "DATA_PROCESSED_PATH", tmp_path / "processed")
-    monkeypatch.setattr(blueprints, "check_api_lock", lambda: True)  # unlocked
+    monkeypatch.setattr(blueprints, "api_is_available", lambda: True)  # unlocked
     calls = []
     monkeypatch.setattr(
         blueprints,
@@ -232,7 +234,7 @@ def test_fetch_city_data_fetches_when_the_api_is_unlocked(monkeypatch, tmp_path)
 def test_fetch_city_data_skips_when_the_api_is_locked(monkeypatch, tmp_path):
     monkeypatch.setattr(blueprints, "DATA_RAW_PATH", tmp_path / "raw")
     monkeypatch.setattr(blueprints, "DATA_PROCESSED_PATH", tmp_path / "processed")
-    monkeypatch.setattr(blueprints, "check_api_lock", lambda: False)  # locked
+    monkeypatch.setattr(blueprints, "api_is_available", lambda: False)  # locked
     calls = []
     monkeypatch.setattr(
         blueprints,
@@ -251,7 +253,7 @@ def test_fetch_city_data_skips_when_the_api_is_locked(monkeypatch, tmp_path):
 def test_fetch_city_data_reports_a_failed_fetch(monkeypatch, tmp_path):
     monkeypatch.setattr(blueprints, "DATA_RAW_PATH", tmp_path / "raw")
     monkeypatch.setattr(blueprints, "DATA_PROCESSED_PATH", tmp_path / "processed")
-    monkeypatch.setattr(blueprints, "check_api_lock", lambda: True)
+    monkeypatch.setattr(blueprints, "api_is_available", lambda: True)
     monkeypatch.setattr(blueprints, "fetch_weather_data", lambda *args: False)
 
     assert (

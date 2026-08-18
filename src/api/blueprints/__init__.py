@@ -7,7 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
 from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH, DATA_RAW_PATH
-from preparation import check_api_lock, fetch_weather_data
+from preparation import api_is_available, fetch_weather_data
 from processing import read_csv_in_chunks
 from utils import BatchOutcome
 
@@ -54,13 +54,13 @@ def create_data_paths(city_name: str, sensor_id: str) -> None:
 
 
 def fetch_city_data(city_name: str, sensor: dict) -> BatchOutcome:
-    # `check_api_lock()` is `not lock_file.exists()`, so True means UNLOCKED -- the API is
-    # available and this should proceed. The guard was `if check_api_lock(): return`, the
-    # exact inverse of the one its only caller uses (`fetch_hourly_data` bails on `not
-    # check_api_lock()`), so this returned immediately whenever OpenWeather was callable
-    # and was only reached when the outer job had already bailed. It fetched nothing under
-    # either condition. Skipping is the LOCKED case, which is what this now says.
-    if not check_api_lock():
+    # This guard was `if check_api_lock(): return` for 402 days, which is the inverse of
+    # what it needed: that function returned `not lock_file.exists()`, so True meant the
+    # API was AVAILABLE and the early return fired exactly when there was work to do. The
+    # predicate is now named for its polarity, which is what stops the line being written
+    # backwards again -- `if not api_is_available()` cannot be misread the way
+    # `if check_api_lock()` could.
+    if not api_is_available():
         return BatchOutcome.SKIPPED
     create_data_paths(city_name, sensor["sensorId"])
     return (

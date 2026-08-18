@@ -25,7 +25,7 @@ from definitions import (
 )
 from modeling import train_regression_model
 from preparation import (
-    check_api_lock,
+    api_is_available,
     fetch_cities,
     fetch_countries,
     fetch_sensors,
@@ -113,7 +113,7 @@ def dump_jobs() -> None:
 )
 @track_time
 def fetch_hourly_data() -> None:
-    if not check_api_lock():
+    if not api_is_available():
         logger.warning(
             "fetch_hourly_data: the OpenWeather API is locked; nothing fetched"
         )
