@@ -10,3 +10,37 @@ select = ["F401", "F811"]
 [tool.ruff.lint.per-file-ignores]
 # Package __init__.py files intentionally re-export their public API; those imports are not "unused".
 "__init__.py" = ["F401"]
+
+# Configuration for deptry, which the monthly dependency-cleanup job runs.
+#
+# Without it the report was 73 issues, nearly all false -- and a report that is mostly noise
+# trains everyone to stop reading it, which costs more than having no report at all. Nothing
+# is suppressed here for being inconvenient: every entry is something static analysis cannot
+# see. Anything genuinely unused is left VISIBLE on purpose (see psutil, below).
+[tool.deptry]
+# The application packages live under src/ and import as top-level names (`api`, `processing`,
+# ...). Without this every internal import is reported as an undeclared dependency.
+known_first_party = [
+    "api", "definitions", "modeling", "models", "preparation", "processing", "utils", "visualization",
+]
+
+[tool.deptry.per_rule_ignores]
+# DEP002 = "declared but not imported". Each of these is genuinely used, just never by an
+# `import` this codebase contains:
+#   gunicorn        production entrypoint runs it as a command
+#   black / ruff    formatter and linter, invoked by CI
+#   pytest, pytest-xdist, Flask-Testing   test tooling, invoked as commands
+#   pandas-stubs / scipy-stubs            type stubs, consumed by the type checker only
+#   py-unused-deps  a dependency-analysis tool, invoked as a command
+#   redis           the cache backend Flask-Caching imports at runtime when REDIS_URL is set;
+#                   this codebase only ever passes a URL string
+#
+# NOT ignored, deliberately: `psutil`. It is declared in requirements/common.txt (production)
+# and referenced nowhere in the codebase; prod.lock shows it arriving solely `via
+# -r requirements/common.txt`, so nothing else needs it there. Its only real use is as the
+# pytest-xdist[psutil] extra in dev.txt, which pulls it in on its own. Removing it correctly
+# means recompiling prod.lock, so the finding is left visible rather than silenced.
+DEP002 = [
+    "gunicorn", "black", "ruff", "pytest", "pytest-xdist", "Flask-Testing",
+    "pandas-stubs", "scipy-stubs", "py-unused-deps", "redis",
+]
