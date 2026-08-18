@@ -21,7 +21,13 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: redis
-          image: redis:8-alpine
+          # Pinned to an exact patch, like every other image in this tree. `redis:8-alpine` is a
+          # FLOATING tag: it silently follows the 8 line, so two applies of the same manifest can
+          # land different builds and there is no version in git to roll back to. Nothing updates
+          # this file automatically -- Kubernetes manifests map to no Dependabot ecosystem, and the
+          # trial block that pointed `docker` at /kubernetes produced zero PRs and was removed --
+          # so bump it by hand when the base image moves.
+          image: redis:8.8.1-alpine
           imagePullPolicy: IfNotPresent
           # Used purely as a shared cache + rate-limit store, so persistence is off and
           # memory is bounded with LRU eviction (all keys carry TTLs).
