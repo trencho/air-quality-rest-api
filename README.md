@@ -151,7 +151,7 @@ OpenVPN + SSH and applies the manifests. The node pulls the image; **nothing is 
 It used to be: `docker compose build` on the node wrote to Docker's image store while kubelet
 read containerd's, so the Deployment sat in `ErrImageNeverPull` and `/api/v1/*` returned 503.
 
-Two things worth knowing before touching that pipeline:
+Before touching that pipeline:
 
 - **A merge to `master` dispatches a production deploy.** Know the cluster's state first.
 - **`.github/workflows/client.ovpn` must not be deleted.** Nothing in the tree references it —
