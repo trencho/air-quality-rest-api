@@ -212,9 +212,15 @@ def generate_regression_model(
             Path(city_name) / sensor_id / pollutant,
         )
     except Exception:
+        # `best_model` still holds the instance the selection loop chose, already fitted on
+        # this same x_train/y_train, so the save below writes a real model rather than a
+        # stub -- the refit exists to store it at the parent path, not to change what it
+        # learned. Said here because the message stopped at the failure and left the reader
+        # to work out from the next statement that a model is saved either way.
         logger.exception(
-            f"Error occurred while training the best regression model for {city_name} - {sensor_id} - "
-            f"{pollutant} - {type(best_model).__name__}",
+            f"Could not refit the best regression model for {city_name} - {sensor_id} - "
+            f"{pollutant} - {type(best_model).__name__}; saving the model chosen during "
+            f"evaluation instead",
         )
     best_model.save(MODELS_PATH / city_name / sensor_id / pollutant)
     del best_model

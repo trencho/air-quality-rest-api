@@ -18,24 +18,33 @@ def fetch_dataframe(
     data_path: Path, collection: str
 ) -> DataFrame | tuple[Response, int]:
     try:
-        if (
-            dataframe := read_csv_in_chunks(
-                DATA_PROCESSED_PATH / data_path / f"{collection}.csv"
-            )
-        ) is not None:
-            return dataframe
+        dataframe = read_csv_in_chunks(
+            DATA_PROCESSED_PATH / data_path / f"{collection}.csv"
+        )
+    except (OSError, ValueError) as error:
+        # OSError covers the file being absent or unreadable; ValueError covers pandas
+        # refusing its contents, including the `concat` of an empty chunk list. Anything
+        # outside those two is a defect in this service rather than missing data, and it
+        # should reach the error handler instead of being answered with a 404.
+        logger.warning(
+            "Could not read the %s data for %s: %s", collection, data_path, error
+        )
+        dataframe = None
 
-        raise Exception
-    except Exception:
-        logger.exception(
-            f"Exception while reading data from CSV file from {data_path} - {collection}",
-        )
-        return (
-            jsonify(
-                error_message="Cannot return historical data because the data is missing for that city and sensor."
-            ),
-            HTTP_404_NOT_FOUND,
-        )
+    if dataframe is not None:
+        return dataframe
+
+    # read_csv_in_chunks returns None for a file that parsed but held no usable rows. That
+    # used to be signalled by raising a bare Exception into the handler above purely to
+    # reach this return, which logged a manufactured traceback for the ordinary case of a
+    # city having no history yet. It is a plain branch now, and it says which case it is.
+    logger.info("No %s data available for %s", collection, data_path)
+    return (
+        jsonify(
+            error_message="Cannot return historical data because the data is missing for that city and sensor."
+        ),
+        HTTP_404_NOT_FOUND,
+    )
 
 
 def create_data_paths(city_name: str, sensor_id: str) -> None:

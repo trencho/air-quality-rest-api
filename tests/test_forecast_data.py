@@ -12,6 +12,7 @@ from json import dumps
 import numpy as np
 import pytest
 from flask import Flask
+from pandas import date_range, DataFrame
 
 # Import the config package first so the api/preparation/processing chain initialises
 # in order — importing a ``processing`` submodule first hits a circular import.
@@ -56,3 +57,47 @@ def test_load_regression_model_roundtrips_lightgbm(app_context, tmp_path, monkey
 def test_load_regression_model_missing_returns_none(app_context, tmp_path, monkeypatch):
     monkeypatch.setattr(forecast_data, "MODELS_PATH", tmp_path)
     assert forecast_data.load_regression_model("nope", "nope", "pm2_5") is None
+
+
+def test_recursive_forecast_logs_each_step_it_could_not_predict(
+    app_context, tmp_path, monkeypatch, caplog
+):
+    """A step that fails yields NaN, and now says so.
+
+    The handler around the per-step prediction stays deliberately broad: each hour is
+    forecast from the hour before it, so abandoning the loop on the first failure would
+    throw away the rest of the horizon too, and NaN is already how this function reports
+    "no value for this hour".
+
+    What it lacked was any record. A model that failed on every single step returned an
+    all-NaN series, which reads exactly like a sensor with nothing to forecast -- so a
+    broken model stayed invisible for as long as nobody compared it against a working one.
+    """
+    frame = DataFrame(
+        {"pm2_5": [10.0, 11.0, 12.0]},
+        index=date_range("2026-01-01", periods=3, freq="1h"),
+    )
+    monkeypatch.setattr(
+        forecast_data, "fetch_summary_dataframe", lambda *args, **kwargs: frame
+    )
+    monkeypatch.setattr(forecast_data, "DATA_PROCESSED_PATH", tmp_path)
+
+    def unavailable(*args, **kwargs):
+        raise RuntimeError("upstream feature service is down")
+
+    monkeypatch.setattr(forecast_data, "forecast_sensor", unavailable)
+
+    with caplog.at_level("ERROR", logger=forecast_data.__name__):
+        result = forecast_data.recursive_forecast(
+            "skopje", "1000", "pm2_5", model=None, model_features=[], n_steps=3
+        )
+
+    # Still a full-length series of NaN: the loop runs to the end of the horizon.
+    assert len(result.index) == 2
+    assert bool(result.isnull().all())
+    # One record per failed step, each naming the sensor and the hour, and each carrying
+    # the original traceback rather than just the fact that something went wrong.
+    assert len(caplog.records) == 3
+    assert all("skopje" in record.message for record in caplog.records)
+    assert all("1000" in record.message for record in caplog.records)
+    assert all(record.exc_info is not None for record in caplog.records)

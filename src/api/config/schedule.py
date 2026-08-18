@@ -138,8 +138,13 @@ def fetch_hourly_data() -> None:
 @track_time
 def fetch_locations() -> None:
     countries = fetch_countries()
-    (DATA_RAW_PATH / "countries.json").write_text(dumps(countries, indent=4))
-    cache.set("countries", countries)
+    if countries:
+        (DATA_RAW_PATH / "countries.json").write_text(dumps(countries, indent=4))
+        cache.set("countries", countries)
+    else:
+        logger.warning(
+            "Upstream returned no countries; keeping the stored list rather than emptying it",
+        )
     for country in countries:
         try:
             repository.save(
@@ -152,9 +157,20 @@ def fetch_locations() -> None:
                 f"Error occurred while updating data for {country['countryName']}",
             )
 
+    # fetch_countries / fetch_cities / fetch_sensors each answer an upstream failure with an
+    # empty list, so writing the result straight to disk turns a transient pulse.eco outage
+    # into a wiped location catalogue: read_cities and read_sensors serve these files, and
+    # everything downstream -- the scheduled data pull, the forecast endpoints -- then has
+    # nothing to iterate until the next successful run. Refreshing with what we got and
+    # keeping the last good copy otherwise is the safe direction.
     cities = fetch_cities()
-    (DATA_RAW_PATH / "cities.json").write_text(dumps(cities, indent=4))
-    cache.set("cities", cities)
+    if cities:
+        (DATA_RAW_PATH / "cities.json").write_text(dumps(cities, indent=4))
+        cache.set("cities", cities)
+    else:
+        logger.warning(
+            "Upstream returned no cities; keeping the stored list rather than emptying it",
+        )
     for city in cities:
         try:
             repository.save(
@@ -179,10 +195,15 @@ def fetch_locations() -> None:
                 logger.exception(
                     f"Error occurred while updating data for {sensor['sensorId']}",
                 )
-        (DATA_RAW_PATH / city["cityName"]).mkdir(parents=True, exist_ok=True)
-        (DATA_RAW_PATH / city["cityName"] / "sensors.json").write_text(
-            dumps(sensors, indent=4)
-        )
+        if sensors:
+            (DATA_RAW_PATH / city["cityName"]).mkdir(parents=True, exist_ok=True)
+            (DATA_RAW_PATH / city["cityName"] / "sensors.json").write_text(
+                dumps(sensors, indent=4)
+            )
+        else:
+            logger.warning(
+                f"Upstream returned no sensors for {city['cityName']}; keeping the stored list",
+            )
 
 
 @scheduler.scheduled_job(

@@ -13,12 +13,17 @@ repository = RepositorySingleton.get_instance().get_repository()
 
 
 def convert_dtype(x: object) -> str:
-    if not x:
-        return ""
-    try:
-        return str(x)
-    except Exception:
-        return ""
+    """Render a cell as a string, treating anything falsy as blank.
+
+    Currently unreferenced: it belongs to the `column_dtypes` conversion that is still
+    commented out in `api.config.environment.fetch_collection`, and is kept for it.
+
+    It had a `try/except Exception: return ""` around the `str()` call. `str()` only raises
+    if the object's own `__str__` does, which for the pandas cell values this is meant for
+    would be a defect worth seeing rather than a blank to paper over -- and the empty-string
+    fallback was indistinguishable from the falsy branch above it either way.
+    """
+    return str(x) if x else ""
 
 
 def drop_unnecessary_features(dataframe: DataFrame) -> DataFrame:

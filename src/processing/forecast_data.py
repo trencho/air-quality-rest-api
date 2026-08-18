@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from json import loads
+from logging import getLogger
 from math import isnan, nan
 from typing import Optional
 
@@ -14,6 +15,8 @@ from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import value_scaling
 from .handle_data import fetch_summary_dataframe, read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
+
+logger = getLogger(__name__)
 
 FORECAST_PERIOD = "1h"
 FORECAST_STEPS = 25
@@ -196,6 +199,18 @@ def recursive_forecast(
             prediction = predictions[-1]
             forecasted_values.append(prediction if prediction >= 0 else nan)
         except Exception:
+            # Deliberately broad, and it stays broad: each iteration forecasts one hour from
+            # the hour before it, so abandoning the loop on the first bad step would throw
+            # away the rest of the horizon as well. NaN is already how this function says
+            # "no value for this hour", and the caller drops those.
+            #
+            # What was missing is the record. Without this log a model that failed on every
+            # single step returned an all-NaN series that reads exactly like a sensor with
+            # nothing to forecast, so a broken model was invisible for as long as nobody
+            # compared it against a working one.
+            logger.exception(
+                f"Could not forecast {pollutant} for {city_name} - {sensor_id} at {date}",
+            )
             forecasted_values.append(nan)
         target.update(Series(forecasted_values[-1], [target.index[-1]]))
         target = target.tail(lags * 2 + 1)
