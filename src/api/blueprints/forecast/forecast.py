@@ -1,4 +1,5 @@
 from json import loads
+from logging import getLogger
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, Response
@@ -12,10 +13,11 @@ from preparation import (
     calculate_nearest_sensor,
     check_city,
     check_sensor,
-    location_timezone,
     read_sensors,
 )
 from processing import current_hour, next_hour
+
+logger = getLogger(__name__)
 
 forecast_blueprint = Blueprint("forecast", __name__)
 repository = RepositorySingleton.get_instance().get_repository()
@@ -156,13 +158,28 @@ def return_sensor_forecast_results(city: dict, sensor: dict) -> dict:
                 / "predictions.json"
             ).read_text()
         )
-        if data[0]["time"] == next_hour(
-            current_hour(tz=location_timezone(city["countryCode"]))
-        ):
+        # `time` is the integer Unix timestamp that fetch_forecast_result writes, derived
+        # from a naive `next_hour(current_hour())`. This compared it against an aware
+        # DATETIME instead -- `int == datetime` is False for every value of both, so the
+        # branch had never been taken: every request parsed predictions.json, threw the
+        # result away and queried the database anyway. Compare the same thing the writer
+        # produced.
+        if data[0]["time"] == int(next_hour(current_hour()).timestamp()):
             forecast["data"] = data
             return forecast
-    except Exception:
-        pass
+    except (OSError, ValueError, IndexError, KeyError, TypeError) as error:
+        # The cached file is written by a scheduled job, so a missing, half-written or
+        # stale predictions.json is routine and the database copy below is the answer.
+        # Debug rather than warning for that reason -- but it IS logged now. This handler
+        # was a bare `except Exception: pass`, which made "no forecast has been generated
+        # yet" and "the forecast file is corrupt" the same observable event, and every
+        # request paid for the fallback lookup with nothing recording why.
+        logger.debug(
+            "Falling back to the stored forecast for %s - %s: %s",
+            city["cityName"],
+            sensor["sensorId"],
+            error,
+        )
 
     forecast_result = repository.get(
         collection_name="predictions",
