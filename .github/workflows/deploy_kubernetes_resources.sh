@@ -77,8 +77,55 @@ deploy_and_wait() {
     kubectl logs -n aqra -l "io.kompose.service=${name}" --tail=60 --all-containers || true
     echo "--- previous container logs (populated if it crash-looped) ---"
     kubectl logs -n aqra -l "io.kompose.service=${name}" --tail=60 --all-containers --previous || true
+    dump_dependency_state "${name}"
     return 1
   fi
+}
+
+# Everything about the namespace EXCEPT the deployment that failed.
+#
+# The 2026-08-18 deploys are why this exists. flask crash-looped on
+# `redis.exceptions.ConnectionError: Error 111 connecting to redis:6379. Connection
+# refused.` -- and the diagnostics above are all scoped to `-l io.kompose.service=flask`,
+# so the log said nothing whatsoever about redis: not its pod state, not its restart
+# count, not its events. The deploy reported redis "successfully rolled out" seconds
+# earlier in the same run, which is a contradiction the log had no way to explain.
+#
+# `get endpoints` is the decisive line and the reason this function is worth having: a
+# Service with no ready backends is exactly what produces ECONNREFUSED, and it is
+# invisible from the failing pod's own diagnostics. If redis shows `<none>` there, that is
+# the answer; if it lists an IP:6379, the fault is not endpoint readiness and the next
+# suspect is the redis process or the network path.
+dump_dependency_state() {
+  local failed=$1
+
+  echo "=============================================================="
+  echo "Namespace state (${failed} depends on these; a failure here is usually the cause)"
+  echo "=============================================================="
+
+  # Not `|| true` on its own: label every section so an EMPTY result is visibly empty
+  # rather than indistinguishable from a section that never ran.
+  echo "--- endpoints (a Service with no backends is what refuses connections) ---"
+  kubectl get endpoints -n aqra -o wide 2>&1 | sed 's/^/  /' || echo "  (could not read endpoints)"
+
+  echo "--- all pods in the namespace (restart counts are the tell) ---"
+  kubectl get pods -n aqra -o wide 2>&1 | sed 's/^/  /' || echo "  (could not read pods)"
+
+  echo "--- recent namespace events (OOMKilled and evictions land here) ---"
+  kubectl get events -n aqra --sort-by=.lastTimestamp 2>&1 | tail -25 | sed 's/^/  /' \
+    || echo "  (could not read events)"
+
+  for dependency in mongo redis; do
+    # An explicit `if`, not `[ ... ] && continue`: under `set -e` a false test makes the
+    # AND-list return non-zero as the last command in the loop body, which exits the whole
+    # deploy. The diagnostics must never be able to kill the run they are explaining.
+    if [ "${dependency}" = "${failed}" ]; then
+      continue
+    fi
+    echo "--- ${dependency} logs ---"
+    kubectl logs -n aqra -l "io.kompose.service=${dependency}" --tail=30 --all-containers 2>&1 \
+      | sed 's/^/  /' || echo "  (no ${dependency} logs)"
+  done
 }
 
 echo "Applying base resources..."
