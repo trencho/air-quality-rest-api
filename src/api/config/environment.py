@@ -17,6 +17,7 @@ from definitions import (
 )
 from preparation import read_cities, read_sensors
 from processing import find_missing_data, read_csv_in_chunks, save_dataframe
+from utils import BatchOutcome, BatchTally
 from .repository import RepositorySingleton
 from .schedule import fetch_locations
 
@@ -47,7 +48,7 @@ def init_environment_variables() -> None:
 
 
 # TODO: Review this method for inserting duplicate values
-def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
+def fetch_collection(collection: str, city_name: str, sensor_id: str) -> BatchOutcome:
     db_records = DataFrame(
         repository.get_many(
             collection_name=collection,
@@ -56,7 +57,7 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
         )
     )
     if db_records.empty:
-        return
+        return BatchOutcome.SKIPPED
 
     collection_dir = DATA_RAW_PATH / city_name / sensor_id
     collection_dir.mkdir(parents=True, exist_ok=True)
@@ -73,29 +74,39 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> None:
 
         save_dataframe(dataframe, collection, collection_path, sensor_id)
         del dataframe
+        return BatchOutcome.DONE
     except Exception:
         logger.exception(
             f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}",
         )
         # TODO: Review this line for converting column data types
         # db_records = db_records.astype(column_dtypes, errors="ignore")
+        # The records are still written, straight from the database rather than merged
+        # with local storage, so this is a degraded write and not a lost one -- but it is
+        # reported as FAILED because the merge it was asked to do did not happen.
         db_records.to_csv(collection_path, index=False)
+        return BatchOutcome.FAILED
     finally:
         del db_records
         collect()
 
 
 def fetch_db_data() -> None:
-    for city in read_cities():
-        for sensor in read_sensors(city["cityName"]):
-            for collection in COLLECTIONS:
-                try:
-                    fetch_collection(collection, city["cityName"], sensor["sensorId"])
-                except Exception:
-                    logger.exception(
-                        f"Could not fetch data from the database for {city['cityName']} - {sensor['sensorId']} - "
-                        f"{collection}",
-                    )
+    with BatchTally(logger, "fetch_db_data", "collection") as tally:
+        for city in read_cities():
+            for sensor in read_sensors(city["cityName"]):
+                for collection in tally.track(COLLECTIONS):
+                    try:
+                        tally.record(
+                            fetch_collection(
+                                collection, city["cityName"], sensor["sensorId"]
+                            )
+                        )
+                    except Exception:
+                        tally.failure(
+                            f"Could not fetch data from the database for {city['cityName']} - "
+                            f"{sensor['sensorId']} - {collection}",
+                        )
 
 
 def init_data() -> None:

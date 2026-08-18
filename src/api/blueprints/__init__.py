@@ -9,6 +9,7 @@ from api.config.cache import cache
 from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH, DATA_RAW_PATH
 from preparation import check_api_lock, fetch_weather_data
 from processing import read_csv_in_chunks
+from utils import BatchOutcome
 
 logger = getLogger(__name__)
 
@@ -52,8 +53,18 @@ def create_data_paths(city_name: str, sensor_id: str) -> None:
     (DATA_PROCESSED_PATH / city_name / sensor_id).mkdir(parents=True, exist_ok=True)
 
 
-def fetch_city_data(city_name: str, sensor: dict) -> None:
-    if check_api_lock():
-        return
+def fetch_city_data(city_name: str, sensor: dict) -> BatchOutcome:
+    # `check_api_lock()` is `not lock_file.exists()`, so True means UNLOCKED -- the API is
+    # available and this should proceed. The guard was `if check_api_lock(): return`, the
+    # exact inverse of the one its only caller uses (`fetch_hourly_data` bails on `not
+    # check_api_lock()`), so this returned immediately whenever OpenWeather was callable
+    # and was only reached when the outer job had already bailed. It fetched nothing under
+    # either condition. Skipping is the LOCKED case, which is what this now says.
+    if not check_api_lock():
+        return BatchOutcome.SKIPPED
     create_data_paths(city_name, sensor["sensorId"])
-    fetch_weather_data(city_name, sensor)
+    return (
+        BatchOutcome.DONE
+        if fetch_weather_data(city_name, sensor)
+        else BatchOutcome.FAILED
+    )

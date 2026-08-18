@@ -31,7 +31,7 @@ from processing import (
     fetch_summary_dataframe,
     value_scaling,
 )
-from utils import track_time
+from utils import BatchOutcome, track_time
 from visualization import draw_errors, draw_predictions
 from .process_results import save_errors, save_results
 
@@ -237,7 +237,7 @@ def setup_model(
 
 
 @track_time
-def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
+def train_regression_model(city: dict, sensor: dict, pollutant: str) -> BatchOutcome:
     logger.info(
         f"Training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}"
     )
@@ -246,7 +246,7 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
         logger.info(
             f"Skipped training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}"
         )
-        return
+        return BatchOutcome.SKIPPED
     try:
         dataframe = fetch_summary_dataframe(
             DATA_PROCESSED_PATH / city["cityName"] / sensor["sensorId"],
@@ -255,7 +255,11 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
         dataframe = dataframe.loc[
             dataframe.index <= to_datetime(datetime.now(UTC)).to_datetime64()
         ]
-        if pollutant in dataframe.columns:
+        # A sensor that never reported this pollutant has nothing to train on. That is
+        # not a completed training run, and it used to log as one -- the "Completed"
+        # message below fired either way.
+        trained = pollutant in dataframe.columns
+        if trained:
             create_pollutant_lock(data_path)
             generate_regression_model(
                 dataframe, city["cityName"], sensor["sensorId"], pollutant
@@ -265,14 +269,23 @@ def train_regression_model(city: dict, sensor: dict, pollutant: str) -> None:
 
         del dataframe
 
+        if trained:
+            logger.info(
+                f"Completed training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}"
+            )
+            return BatchOutcome.DONE
+
         logger.info(
-            f"Completed training model for {city['cityName']} - {sensor['sensorId']} - {pollutant}"
+            f"No {pollutant} readings for {city['cityName']} - {sensor['sensorId']}; "
+            f"nothing to train"
         )
+        return BatchOutcome.SKIPPED
     except Exception:
         logger.exception(
             f"Error occurred while training model for {city['cityName']} - "
             f"{sensor['sensorId']} - {pollutant}",
         )
+        return BatchOutcome.FAILED
     finally:
         remove_pollutant_lock(data_path)
         collect()

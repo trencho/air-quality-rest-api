@@ -22,7 +22,7 @@ def check_api_lock() -> bool:
     return not (DATA_PATH / f"{OPEN_WEATHER}.lock").exists()
 
 
-def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
+def fetch_dark_sky_data(city_name: str, sensor: dict) -> bool:
     token = environ[DARK_SKY_TOKEN]
     url = f"https://api.darksky.net/forecast/{token}/{sensor['position']}"
     exclude = "currently,minutely,daily,alerts,flags"
@@ -43,16 +43,18 @@ def fetch_dark_sky_data(city_name: str, sensor: dict) -> None:
                 sensor["sensorId"],
             )
         del dataframe
+        return True
     except Exception:
         logger.exception(
             f"Error occurred while fetching DarkSky data for {city_name} - {sensor['sensorId']}",
         )
+        return False
     finally:
         collect()
         sleep(1)
 
 
-def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
+def fetch_open_weather_data(city_name: str, sensor: dict) -> bool:
     url = "https://api.openweathermap.org/data/3.0/onecall"
     sensor_position = sensor["position"].split(",")
     lat, lon = float(sensor_position[0]), float(sensor_position[1])
@@ -79,16 +81,18 @@ def fetch_open_weather_data(city_name: str, sensor: dict) -> None:
                 sensor["sensorId"],
             )
         del dataframe
+        return True
     except Exception:
         logger.exception(
             f"Error occurred while fetching Open Weather data for {city_name} - {sensor['sensorId']}",
         )
+        return False
     finally:
         collect()
         sleep(1)
 
 
-def fetch_pollution_data(city_name: str, sensor: dict) -> None:
+def fetch_pollution_data(city_name: str, sensor: dict) -> bool:
     url = "https://api.openweathermap.org/data/2.5/air_pollution/forecast"
     sensor_position = sensor["position"].split(",")
     lat, lon = float(sensor_position[0]), float(sensor_position[1])
@@ -119,18 +123,24 @@ def fetch_pollution_data(city_name: str, sensor: dict) -> None:
                 sensor["sensorId"],
             )
         del dataframe
+        return True
     except Exception:
         logger.exception(
             f"Error occurred while fetching pollution data for {city_name} - {sensor["sensorId"]}",
         )
+        return False
     finally:
         collect()
         sleep(1)
 
 
-def fetch_weather_data(city_name: str, sensor: dict) -> None:
-    fetch_open_weather_data(city_name, sensor)
-    fetch_pollution_data(city_name, sensor)
+def fetch_weather_data(city_name: str, sensor: dict) -> bool:
+    # Both calls run whatever the first one does -- they fetch different collections and a
+    # weather failure is no reason to skip pollution. Hence the two names rather than
+    # `and`, which would short-circuit.
+    weather_ok = fetch_open_weather_data(city_name, sensor)
+    pollution_ok = fetch_pollution_data(city_name, sensor)
+    return weather_ok and pollution_ok
 
 
 def lock_api() -> None:

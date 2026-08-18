@@ -8,6 +8,7 @@ from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, POLLUTANTS
+from utils import BatchOutcome
 from .calculate_index import calculate_aqi, calculate_index
 from .handle_data import (
     drop_unnecessary_features,
@@ -114,7 +115,7 @@ def next_hour(t: datetime, tz: tzinfo = None) -> datetime:
 
 
 # TODO: Refactor this method to reduce number of exceptions based on missing dataset
-def process_data(city_name: str, sensor_id: str, collection: str) -> None:
+def process_data(city_name: str, sensor_id: str, collection: str) -> BatchOutcome:
     try:
         dataframe_raw = read_csv_in_chunks(
             DATA_RAW_PATH / city_name / sensor_id / f"{collection}.csv"
@@ -138,7 +139,7 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
         dataframe_raw = drop_unnecessary_features(dataframe_raw)
         dataframe_raw = trim_dataframe(dataframe_raw, "time")
         if len(dataframe_raw.index) == 0:
-            return
+            return BatchOutcome.SKIPPED
 
         df_columns = dataframe_raw.columns.copy()
         df_columns = df_columns.drop(
@@ -192,8 +193,15 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> None:
                 index=False,
                 mode="a",
             )
+            return BatchOutcome.DONE
+
+        # Everything new was already present downstream, so there was nothing to write.
+        # Reported apart from DONE so a run that processed no new readings at all is
+        # visible as such rather than as a run that processed everything.
+        return BatchOutcome.SKIPPED
 
     except Exception:
         logger.exception(
             f"Error occurred while processing {collection} data for {city_name} - {sensor_id}",
         )
+        return BatchOutcome.FAILED

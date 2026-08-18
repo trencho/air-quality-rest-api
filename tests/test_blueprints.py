@@ -26,6 +26,7 @@ import api.config  # noqa: F401
 from api import blueprints
 from api.blueprints import fetch_dataframe
 from api.config.cache import cache
+from utils import BatchOutcome
 
 _CSV = "time,pm2_5\n1704067200,12.0\n1704070800,13.0\n"
 
@@ -195,3 +196,65 @@ def test_returns_an_empty_forecast_when_neither_source_has_one(
     forecast = view.return_sensor_forecast_results(_FORECAST_CITY, _FORECAST_SENSOR)
 
     assert forecast["data"] == []
+
+
+# --- api.blueprints.fetch_city_data -------------------------------------------------
+
+
+def test_fetch_city_data_fetches_when_the_api_is_unlocked(monkeypatch, tmp_path):
+    """The guard was inverted, so this never fetched anything.
+
+    ``check_api_lock()`` is ``not lock_file.exists()`` -- True means UNLOCKED. The guard
+    read ``if check_api_lock(): return``, the exact inverse of the one in its only caller
+    (``fetch_hourly_data`` bails on ``not check_api_lock()``). So it returned immediately
+    whenever OpenWeather was callable, and was only ever reached when the outer job had
+    already bailed: it fetched nothing under either condition.
+
+    Nothing failed and nothing raised, which is why it survived. The tally in
+    ``fetch_hourly_data`` is what would have shown it -- every sensor skipped, every run.
+    """
+    monkeypatch.setattr(blueprints, "DATA_RAW_PATH", tmp_path / "raw")
+    monkeypatch.setattr(blueprints, "DATA_PROCESSED_PATH", tmp_path / "processed")
+    monkeypatch.setattr(blueprints, "check_api_lock", lambda: True)  # unlocked
+    calls = []
+    monkeypatch.setattr(
+        blueprints,
+        "fetch_weather_data",
+        lambda city_name, sensor: calls.append((city_name, sensor["sensorId"])) or True,
+    )
+
+    outcome = blueprints.fetch_city_data("skopje", {"sensorId": "1000"})
+
+    assert calls == [("skopje", "1000")], "an unlocked API must actually be fetched"
+    assert outcome is BatchOutcome.DONE
+
+
+def test_fetch_city_data_skips_when_the_api_is_locked(monkeypatch, tmp_path):
+    monkeypatch.setattr(blueprints, "DATA_RAW_PATH", tmp_path / "raw")
+    monkeypatch.setattr(blueprints, "DATA_PROCESSED_PATH", tmp_path / "processed")
+    monkeypatch.setattr(blueprints, "check_api_lock", lambda: False)  # locked
+    calls = []
+    monkeypatch.setattr(
+        blueprints,
+        "fetch_weather_data",
+        lambda city_name, sensor: calls.append(sensor) or True,
+    )
+
+    outcome = blueprints.fetch_city_data("skopje", {"sensorId": "1000"})
+
+    assert calls == [], "a locked API must not be called"
+    # SKIPPED, not DONE: a run that fetched nothing because the quota is spent is not a
+    # successful run, and the tally has to be able to say which it was.
+    assert outcome is BatchOutcome.SKIPPED
+
+
+def test_fetch_city_data_reports_a_failed_fetch(monkeypatch, tmp_path):
+    monkeypatch.setattr(blueprints, "DATA_RAW_PATH", tmp_path / "raw")
+    monkeypatch.setattr(blueprints, "DATA_PROCESSED_PATH", tmp_path / "processed")
+    monkeypatch.setattr(blueprints, "check_api_lock", lambda: True)
+    monkeypatch.setattr(blueprints, "fetch_weather_data", lambda *args: False)
+
+    assert (
+        blueprints.fetch_city_data("skopje", {"sensorId": "1000"})
+        is BatchOutcome.FAILED
+    )

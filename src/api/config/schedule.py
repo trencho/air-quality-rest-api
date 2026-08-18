@@ -39,7 +39,7 @@ from processing import (
     read_csv_in_chunks,
     save_dataframe,
 )
-from utils import track_time
+from utils import BatchTally, track_time
 from .cache import cache
 from .dump import generate_sql_dump
 from .git import append_commit_files, create_archive, update_git_files
@@ -114,18 +114,33 @@ def dump_jobs() -> None:
 @track_time
 def fetch_hourly_data() -> None:
     if not check_api_lock():
+        logger.warning(
+            "fetch_hourly_data: the OpenWeather API is locked; nothing fetched"
+        )
         return
-    for city in cache.get("cities") or read_cities():
-        for sensor in read_sensors(city["cityName"]):
-            fetch_city_data(city["cityName"], sensor)
-            for collection in COLLECTIONS:
-                if (
-                    DATA_RAW_PATH
-                    / city["cityName"]
-                    / sensor["sensorId"]
-                    / f"{collection}.csv"
-                ).exists():
-                    process_data(city["cityName"], sensor["sensorId"], collection)
+    # Two tallies, because the two halves fail for unrelated reasons and a single number
+    # would hide which one. An upstream outage empties the first; a processing defect
+    # empties the second while the fetch keeps working.
+    with (
+        BatchTally(logger, "fetch_hourly_data (fetch)", "sensor") as fetched,
+        BatchTally(logger, "fetch_hourly_data (process)", "collection") as processed,
+    ):
+        for city in cache.get("cities") or read_cities():
+            for sensor in fetched.track(read_sensors(city["cityName"])):
+                fetched.record(fetch_city_data(city["cityName"], sensor))
+                for collection in COLLECTIONS:
+                    if (
+                        DATA_RAW_PATH
+                        / city["cityName"]
+                        / sensor["sensorId"]
+                        / f"{collection}.csv"
+                    ).exists():
+                        processed.attempt()
+                        processed.record(
+                            process_data(
+                                city["cityName"], sensor["sensorId"], collection
+                            )
+                        )
 
 
 @scheduler.scheduled_job(
@@ -145,17 +160,18 @@ def fetch_locations() -> None:
         logger.warning(
             "Upstream returned no countries; keeping the stored list rather than emptying it",
         )
-    for country in countries:
-        try:
-            repository.save(
-                collection_name="countries",
-                filter={"countryCode": country["countryCode"]},
-                item=country,
-            )
-        except Exception:
-            logger.exception(
-                f"Error occurred while updating data for {country['countryName']}",
-            )
+    with BatchTally(logger, "fetch_locations (countries)", "country") as tally:
+        for country in tally.track(countries):
+            try:
+                repository.save(
+                    collection_name="countries",
+                    filter={"countryCode": country["countryCode"]},
+                    item=country,
+                )
+            except Exception:
+                tally.failure(
+                    f"Error occurred while updating data for {country['countryName']}",
+                )
 
     # fetch_countries / fetch_cities / fetch_sensors each answer an upstream failure with an
     # empty list, so writing the result straight to disk turns a transient pulse.eco outage
@@ -171,39 +187,43 @@ def fetch_locations() -> None:
         logger.warning(
             "Upstream returned no cities; keeping the stored list rather than emptying it",
         )
-    for city in cities:
-        try:
-            repository.save(
-                collection_name="cities",
-                filter={"cityName": city["cityName"]},
-                item=city,
-            )
-        except Exception:
-            logger.exception(
-                f"Error occurred while updating data for {city['cityName']}",
-            )
-        sensors = fetch_sensors(city["cityName"])
-        for sensor in sensors:
-            sensor["cityName"] = city["cityName"]
+    with (
+        BatchTally(logger, "fetch_locations (cities)", "city", "cities") as city_tally,
+        BatchTally(logger, "fetch_locations (sensors)", "sensor") as sensor_tally,
+    ):
+        for city in city_tally.track(cities):
             try:
                 repository.save(
-                    collection_name="sensors",
-                    filter={"sensorId": sensor["sensorId"]},
-                    item=sensor,
+                    collection_name="cities",
+                    filter={"cityName": city["cityName"]},
+                    item=city,
                 )
             except Exception:
-                logger.exception(
-                    f"Error occurred while updating data for {sensor['sensorId']}",
+                city_tally.failure(
+                    f"Error occurred while updating data for {city['cityName']}",
                 )
-        if sensors:
-            (DATA_RAW_PATH / city["cityName"]).mkdir(parents=True, exist_ok=True)
-            (DATA_RAW_PATH / city["cityName"] / "sensors.json").write_text(
-                dumps(sensors, indent=4)
-            )
-        else:
-            logger.warning(
-                f"Upstream returned no sensors for {city['cityName']}; keeping the stored list",
-            )
+            sensors = fetch_sensors(city["cityName"])
+            for sensor in sensor_tally.track(sensors):
+                sensor["cityName"] = city["cityName"]
+                try:
+                    repository.save(
+                        collection_name="sensors",
+                        filter={"sensorId": sensor["sensorId"]},
+                        item=sensor,
+                    )
+                except Exception:
+                    sensor_tally.failure(
+                        f"Error occurred while updating data for {sensor['sensorId']}",
+                    )
+            if sensors:
+                (DATA_RAW_PATH / city["cityName"]).mkdir(parents=True, exist_ok=True)
+                (DATA_RAW_PATH / city["cityName"] / "sensors.json").write_text(
+                    dumps(sensors, indent=4)
+                )
+            else:
+                logger.warning(
+                    f"Upstream returned no sensors for {city['cityName']}; keeping the stored list",
+                )
 
 
 @scheduler.scheduled_job(
@@ -222,25 +242,27 @@ def import_data() -> None:
                 unpack_archive(filename=str(file_path), extract_dir=root, format=fmt)
                 file_path.unlink(missing_ok=True)
 
-    for root, directories, files in walk(DATA_EXTERNAL_PATH):
-        for file in files:
-            if file.endswith(".csv"):
-                file_path = Path(root) / file
-                try:
-                    dataframe = read_csv_in_chunks(file_path)
-                    save_dataframe(
-                        dataframe,
-                        Path(file).stem,
-                        DATA_RAW_PATH / file_path.relative_to(DATA_EXTERNAL_PATH),
-                        file_path.parent.name,
-                    )
-                    file_path.unlink(missing_ok=True)
-                except Exception:
-                    logger.exception(
-                        f"Error occurred while importing data from {file_path}",
-                    )
-        if not directories and not files:
-            Path(root).rmdir()
+    with BatchTally(logger, "import_data", "file") as tally:
+        for root, directories, files in walk(DATA_EXTERNAL_PATH):
+            for file in files:
+                if file.endswith(".csv"):
+                    file_path = Path(root) / file
+                    tally.attempt()
+                    try:
+                        dataframe = read_csv_in_chunks(file_path)
+                        save_dataframe(
+                            dataframe,
+                            Path(file).stem,
+                            DATA_RAW_PATH / file_path.relative_to(DATA_EXTERNAL_PATH),
+                            file_path.parent.name,
+                        )
+                        file_path.unlink(missing_ok=True)
+                    except Exception:
+                        tally.failure(
+                            f"Error occurred while importing data from {file_path}",
+                        )
+            if not directories and not files:
+                Path(root).rmdir()
 
     DATA_EXTERNAL_PATH.mkdir(parents=True, exist_ok=True)
 
@@ -254,10 +276,11 @@ def import_data() -> None:
 )
 @track_time
 def model_training() -> None:
-    for city in cache.get("cities") or read_cities():
-        for sensor in read_sensors(city["cityName"]):
-            for pollutant in POLLUTANTS:
-                train_regression_model(city, sensor, pollutant)
+    with BatchTally(logger, "model_training", "model") as tally:
+        for city in cache.get("cities") or read_cities():
+            for sensor in read_sensors(city["cityName"]):
+                for pollutant in tally.track(POLLUTANTS):
+                    tally.record(train_regression_model(city, sensor, pollutant))
 
 
 @scheduler.scheduled_job(
@@ -269,48 +292,51 @@ def model_training() -> None:
 )
 @track_time
 def predict_locations() -> None:
-    for city in cache.get("cities") or read_cities():
-        for sensor in read_sensors(city["cityName"]):
-            file_path = (
-                DATA_PROCESSED_PATH
-                / city["cityName"]
-                / sensor["sensorId"]
-                / "predictions.json"
-            )
-            try:
-                repository.save(
-                    collection_name="predictions",
-                    filter={
-                        "cityName": city["cityName"],
-                        "sensorId": sensor["sensorId"],
-                    },
-                    item={
-                        "data": loads(file_path.read_text()),
-                        "cityName": city["cityName"],
-                        "sensorId": sensor["sensorId"],
-                    },
-                )
-            except Exception:
-                logger.exception(
-                    f"Error occurred while updating forecast values from {file_path}",
-                )
-
-    for city in cache.get("cities") or read_cities():
-        for sensor in read_sensors(city["cityName"]):
-            try:
-                forecast_result = fetch_forecast_result(city, sensor)
-                (
+    with BatchTally(logger, "predict_locations (publish)", "sensor") as tally:
+        for city in cache.get("cities") or read_cities():
+            for sensor in tally.track(read_sensors(city["cityName"])):
+                file_path = (
                     DATA_PROCESSED_PATH
                     / city["cityName"]
                     / sensor["sensorId"]
                     / "predictions.json"
-                ).write_text(
-                    dumps(list(forecast_result.values()), indent=4, default=str)
                 )
-            except Exception:
-                logger.exception(
-                    f"Error occurred while fetching forecast values for {city['cityName']} - {sensor['sensorId']}",
-                )
+                try:
+                    repository.save(
+                        collection_name="predictions",
+                        filter={
+                            "cityName": city["cityName"],
+                            "sensorId": sensor["sensorId"],
+                        },
+                        item={
+                            "data": loads(file_path.read_text()),
+                            "cityName": city["cityName"],
+                            "sensorId": sensor["sensorId"],
+                        },
+                    )
+                except Exception:
+                    tally.failure(
+                        f"Error occurred while updating forecast values from {file_path}",
+                    )
+
+    with BatchTally(logger, "predict_locations (forecast)", "sensor") as tally:
+        for city in cache.get("cities") or read_cities():
+            for sensor in tally.track(read_sensors(city["cityName"])):
+                try:
+                    forecast_result = fetch_forecast_result(city, sensor)
+                    (
+                        DATA_PROCESSED_PATH
+                        / city["cityName"]
+                        / sensor["sensorId"]
+                        / "predictions.json"
+                    ).write_text(
+                        dumps(list(forecast_result.values()), indent=4, default=str)
+                    )
+                except Exception:
+                    tally.failure(
+                        f"Error occurred while fetching forecast values for "
+                        f"{city['cityName']} - {sensor['sensorId']}",
+                    )
 
 
 @scheduler.scheduled_job(

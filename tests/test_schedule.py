@@ -138,3 +138,62 @@ def test_fetch_locations_keeps_stored_sensors_when_only_that_call_fails(
 
     assert loads((raw / "cities.json").read_text()) == [_CITY]
     assert loads((raw / "skopje" / "sensors.json").read_text()) == [_SENSOR]
+
+
+def test_fetch_locations_summarises_what_it_managed_to_save(
+    tmp_path, monkeypatch, caplog
+):
+    # The end-to-end half of the tally: not that BatchTally counts (test_batch_tally.py
+    # covers that) but that this job is actually wired to one, and that a run in which the
+    # repository rejected everything is reported as ERROR rather than passing in silence.
+    _stub_locations(
+        monkeypatch, tmp_path, countries=[_COUNTRY], cities=[_CITY], sensors=[_SENSOR]
+    )
+
+    def refuse(**kwargs):
+        raise RuntimeError("the database is gone")
+
+    monkeypatch.setattr(schedule.repository, "save", refuse, raising=False)
+
+    with caplog.at_level("INFO", logger=schedule.__name__):
+        fetch_locations()
+
+    summaries = {
+        record.message.split(":")[0]: record
+        for record in caplog.records
+        if record.name == schedule.__name__ and " -- " in record.message
+    }
+    # One per sub-batch: countries, cities and sensors fail for different reasons and are
+    # counted apart so the log says which upstream is broken.
+    assert set(summaries) == {
+        "fetch_locations (countries)",
+        "fetch_locations (cities)",
+        "fetch_locations (sensors)",
+    }
+    for name, record in summaries.items():
+        assert (
+            record.levelname == "ERROR"
+        ), f"{name} should escalate when all units fail"
+        assert "0 done, 1 failed" in record.message
+
+
+def test_fetch_locations_reports_a_clean_run_without_raising_the_level(
+    tmp_path, monkeypatch, caplog
+):
+    # The other direction, so the assertion above cannot be satisfied by a tally that
+    # always says ERROR.
+    _stub_locations(
+        monkeypatch, tmp_path, countries=[_COUNTRY], cities=[_CITY], sensors=[_SENSOR]
+    )
+
+    with caplog.at_level("INFO", logger=schedule.__name__):
+        fetch_locations()
+
+    summaries = [
+        record
+        for record in caplog.records
+        if record.name == schedule.__name__ and " -- " in record.message
+    ]
+    assert len(summaries) == 3
+    assert all(record.levelname == "INFO" for record in summaries)
+    assert all("0 failed" in record.message for record in summaries)
