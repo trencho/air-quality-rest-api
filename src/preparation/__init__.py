@@ -13,4 +13,4 @@ from .location_data import (
     read_sensors,
     recalculate_coordinate,
 )
-from .weather_data import check_api_lock, fetch_weather_data
+from .weather_data import api_is_available, fetch_weather_data

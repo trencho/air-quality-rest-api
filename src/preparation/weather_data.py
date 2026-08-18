@@ -18,7 +18,16 @@ from processing import flatten_json, save_dataframe
 logger = getLogger(__name__)
 
 
-def check_api_lock() -> bool:
+def api_is_available() -> bool:
+    """True when the OpenWeather quota lock is ABSENT, i.e. it is safe to call the API.
+
+    Named for the polarity rather than the mechanism. It was ``check_api_lock``, which
+    reads as "is it locked?" while returning the opposite -- and its two call sites were
+    written with opposite polarity as a result, one of them making the hourly fetch a
+    no-op for 402 days. The sibling ``check_pollutant_lock`` returns ``.exists()``, True
+    meaning LOCKED, so the two ``check_*_lock`` functions meant opposite things and the
+    correct call for one was the bug for the other.
+    """
     return not (DATA_PATH / f"{OPEN_WEATHER}.lock").exists()
 
 
