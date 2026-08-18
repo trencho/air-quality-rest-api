@@ -1,0 +1,12 @@
+# Normalize line endings. The four shell scripts must stay LF: two of them are baked into
+# the image (docker/launch.sh is the container's entrypoint) and two run on the deploy
+# host over SSH. A CRLF `#!/bin/bash` makes Linux look for an interpreter literally named
+# "/bin/bash\r", which fails with exit 127 and an error naming a path that looks correct.
+#
+# Nothing here changes a committed file: every tracked file is already `i/lf`. This exists
+# to stop a Windows checkout introducing CRLF, which `core.autocrlf=true` makes easy to do
+# by accident. It also pins the WORKING tree to LF for *.sh, so shellcheck run locally
+# stops reporting SC1017 on every line and cascading into bogus parse errors around line
+# continuations -- an artifact that made a real deploy script look broken when it was not.
+* text=auto
+*.sh text eol=lf
