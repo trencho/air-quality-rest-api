@@ -77,6 +77,19 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
 
+    # A backstop against a hung runner, not a second deadline competing with the
+    # rollout budgets -- so it has to sit ABOVE them. deploy_kubernetes_resources.sh
+    # allows mongo 10m + redis 10m + flask 20m, and reload_pods.sh then waits on two
+    # more rollouts with no --timeout at all, so a slow-but-succeeding deploy can
+    # legitimately run for well over half an hour. A tighter value here would kill
+    # exactly the deploy it was meant to protect.
+    #
+    # Without this the default is 6 hours, and because this job holds the
+    # deploy-production concurrency group, a genuinely stuck step queues every later
+    # deploy behind it for that whole time. One did stall for 18 minutes on
+    # `Install OpenVPN` (normally ~10s) on 2026-08-19.
+    timeout-minutes: 60
+
     # Scoped to this job, not the workflow.
     #
     # These 14 are the production deploy credentials -- an SSH private key, the full OpenVPN
