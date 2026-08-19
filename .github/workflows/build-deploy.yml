@@ -191,7 +191,14 @@ jobs:
           password: ${{ env.OPENVPN_PASSWORD }}
           client_key: ${{ env.USER_KEY }}
 
+      - name: Record the deploy start time
+        id: deploy_started
+        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
+
       - name: SSH commands for checkout/update git repo, build and deploy
+        id: remote_deploy
+        # Failure is handled below instead of here, so that a retry can be decided on.
+        continue-on-error: true
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ env.SERVER_HOST }}
@@ -203,40 +210,46 @@ jobs:
           # mid-rollout and the deploy reports failure for a pod that was starting
           # normally.
           command_timeout: 25m
-          script: |
-            set -e # Stop execution on any error
+          # The script is a file so the retry below points at it rather than carrying a
+          # second copy of it, and envs forwards the values it needs -- which also stops
+          # five secrets being interpolated into the script text.
+          envs: ACCESS_TOKEN,GIT_REPO_NAME,GIT_REPO_PATH,GIT_REPO_USERNAME,SSH_USERNAME
+          script_path: .github/workflows/remote_deploy.sh
 
-            echo "Setting up environment variables..."
-            export ACCESS_TOKEN=${{ env.ACCESS_TOKEN }}
-            export GIT_REPO_NAME=${{ env.GIT_REPO_NAME }}
-            export GIT_REPO_PATH=${{ env.GIT_REPO_PATH }}
-            export GIT_REPO_USERNAME=${{ env.GIT_REPO_USERNAME }}
-            export SSH_USERNAME=${{ env.SSH_USERNAME }}
+      - name: Decide whether the failure is worth retrying
+        id: retry_decision
+        if: steps.remote_deploy.outcome == 'failure'
+        run: |
+          elapsed=$(( $(date +%s) - ${{ steps.deploy_started.outputs.epoch }} ))
+          # appleboy/ssh-action downloads its drone-ssh binary from a GitHub release at
+          # run time. When that download fails the step dies in about twenty seconds
+          # having never opened a session -- that happened on 2026-08-19 and is free to
+          # retry. A deploy that genuinely failed is minutes in, because it waits on
+          # `kubectl rollout status`; retrying that just runs a doomed deploy twice.
+          if [ "${elapsed}" -lt 120 ]; then
+            echo "retry=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::remote deploy failed after ${elapsed}s -- too early to have reached the deploy itself, retrying once"
+          else
+            echo "retry=false" >> "$GITHUB_OUTPUT"
+            echo "::error::remote deploy failed after ${elapsed}s -- far enough in to be a real failure, not retrying"
+          fi
 
-            echo "Cloning/Updating repository..."
-            mkdir -p "${GIT_REPO_PATH}"
+      - name: SSH commands for checkout/update git repo, build and deploy (retry)
+        if: steps.retry_decision.outputs.retry == 'true'
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
+          # The action's default command_timeout is 10m, but flask's startupProbe
+          # allows up to 15 minutes for its boot-time data fetch and the deploy script
+          # blocks on `kubectl rollout status`. Without this the SSH step is killed
+          # mid-rollout and the deploy reports failure for a pod that was starting
+          # normally.
+          command_timeout: 25m
+          envs: ACCESS_TOKEN,GIT_REPO_NAME,GIT_REPO_PATH,GIT_REPO_USERNAME,SSH_USERNAME
+          script_path: .github/workflows/remote_deploy.sh
 
-            if [ ! -d "${GIT_REPO_PATH}/.git" ]; then
-              echo "Repository not found. Cloning..."
-              git clone https://"${ACCESS_TOKEN}"@github.com/"${GIT_REPO_USERNAME}"/"${GIT_REPO_NAME}".git "${GIT_REPO_PATH}"
-              cd "${GIT_REPO_PATH}" || exit
-            else
-              echo "Repository found. Fetching latest changes..."
-              cd "${GIT_REPO_PATH}" || exit
-              git fetch origin
-              git reset --hard origin/master
-            fi
-            
-            echo "Setting correct ownership..."
-            chown -R "${SSH_USERNAME}:${SSH_USERNAME}" "${GIT_REPO_PATH}"
-
-            echo "Making scripts executable..."
-            find .github/workflows -type f -name "*.sh" -exec chmod +x {} +
-
-            echo "Executing deployment scripts..."
-            .github/workflows/deploy_kubernetes_resources.sh
-
-            echo "Restarting Kubernetes Deployments..."
-            .github/workflows/reload_pods.sh
-
-            echo "Deployment successful!"
+      - name: Fail the job when the deploy failed and was not retried
+        if: steps.remote_deploy.outcome == 'failure' && steps.retry_decision.outputs.retry != 'true'
+        run: exit 1
