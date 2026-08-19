@@ -10,9 +10,14 @@ metadata:
   name: certificate-renewal
   namespace: aqra
 rules:
+  # `get` as well as `delete`. Verified against kubectl v1.36 rather than assumed:
+  # `kubectl delete secret <name> --ignore-not-found` issues a DELETE *and* a GET for the
+  # named resource, and `--ignore-not-found` only swallows a 404 -- a 403 from a missing
+  # `get` fails the job. The old script called `kubectl get` explicitly and this Role never
+  # granted it, which is why the job could never do anything (see the CronJob below).
   - apiGroups: [ "", "cert-manager.io" ]
     resources: [ "certificates", "secrets" ]
-    verbs: [ "delete" ]
+    verbs: [ "get", "delete" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -40,15 +45,30 @@ spec:
       template:
         spec:
           containers:
-            - command:
-                - /bin/sh
-                - -c
-                - |
-                  set -e
-                  kubectl get certificate aqra-tls -n aqra || exit 0
-                  kubectl get secret aqra-tls -n aqra || exit 0
-                  kubectl delete certificate aqra-tls -n aqra
-                  kubectl delete secret aqra-tls -n aqra
+            # This job has never renewed anything, for two independent reasons.
+            #
+            # 1. Its Role granted `delete` only, while the script's first line was
+            #    `kubectl get certificate ... || exit 0`. `get` was Forbidden, so the guard
+            #    always took the `exit 0` branch and the job reported Completed having
+            #    deleted nothing -- a silent no-op that looked healthy in every status
+            #    listing. The Role above now grants `get`.
+            #
+            # 2. #40 pinned registry.k8s.io/kubectl, which is DISTROLESS
+            #    (`Entrypoint: ["/bin/kubectl"]`, no Cmd, no /bin/sh), so since then the
+            #    container has died with `exec: "/bin/sh": ... no such file or directory`
+            #    before kubectl ran at all.
+            #
+            # `--ignore-not-found` replaces the get-guards outright: it is exactly what
+            # they were emulating, needs no extra permission beyond the `get` kubectl
+            # already performs, and deletes whichever of the two objects exists rather
+            # than skipping both when the first is absent.
+            - args:
+                - delete
+                - certificate/aqra-tls
+                - secret/aqra-tls
+                - -n
+                - aqra
+                - --ignore-not-found
               image: registry.k8s.io/kubectl:v1.36.3
               name: cronjob
           restartPolicy: OnFailure
