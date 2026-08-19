@@ -9,6 +9,8 @@ spec:
   ports:
     - name: http
       port: 80
-      targetPort: 80
+      # The container listens on 8080 now (it runs unprivileged and cannot bind 80). The published
+      # port stays 80, so flask-ingress.yml and every client are unaffected.
+      targetPort: 8080
   selector:
     io.kompose.service: flask

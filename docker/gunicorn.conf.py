@@ -6,8 +6,10 @@ disable_redirect_access_to_syslog = True
 
 preload_app = True
 chdir = "/app/src/api"
-pidfile = "/run/.pid"
-bind = ["unix:/run/gunicorn.socket"]
+# /run is root-owned and the process is unprivileged, so the pid file and the socket nginx proxies
+# to both live under /tmp. nginx's proxy_pass in docker/nginx.conf points at the same path.
+pidfile = "/tmp/gunicorn.pid"
+bind = ["unix:/tmp/gunicorn.socket"]
 workers = cpu_count() * 2 + 1
 threads = 4
 max_requests = 500

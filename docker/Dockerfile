@@ -89,7 +89,29 @@ COPY . .
 # Copy the nginx configuration file.
 COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 80
+# Run unprivileged.
+#
+# Two daemons share this container: nginx (reverse proxy) and gunicorn (WSGI), started by
+# docker/launch.sh. Both had to be moved off root-owned paths for this to work:
+#   - nginx logs to stdout/stderr instead of /var/log/nginx, and its pid file moved to /tmp
+#   - gunicorn's pid file and the unix socket nginx proxies to moved from /run to /tmp
+#   - nginx's temp directories under /var/lib/nginx are chowned below; nginx creates files there
+#     for buffered request and proxy bodies, and the paths are compiled in rather than configured
+#
+# The listen port moved from 80 to 8080, because binding below 1024 needs CAP_NET_BIND_SERVICE.
+#
+# Application data is untouched by any of this: every write goes to $VOLUME_PATH (/var/api in the
+# cluster), which is a mounted volume. Its ownership is handled by the init container in
+# kubernetes/deployment/flask-deployment.yml, because kubelet does not apply fsGroup to a hostPath.
+RUN groupadd --system --gid 1001 app && \
+    useradd --system --uid 1001 --gid app --no-create-home --shell /usr/sbin/nologin app && \
+    mkdir -p /var/lib/nginx/body /var/lib/nginx/proxy /var/lib/nginx/fastcgi \
+             /var/lib/nginx/uwsgi /var/lib/nginx/scgi && \
+    chown -R app:app /var/lib/nginx
+
+EXPOSE 8080
+
+USER app
 
 # Run the application.
 ENTRYPOINT ["/bin/bash", "/app/docker/launch.sh"]

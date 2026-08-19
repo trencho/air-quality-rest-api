@@ -36,7 +36,8 @@ services:
     networks:
       - network
     ports:
-      - "80:80"
+      # Container listens on 8080 since it runs unprivileged; still published on 80 locally.
+      - "80:8080"
     volumes:
       - flask-data:/var/api
 
