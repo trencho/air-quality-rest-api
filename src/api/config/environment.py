@@ -65,11 +65,18 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> BatchOu
     try:
         dataframe = read_csv_in_chunks(collection_path)
         new_db_records = find_missing_data(db_records, dataframe, "time")
-        # TODO: Review this line for converting column data types
-        # new_db_records = new_db_records.astype(column_dtypes, errors="ignore")
-        # combined_df = concat([dataframe, new_db_records]).drop_duplicates(subset="time", keep="last")
-        # combined_df.to_csv(collection_path, index=False)
-        # del combined_df
+        # The column-dtype conversion is deliberately unfinished, and this is its one record.
+        #
+        # `processing.handle_data` already carries the pieces for it -- `store_dtypes` writes
+        # `{collection}_dtypes.json`, `find_dtypes` reads it back, `convert_dtype` renders a cell --
+        # and all three are covered by tests but called from nowhere, because the conversion was
+        # never wired up here. `convert_dtype`'s docstring points at this function by name.
+        #
+        # It used to be recorded as five byte-identical `# TODO: Review this line for converting
+        # column data types` comments beside five commented-out `astype(column_dtypes, ...)` calls,
+        # which read as five separate chores rather than the one unresolved question it is: should
+        # these frames be dtype-cast on write, and should the merge de-duplicate on `time`? The
+        # other four are gone; this is the one that stays, next to the code it would change.
         new_db_records.to_csv(collection_path, header=False, index=False, mode="a")
 
         save_dataframe(dataframe, collection, collection_path, sensor_id)
@@ -79,8 +86,6 @@ def fetch_collection(collection: str, city_name: str, sensor_id: str) -> BatchOu
         logger.exception(
             f"Could not fetch data from local storage for {city_name} - {sensor_id} - {collection}",
         )
-        # TODO: Review this line for converting column data types
-        # db_records = db_records.astype(column_dtypes, errors="ignore")
         # The records are still written, straight from the database rather than merged
         # with local storage, so this is a degraded write and not a lost one -- but it is
         # reported as FAILED because the merge it was asked to do did not happen.

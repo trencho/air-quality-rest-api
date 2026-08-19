@@ -135,8 +135,6 @@ def save_dataframe(
             f"Could not fetch data from local storage for {sensor_id} - {collection}",
         )
     dataframe = dataframe.drop(columns="sensorId", errors="ignore")
-    # TODO: Review this line for converting column data types
-    # dataframe = dataframe.astype(column_dtypes, errors="ignore")
     dataframe.to_csv(
         collection_path, header=not collection_path.exists(), index=False, mode="a"
     )
