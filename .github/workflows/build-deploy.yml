@@ -143,29 +143,77 @@ jobs:
           fi
           echo "OpenVPN config found."
 
+      # Cache the .debs so a degraded Ubuntu mirror cannot stall the deploy. GitHub's cache
+      # service is a different network path from the mirror, so a HIT bypasses apt entirely --
+      # which is the whole point, after this step stalled 18 minutes three times on 2026-08-19.
+      # A MISS still goes to apt, so the retry loop below stays exactly as it was.
+      #
+      # The key carries the runner image build because the dependency closure differs per image
+      # and a .deb set restored against a different one can half-install; and the package list,
+      # so changing what is installed invalidates it. Deliberately NO restore-keys: a prefix
+      # near-miss would restore a set built for another image, which is the failure this key
+      # exists to prevent.
+      # ImageOS/ImageVersion live in the runner's PROCESS environment, NOT in the `env`
+      # expression context - so `${{ env.ImageOS }}` expands to an EMPTY STRING and the key
+      # collapses to a constant that hits forever, serving .debs built for a retired image.
+      # That is not hypothetical: the first run of this change saved `apt-openvpn-Linux--`.
+      # Resolve them in a step, where they do exist, and fail loudly if they ever stop.
+      - name: Resolve the runner image for the cache key
+        id: runner_image
+        run: |
+          set -u
+          if [ -z "${ImageOS:-}" ] || [ -z "${ImageVersion:-}" ]; then
+            echo "::error::ImageOS/ImageVersion are unset - the cache key would be constant"
+            exit 1
+          fi
+          echo "id=${ImageOS}-${ImageVersion}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the OpenVPN packages
+        uses: actions/cache@v6
+        with:
+          path: .aptcache
+          key: apt-openvpn-${{ runner.os }}-${{ steps.runner_image.outputs.id }}
+
       - name: Install OpenVPN
         # Required, not incidental: the connect action below installs nothing -- it writes
         # the config and keys and runs `sudo openvpn` -- and openvpn is not on the runner
-        # image. These two lines come from that action's own README.
+        # image. This came from that action's own README.
         #
-        # They are also the most fragile step in the deploy. On 2026-08-19 this stalled at
-        # 18 minutes three times, against a normal duration of about ten seconds, and had
-        # to be cancelled by hand each time.
+        # openvpn-systemd-resolved is NOT installed any more. It only does anything when the
+        # config invokes its script via an `up` directive, and client.ovpn has no `up`/`down`
+        # and no `script-security` -- without which OpenVPN refuses to run such a script at
+        # all. It has never been doing anything here.
         #
-        # Each apt call is bounded individually so a stall is KILLED and retried rather
-        # than hanging silently. `sudo timeout` rather than `timeout sudo`, so the signal
-        # reaches apt-get itself instead of the sudo wrapper it would otherwise stop at.
+        # Each apt call is bounded individually so a stall is KILLED and retried rather than
+        # hanging silently. `sudo timeout` rather than `timeout sudo`, so the signal reaches
+        # apt-get itself instead of the sudo wrapper it would otherwise stop at.
         # timeout-minutes is only a backstop for the loop as a whole.
         timeout-minutes: 10
         run: |
           set -u
+          echo "runner image: ImageOS=${ImageOS:-<unset>} ImageVersion=${ImageVersion:-<unset>}"
+
+          # Cache hit: install from the .debs without touching the network at all.
+          if ls .aptcache/*.deb >/dev/null 2>&1; then
+            if sudo dpkg -i .aptcache/*.deb; then
+              echo "OpenVPN installed from cache: $(openvpn --version | head -1)"
+              exit 0
+            fi
+            echo "::warning::cached .debs did not install (runner image probably changed); falling back to apt"
+          fi
+
+          # Miss: download into the cached dir so the next run hits. Dir::Cache::archives is
+          # repo-local because /var/cache/apt/archives is root-owned and actions/cache saves
+          # as `runner`; the chown below is why the post-step can read what apt wrote.
+          mkdir -p .aptcache/partial
           install_openvpn() {
             sudo timeout 60 apt-get update -o Acquire::Retries=3 \
-              && sudo timeout 90 apt-get install -y -o Acquire::Retries=3 \
-                   openvpn openvpn-systemd-resolved
+              && sudo timeout 90 apt-get install -y --no-install-recommends \
+                   -o Acquire::Retries=3 -o Dir::Cache::archives="$(pwd)/.aptcache" openvpn
           }
           for attempt in 1 2 3; do
             if install_openvpn; then
+              sudo chown -R "$(id -u):$(id -g)" .aptcache
               echo "OpenVPN installed on attempt ${attempt}: $(openvpn --version | head -1)"
               exit 0
             fi
@@ -174,6 +222,7 @@ jobs:
           done
           echo "::error::could not install OpenVPN after 3 attempts"
           exit 1
+
 
       - name: Create necessary OpenVPN key files
         run: |
