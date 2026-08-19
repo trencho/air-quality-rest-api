@@ -40,10 +40,21 @@ spec:
       template:
         spec:
           containers:
-            - command:
-                - /bin/sh
-                - -c
-                - set -e; kubectl rollout restart deployment flask -n aqra
+            # `args`, not `command`. This ran `/bin/sh -c "kubectl ..."` under
+            # bitnami/kubectl, which is Debian-based and has a shell. #40 pinned
+            # registry.k8s.io/kubectl instead, which is DISTROLESS -- its config is
+            # `Entrypoint: ["/bin/kubectl"]` with no Cmd and no /bin/sh -- so every run
+            # since has died before kubectl started, with
+            # `exec: "/bin/sh": stat /bin/sh: no such file or directory` and then
+            # BackoffLimitExceeded. The image's entrypoint IS kubectl, so the arguments
+            # go straight to it and no shell is involved.
+            - args:
+                - rollout
+                - restart
+                - deployment
+                - flask
+                - -n
+                - aqra
               image: registry.k8s.io/kubectl:v1.36.3
               name: kubectl
           restartPolicy: OnFailure
