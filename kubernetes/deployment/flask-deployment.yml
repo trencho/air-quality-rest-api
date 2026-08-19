@@ -24,6 +24,33 @@ spec:
         io.kompose.service: flask
     spec:
       automountServiceAccountToken: false
+      # kubelet applies fsGroup ownership to most volume types, but NOT to hostPath -- and
+      # flask-data-pvc is backed by one (/mnt/aqra/api on the node, see
+      # persistent-volume/flask-data-pv.yml). So a non-root app container would hit EACCES on its
+      # first write to /var/api, which is every write it makes.
+      #
+      # This runs as root, chowns the mount to the app uid, and exits. It is the standard fix for
+      # exactly this, and it needs no access to the node: the alternative was a manual
+      # `sudo chown` over SSH, which nothing in the repo could perform or re-assert.
+      #
+      # Idempotent, so it is safe on every rollout. It uses the app image rather than a second
+      # image so there is nothing extra to pull, and `chown -R` on an already-correct tree is
+      # cheap.
+      initContainers:
+        - name: fix-data-ownership
+          image: ghcr.io/trencho/air-quality-rest-api:latest
+          imagePullPolicy: Always
+          command: [ "chown", "-R", "1001:1001", "/var/api" ]
+          securityContext:
+            # runAsNonRoot must be overridden here, not just runAsUser. The pod-level block below
+            # applies to init containers too, and kubelet validates it: with runAsNonRoot inherited
+            # as true, a container asking for uid 0 is REFUSED at admission with
+            # "container has runAsNonRoot and image will run as root", and the pod never starts.
+            runAsNonRoot: false
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /var/api
+              name: flask-data
       containers:
         - envFrom:
             - configMapRef:
@@ -55,7 +82,7 @@ spec:
             failureThreshold: 90
             httpGet:
               path: /api/v1/healthz/live
-              port: 80
+              port: 8080
             periodSeconds: 10
           # Takes over only once startupProbe has succeeded, so no initialDelaySeconds
           # is needed here -- boot time is the startup probe's job, not liveness's.
@@ -63,7 +90,7 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /api/v1/healthz/live
-              port: 80
+              port: 8080
             periodSeconds: 30
             timeoutSeconds: 10
           # periodSeconds was 300: a readiness check that missed its first attempt did
@@ -73,16 +100,25 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /api/v1/healthz/ready
-              port: 80
+              port: 8080
             periodSeconds: 15
             timeoutSeconds: 10
           name: flask
           ports:
-            - containerPort: 80
+            # 8080, not 80: an unprivileged process cannot bind below 1024 without
+            # CAP_NET_BIND_SERVICE. The Service still publishes 80 and targets this.
+            - containerPort: 8080
           resources: { }
           volumeMounts:
             - mountPath: /var/api
               name: flask-data
+      # Same three keys mongo-deployment.yml and redis-deployment.yml already use. Those two set
+      # it and the application they exist for did not, which is what made this an oversight rather
+      # than a decision. uid 1001 matches the `app` user created in docker/Dockerfile.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
       volumes:
         - name: flask-data
           persistentVolumeClaim:

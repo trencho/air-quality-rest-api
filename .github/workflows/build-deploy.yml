@@ -11,22 +11,6 @@ on:
   # against an unchanged master is a no-op when nothing is wrong.
   workflow_dispatch:
 
-env:
-  OPENVPN_CONFIG: ${{ secrets.OPENVPN_CONFIG }}
-  OPENVPN_USERNAME: ${{ secrets.OPENVPN_USERNAME }}
-  OPENVPN_PASSWORD: ${{ secrets.OPENVPN_PASSWORD }}
-  CA_CERT: ${{ secrets.CA_CERT }}
-  CLIENT_CERT: ${{ secrets.CLIENT_CERT }}
-  TLS_CRYPT_KEY: ${{ secrets.TLS_CRYPT_KEY }}
-  USER_KEY: ${{ secrets.USER_KEY }}
-  SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-  SERVER_HOST: ${{ secrets.SERVER_HOST }}
-  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-  GIT_REPO_PATH: ${{ secrets.GIT_REPO_PATH }}
-  GIT_REPO_USERNAME: ${{ secrets.GIT_REPO_USERNAME }}
-  GIT_REPO_NAME: ${{ secrets.GIT_REPO_NAME }}
-
 permissions:
   contents: read
 
@@ -92,6 +76,33 @@ jobs:
     # Nothing is deployed unless an image was actually published.
     needs: build-and-push
     runs-on: ubuntu-latest
+
+    # Scoped to this job, not the workflow.
+    #
+    # These 14 are the production deploy credentials -- an SSH private key, the full OpenVPN
+    # credential set, and a repo access token. Declared at workflow level they were injected into
+    # the environment of every job, so `build-and-push` ran with all of them while needing only
+    # GITHUB_TOKEN for GHCR, alongside four third-party actions. Every consumer of every one of
+    # these is a step of this job.
+    #
+    # `test` was never exposed, but by accident rather than design: it is a reusable-workflow call
+    # (`uses: ./.github/workflows/test.yml`), and a called workflow does not inherit the caller's
+    # env.
+    env:
+      OPENVPN_CONFIG: ${{ secrets.OPENVPN_CONFIG }}
+      OPENVPN_USERNAME: ${{ secrets.OPENVPN_USERNAME }}
+      OPENVPN_PASSWORD: ${{ secrets.OPENVPN_PASSWORD }}
+      CA_CERT: ${{ secrets.CA_CERT }}
+      CLIENT_CERT: ${{ secrets.CLIENT_CERT }}
+      TLS_CRYPT_KEY: ${{ secrets.TLS_CRYPT_KEY }}
+      USER_KEY: ${{ secrets.USER_KEY }}
+      SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      GIT_REPO_PATH: ${{ secrets.GIT_REPO_PATH }}
+      GIT_REPO_USERNAME: ${{ secrets.GIT_REPO_USERNAME }}
+      GIT_REPO_NAME: ${{ secrets.GIT_REPO_NAME }}
 
     steps:
       - name: Checkout
