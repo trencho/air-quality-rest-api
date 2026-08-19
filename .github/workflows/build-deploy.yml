@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - master
+  # Redeploying after an infrastructure fix needed either a commit or
+  # `gh run rerun <id> --failed` -- the 2026-08-19 Redis outage was resolved on the node,
+  # and there was then no way to ask for a fresh deploy without pushing something. The
+  # rollout is idempotent (`kubectl apply` plus a rollout restart), so re-running it
+  # against an unchanged master is a no-op when nothing is wrong.
+  workflow_dispatch:
 
 env:
   OPENVPN_CONFIG: ${{ secrets.OPENVPN_CONFIG }}
