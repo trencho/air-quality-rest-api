@@ -111,8 +111,6 @@ def merge_csv_files(repo: Repository, file_name: str, data: str) -> str | None:
             [local_file_content, repo_file_content], ignore_index=True
         )
         combined_content = trim_dataframe(combined_content, "time")
-        # TODO: Review this line for converting column data types
-        # combined_content = combined_content.astype(column_dtypes, errors="ignore")
         return combined_content.to_csv(index=False)
     except Exception:
         logger.exception(
