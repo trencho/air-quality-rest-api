@@ -144,9 +144,36 @@ jobs:
           echo "OpenVPN config found."
 
       - name: Install OpenVPN
+        # Required, not incidental: the connect action below installs nothing -- it writes
+        # the config and keys and runs `sudo openvpn` -- and openvpn is not on the runner
+        # image. These two lines come from that action's own README.
+        #
+        # They are also the most fragile step in the deploy. On 2026-08-19 this stalled at
+        # 18 minutes three times, against a normal duration of about ten seconds, and had
+        # to be cancelled by hand each time.
+        #
+        # Each apt call is bounded individually so a stall is KILLED and retried rather
+        # than hanging silently. `sudo timeout` rather than `timeout sudo`, so the signal
+        # reaches apt-get itself instead of the sudo wrapper it would otherwise stop at.
+        # timeout-minutes is only a backstop for the loop as a whole.
+        timeout-minutes: 10
         run: |
-          sudo apt update
-          sudo apt install -y openvpn openvpn-systemd-resolved
+          set -u
+          install_openvpn() {
+            sudo timeout 60 apt-get update -o Acquire::Retries=3 \
+              && sudo timeout 90 apt-get install -y -o Acquire::Retries=3 \
+                   openvpn openvpn-systemd-resolved
+          }
+          for attempt in 1 2 3; do
+            if install_openvpn; then
+              echo "OpenVPN installed on attempt ${attempt}: $(openvpn --version | head -1)"
+              exit 0
+            fi
+            echo "::warning::apt attempt ${attempt} did not finish within its budget; retrying"
+            sleep 10
+          done
+          echo "::error::could not install OpenVPN after 3 attempts"
+          exit 1
 
       - name: Create necessary OpenVPN key files
         run: |
