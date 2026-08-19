@@ -43,16 +43,31 @@ spec:
             - "allkeys-lru"
           ports:
             - containerPort: 6379
+          # tcpSocket, not `exec: [redis-cli, ping]`. kubelet dials the pod IP from OUTSIDE
+          # the container, which is what every client actually does; `redis-cli` with no
+          # -h connects to 127.0.0.1 INSIDE the pod, so it certified Redis as Ready without
+          # ever establishing that anything outside could reach it.
+          #
+          # Not theoretical. On 2026-08-19 restart #10 left a zombie container: containerd
+          # listed it Running while its OCI task was gone, so the pod sandbox still held
+          # the IP with nothing listening on 6379. The exec probe could not run at all --
+          # `cannot exec in a stopped container`, 1716 times over 3h39m -- and the pod
+          # stayed `Ready: True` throughout, so the Service kept the endpoint published and
+          # kube-proxy kept routing flask into a dead container. flask crash-looped for
+          # hours on `Error 111 connecting to redis:6379`, and three deploys timed out.
+          #
+          # A refused TCP connect is an ordinary probe failure, not a runtime error the
+          # kubelet cannot even start, so this fails cleanly where the exec could not.
           livenessProbe:
-            exec:
-              command: ["redis-cli", "ping"]
+            tcpSocket:
+              port: 6379
             initialDelaySeconds: 15
             periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
-            exec:
-              command: ["redis-cli", "ping"]
+            tcpSocket:
+              port: 6379
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
@@ -62,7 +77,18 @@ spec:
               cpu: "50m"
               memory: "64Mi"
             limits:
-              memory: "320Mi"
+              # 512Mi against `--maxmemory 256mb`. It was 320Mi, which is only 25% headroom,
+              # and Redis was OOMKilled (exit 137) ten times -- the last one 36 seconds after
+              # starting. `maxmemory` bounds the DATASET; process RSS additionally carries
+              # allocator fragmentation, replication/client output buffers and the odd large
+              # value, so the limit has to sit well above it rather than just above it.
+              #
+              # The dataset ceiling is deliberately left at 256mb: `allkeys-lru` evicts to
+              # stay under it, and this is a cache, so evicting is correct where being killed
+              # is not. Worth knowing if it recurs: `fetch_dataframe` is `@cache.memoize`d and
+              # stores whole pandas DataFrames, so a single large history frame can move a lot
+              # of bytes at once.
+              memory: "512Mi"
           volumeMounts:
             - mountPath: /data
               name: redis-data
