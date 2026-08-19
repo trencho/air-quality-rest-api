@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta, tzinfo
 from logging import getLogger
 
-from numpy import abs
-from pandas import concat, DataFrame, Series, to_numeric
+from pandas import concat, Series, to_numeric
 from pytz import timezone
-from scipy.stats import zscore
 from sklearn.impute import KNNImputer
 
 from definitions import DATA_PROCESSED_PATH, DATA_RAW_PATH, POLLUTANTS
@@ -52,29 +50,6 @@ def current_hour(tz: tzinfo = None) -> datetime:
         )
 
     return current_datetime.replace(minute=0, second=0, microsecond=0)
-
-
-def drop_numerical_outliers_with_iqr_score(
-    dataframe: DataFrame, low: float = 0.05, high: float = 0.95
-) -> DataFrame:
-    df = dataframe.loc[:, dataframe.columns != "time"]
-    quant_df = df.quantile([low, high])
-    df = df.apply(
-        lambda x: x[(x > quant_df.loc[low, x.name]) & (x < quant_df.loc[high, x.name])],
-        axis=0,
-    )
-    df = concat([dataframe.loc[:, "time"], df], axis=1)
-    return df.dropna()
-
-
-def drop_numerical_outliers_with_z_score(
-    dataframe: DataFrame, z_thresh: int = 3
-) -> DataFrame:
-    df = dataframe.loc[:, dataframe.columns != "time"]
-    constrains = (abs(zscore(df)) < z_thresh).all(axis=1)
-    df = df.drop(index=df.index[~constrains])
-    df = concat([dataframe.loc[:, "time"], df], axis=1)
-    return df.dropna()
 
 
 def flatten_json(nested_json: dict, exclude=None) -> dict:
@@ -177,16 +152,12 @@ def process_data(city_name: str, sensor_id: str, collection: str) -> BatchOutcom
                 calculate_row_index, axis=1
             )
 
-        # dataframe_raw = drop_numerical_outliers_with_z_score(dataframe_raw)
-
         if dataframe_processed is not None:
             dataframe_raw = find_missing_data(
                 dataframe_raw, dataframe_processed, "time"
             )
 
         if len(dataframe_raw.index) > 0:
-            # TODO: Review this line for converting column data types
-            # dataframe_raw = dataframe_raw.astype(column_dtypes, errors="ignore")
             dataframe_raw.to_csv(
                 collection_path,
                 header=not collection_path.exists(),
