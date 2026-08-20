@@ -135,8 +135,8 @@ on teardown). No network or MongoDB required.
 ## Formatting
 
 ```bash
-black .           # format
-black --check .   # verify (use before committing)
+black src tests definitions.py           # format
+black --check src tests definitions.py   # verify (this is what CI runs)
 ```
 
 ## Deployment
@@ -154,6 +154,9 @@ read containerd's, so the Deployment sat in `ErrImageNeverPull` and `/api/v1/*` 
 Before touching that pipeline:
 
 - **A merge to `master` dispatches a production deploy.** Know the cluster's state first.
+- **The deploy can also be dispatched by hand** from the Actions tab (`workflow_dispatch`). That is
+  the recovery path when a deploy failed for an infrastructure reason rather than a code one —
+  re-running it needs no commit.
 - **`.github/workflows/client.ovpn` must not be deleted.** Nothing in the tree references it —
   the `OPENVPN_CONFIG` secret holds its *path*. The workflow now fails fast and names the file
   if it goes missing, because the VPN action's own error masks the path as `***`.
