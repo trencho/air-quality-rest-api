@@ -15,7 +15,6 @@ services:
       - .env
     environment:
       APP_ENV: ${APP_ENV:-}
-      DARK_SKY_TOKEN: ${DARK_SKY_TOKEN:-}
       ENABLED_COUNTRIES: ${ENABLED_COUNTRIES:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       MONGO_DATABASE: ${MONGO_DATABASE:-}
