@@ -27,6 +27,26 @@ echo "Kubernetes API server reachable - proceeding with the deploy."
 #
 # So: wait for .status.observedGeneration to catch up to .metadata.generation first.
 # Only then does rollout status describe THIS rollout.
+
+# Read one jsonpath field off a deployment. Bounded (--request-timeout, three tries) and
+# DELIBERATELY NON-FATAL: it echoes the value, or nothing at all when the control plane
+# cannot be reached. Callers treat empty as "unknown", never as an error, because every
+# caller is a read that runs AFTER the change it is observing.
+kube_read() {
+  local name=$1 path=$2 attempt value
+  for attempt in 1 2 3; do
+    if value=$(kubectl get "deployment/${name}" -n aqra --request-timeout=15s \
+                 -o jsonpath="${path}" 2>/dev/null); then
+      printf '%s' "${value}"
+      return 0
+    fi
+    echo "kubectl get ${name} ${path} failed (attempt ${attempt}/3); retrying..." >&2
+    sleep 2
+  done
+  echo "kubectl get ${name} ${path} did not answer; continuing without it." >&2
+  return 0
+}
+
 deploy_and_wait() {
   local name=$1
   local timeout=${2:-10m}
@@ -55,15 +75,30 @@ deploy_and_wait() {
     kubectl rollout restart "deployment/${name}" -n aqra
   fi
 
+  # These two reads are READ-ONLY and must never fail the deploy, because by the time
+  # they run the mutation has already landed. On 2026-08-19 exactly that happened: the
+  # rollout restart was issued, this next line hit `net/http: TLS handshake timeout`, and
+  # `set -e` aborted the script -- reporting failure for a rollout that was already under
+  # way, on a run where every apply had reported `unchanged`.
+  #
+  # So they are bounded, retried, and non-fatal. `rollout status` below carries its own
+  # --timeout and is the real gate: an unreadable generation costs a slower path through
+  # it, never a red deploy.
   local generation observed
-  generation=$(kubectl get "deployment/${name}" -n aqra -o jsonpath='{.metadata.generation}')
-  for _ in $(seq 1 60); do
-    observed=$(kubectl get "deployment/${name}" -n aqra -o jsonpath='{.status.observedGeneration}')
-    if [ "${observed:-0}" -ge "${generation:-1}" ]; then
-      break
-    fi
-    sleep 1
-  done
+  generation=$(kube_read "${name}" '{.metadata.generation}')
+  if [ -n "${generation}" ]; then
+    for _ in $(seq 1 60); do
+      observed=$(kube_read "${name}" '{.status.observedGeneration}')
+      # An unreadable observedGeneration is not "behind" -- stop polling a control plane
+      # that is not answering and let rollout status make the call.
+      if [ -z "${observed}" ] || [ "${observed}" -ge "${generation}" ]; then
+        break
+      fi
+      sleep 1
+    done
+  else
+    echo "Could not read ${name}'s generation; skipping the observed-generation wait."
+  fi
 
   if ! kubectl rollout status "deployment/${name}" -n aqra --watch=true --timeout="${timeout}"; then
     echo "=============================================================="
