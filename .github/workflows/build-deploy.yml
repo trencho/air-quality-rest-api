@@ -168,8 +168,15 @@ jobs:
           fi
           echo "id=${ImageOS}-${ImageVersion}" >> "$GITHUB_OUTPUT"
 
+      # restore + save as SEPARATE steps, not `actions/cache`, and the save runs on
+      # `always()`. The combined action saves in a post step gated on `success()`, so a job
+      # that fails AFTER this install -- which is every failing deploy since 2026-08-19 --
+      # discards the .debs it just downloaded. The cache could then only ever appear on
+      # master once a master deploy had already succeeded, which is the thing it exists to
+      # protect. That circularity is why this cache had never served a single master run.
       - name: Restore the OpenVPN packages
-        uses: actions/cache@v6
+        id: aptcache
+        uses: actions/cache/restore@v6
         with:
           path: .aptcache
           key: apt-openvpn-${{ runner.os }}-${{ steps.runner_image.outputs.id }}
@@ -231,6 +238,15 @@ jobs:
           echo "${CLIENT_CERT}" | sudo tee /etc/openvpn/client.crt > /dev/null
           echo "${TLS_CRYPT_KEY}" | sudo tee /etc/openvpn/tls-crypt.key > /dev/null
 
+      # Save even when the deploy fails; skip it on a hit, because re-saving an unchanged
+      # entry under the same key is a no-op that only logs a warning.
+      - name: Save the OpenVPN packages
+        if: always() && steps.aptcache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: .aptcache
+          key: apt-openvpn-${{ runner.os }}-${{ steps.runner_image.outputs.id }}
+
       - name: Connect to VPN
         uses: kota65535/github-openvpn-connect-action@v3.1.0
         with:
@@ -240,13 +256,9 @@ jobs:
           password: ${{ env.OPENVPN_PASSWORD }}
           client_key: ${{ env.USER_KEY }}
 
-      - name: Record the deploy start time
-        id: deploy_started
-        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
-
       - name: SSH commands for checkout/update git repo, build and deploy
         id: remote_deploy
-        # Failure is handled below instead of here, so that a retry can be decided on.
+        # Failure is handled by the retry step below rather than failing the job here.
         continue-on-error: true
         uses: appleboy/ssh-action@v1.2.5
         with:
@@ -259,32 +271,33 @@ jobs:
           # mid-rollout and the deploy reports failure for a pod that was starting
           # normally.
           command_timeout: 25m
+          # Bounds the CONNECTION, not the command. Left unset, a dead peer burned
+          # 159s before reporting `handshake failed` on the sibling repo.
+          timeout: 30s
           # The script is a file so the retry below points at it rather than carrying a
           # second copy of it, and envs forwards the values it needs -- which also stops
           # five secrets being interpolated into the script text.
           envs: ACCESS_TOKEN,GIT_REPO_NAME,GIT_REPO_PATH,GIT_REPO_USERNAME,SSH_USERNAME
           script_path: .github/workflows/remote_deploy.sh
 
-      - name: Decide whether the failure is worth retrying
-        id: retry_decision
-        if: steps.remote_deploy.outcome == 'failure'
-        run: |
-          elapsed=$(( $(date +%s) - ${{ steps.deploy_started.outputs.epoch }} ))
-          # appleboy/ssh-action downloads its drone-ssh binary from a GitHub release at
-          # run time. When that download fails the step dies in about twenty seconds
-          # having never opened a session -- that happened on 2026-08-19 and is free to
-          # retry. A deploy that genuinely failed is minutes in, because it waits on
-          # `kubectl rollout status`; retrying that just runs a doomed deploy twice.
-          if [ "${elapsed}" -lt 120 ]; then
-            echo "retry=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::remote deploy failed after ${elapsed}s -- too early to have reached the deploy itself, retrying once"
-          else
-            echo "retry=false" >> "$GITHUB_OUTPUT"
-            echo "::error::remote deploy failed after ${elapsed}s -- far enough in to be a real failure, not retrying"
-          fi
-
+      # Retry once on ANY failure, without asking how long the first attempt took.
+      #
+      # This used to gate on `elapsed < 120`, reasoning that anything further in must be a
+      # real failure not worth repeating. Both deploys in this fleet falsified that on
+      # 2026-08-19. Here the run took 324s: 64s to connect, 11s of git, 248s of `chown -R`,
+      # and under a second for the entire Kubernetes deploy -- so 313 of those 324 seconds
+      # were setup, and the gate declined a free retry while the clock was almost entirely
+      # measuring a recursive chown. On the sibling repo the SSH handshake HUNG for 159s
+      # and never opened a session at all. Elapsed time stood in for progress and measured
+      # neither.
+      #
+      # The asymmetry decides it: `remote_deploy.sh` is idempotent by construction -- the
+      # checkout is `git reset --hard`, the deploy is `kubectl apply` plus read-only waits
+      # -- so a wasted retry costs minutes, while a declined retry costs a red master and
+      # an undeployed production. Retry, and let the second attempt's own exit code fail
+      # the job if it fails too.
       - name: SSH commands for checkout/update git repo, build and deploy (retry)
-        if: steps.retry_decision.outputs.retry == 'true'
+        if: steps.remote_deploy.outcome == 'failure'
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ env.SERVER_HOST }}
@@ -296,9 +309,9 @@ jobs:
           # mid-rollout and the deploy reports failure for a pod that was starting
           # normally.
           command_timeout: 25m
+          # Bounds the CONNECTION, not the command. Left unset, a dead peer burned
+          # 159s before reporting `handshake failed` on the sibling repo.
+          timeout: 30s
           envs: ACCESS_TOKEN,GIT_REPO_NAME,GIT_REPO_PATH,GIT_REPO_USERNAME,SSH_USERNAME
           script_path: .github/workflows/remote_deploy.sh
 
-      - name: Fail the job when the deploy failed and was not retried
-        if: steps.remote_deploy.outcome == 'failure' && steps.retry_decision.outputs.retry != 'true'
-        run: exit 1

@@ -27,8 +27,17 @@ else
   git reset --hard origin/master
 fi
 
-echo "Setting correct ownership..."
-chown -R "${SSH_USERNAME}:${SSH_USERNAME}" "${GIT_REPO_PATH}"
+# Scoped to the checked-out tree, NOT to ${GIT_REPO_PATH}.
+#
+# This used to be `chown -R` over the whole repo path, which measured 248 seconds on
+# 2026-08-19 -- 76% of the entire SSH step, against under one second for the Kubernetes
+# deploy itself. The path also holds the server's generated `data/` tree, which this
+# deploy neither writes nor needs to own, and which is what makes the recursive walk
+# expensive. `git reset --hard` above already rewrote every tracked file as this user;
+# the only thing that then needs an ownership and mode fix is the workflow scripts about
+# to be executed.
+echo "Setting correct ownership on the workflow scripts..."
+chown -R "${SSH_USERNAME}:${SSH_USERNAME}" .github/workflows
 
 echo "Making scripts executable..."
 find .github/workflows -type f -name "*.sh" -exec chmod +x {} +
