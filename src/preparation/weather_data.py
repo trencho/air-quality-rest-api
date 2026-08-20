@@ -7,7 +7,6 @@ from pandas import DataFrame, json_normalize
 from requests import get, RequestException
 
 from definitions import (
-    DARK_SKY_TOKEN,
     DATA_PATH,
     DATA_RAW_PATH,
     OPEN_WEATHER,
@@ -29,38 +28,6 @@ def api_is_available() -> bool:
     correct call for one was the bug for the other.
     """
     return not (DATA_PATH / f"{OPEN_WEATHER}.lock").exists()
-
-
-def fetch_dark_sky_data(city_name: str, sensor: dict) -> bool:
-    token = environ[DARK_SKY_TOKEN]
-    url = f"https://api.darksky.net/forecast/{token}/{sensor['position']}"
-    exclude = "currently,minutely,daily,alerts,flags"
-    extend = "hourly"
-    units = "si"
-    params = f"exclude={exclude}&extend={extend}&units={units}"
-
-    try:
-        weather_response = get(url, params)
-        hourly = weather_response.json()["hourly"]
-        dataframe = json_normalize(hourly["data"])
-
-        if len(dataframe.index) > 0:
-            save_dataframe(
-                dataframe,
-                "weather",
-                DATA_RAW_PATH / city_name / sensor["sensorId"] / "weather.csv",
-                sensor["sensorId"],
-            )
-        del dataframe
-        return True
-    except Exception:
-        logger.exception(
-            f"Error occurred while fetching DarkSky data for {city_name} - {sensor['sensorId']}",
-        )
-        return False
-    finally:
-        collect()
-        sleep(1)
 
 
 def fetch_open_weather_data(city_name: str, sensor: dict) -> bool:

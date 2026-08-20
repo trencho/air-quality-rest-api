@@ -8,7 +8,6 @@ from pathlib import Path
 
 # Environment variable keys
 APP_ENV = "APP_ENV"
-DARK_SKY_TOKEN = "DARK_SKY_TOKEN"
 # When truthy, create_app() skips the upstream location fetch on startup so the app
 # can be imported without network access (the test suite sets it — see tests/conftest.py).
 SKIP_DATA_FETCH = "SKIP_DATA_FETCH"
