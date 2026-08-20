@@ -22,7 +22,16 @@ jobs:
         with:
           python-version: "3.14"
           cache: pip
-          cache-dependency-path: requirements/dev.txt
+          # Every file the install reads, not just the one it is pointed at. `pip install -r
+          # requirements/dev.txt` follows that file's first line, `-r common.txt`, where 30 of
+          # the 38 direct pins live -- so keying on dev.txt alone meant editing common.txt did
+          # not invalidate the cache. Same shape as the trading-bot key fixed in 0.1.36.
+          #
+          # Honest scope: pip's is a DOWNLOAD cache keyed by URL, so a stale restore degrades
+          # the hit rate rather than installing versions nobody chose. The convention violation
+          # is identical; the correctness consequence is milder than for a package-manager cache
+          # that restores a resolved tree.
+          cache-dependency-path: requirements/*.txt
 
       # security-scan.yml points OSV at requirements/prod.lock and dev.lock, NOT at the .txt
       # manifests. Dependabot bumps the manifests and never the locks, so without this they drift
