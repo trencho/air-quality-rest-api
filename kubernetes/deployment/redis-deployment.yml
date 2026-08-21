@@ -27,7 +27,9 @@ spec:
           # this file automatically -- Kubernetes manifests map to no Dependabot ecosystem, and the
           # trial block that pointed `docker` at /kubernetes produced zero PRs and was removed --
           # so bump it by hand when the base image moves.
-          image: redis:8.8.1-alpine
+          # Kept in step with docker/docker-compose.yml, which Dependabot DOES update: the two
+          # drifted to 8.8.1 vs 8.10.0, so dev was testing against a redis production never ran.
+          image: redis:8.10.0-alpine
           imagePullPolicy: IfNotPresent
           # Used purely as a shared cache + rate-limit store, so persistence is off and
           # memory is bounded with LRU eviction (all keys carry TTLs).
