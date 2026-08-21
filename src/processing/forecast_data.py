@@ -4,13 +4,14 @@ from logging import getLogger
 from math import isnan, nan
 from typing import Optional
 
-from pandas import concat, DataFrame, date_range, Series
+from pandas import DataFrame, Series, concat, date_range
 
 from api.config.cache import cache
 from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH, MODELS_PATH, POLLUTANTS
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
 from preparation import location_timezone
+
 from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import value_scaling
 from .handle_data import fetch_summary_dataframe, read_csv_in_chunks

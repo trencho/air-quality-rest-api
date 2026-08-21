@@ -22,7 +22,6 @@ scikit-learn==1.9.0
 scipy==1.18.0
 SQLAlchemy==2.0.52
 seaborn==0.13.2
-starlette==1.6.0
 statsmodels==0.14.6
 urllib3==2.7.0
 waitress==3.0.2

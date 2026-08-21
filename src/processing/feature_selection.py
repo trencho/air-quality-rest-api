@@ -1,5 +1,5 @@
 from pandas import DataFrame, Series
-from statsmodels.api import add_constant, OLS
+from statsmodels.api import OLS, add_constant
 
 
 def get_p_values(x: DataFrame, y: Series, features: list) -> Series:

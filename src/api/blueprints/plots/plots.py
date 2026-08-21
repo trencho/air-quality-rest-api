@@ -1,6 +1,7 @@
+from http import HTTPStatus
+
 from flasgger import swag_from
-from flask import Blueprint, jsonify, Response, send_file
-from starlette.status import HTTP_404_NOT_FOUND
+from flask import Blueprint, Response, jsonify, send_file
 
 from api.config.converters import ErrorType, PollutantType
 from definitions import RESULTS_ERRORS_PLOTS_PATH, RESULTS_PREDICTIONS_PLOTS_PATH
@@ -23,7 +24,7 @@ def fetch_plots_predictions(
             jsonify(
                 error_message="Cannot return plot because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if check_sensor(city_name, sensor_id) is None:
@@ -31,7 +32,7 @@ def fetch_plots_predictions(
             jsonify(
                 error_message="Cannot return plot because the sensor is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     image_path = (
@@ -44,7 +45,7 @@ def fetch_plots_predictions(
     if not image_path.exists():
         return (
             jsonify(error_message="Cannot return plot because it does not exist."),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return send_file(image_path, mimetype="image/png", max_age=3600)
@@ -64,7 +65,7 @@ def fetch_plots_errors(
             jsonify(
                 error_message="Cannot return plot because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if check_sensor(city_name, sensor_id) is None:
@@ -72,7 +73,7 @@ def fetch_plots_errors(
             jsonify(
                 error_message="Cannot return plot because the sensor is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     image_path = (
@@ -85,7 +86,7 @@ def fetch_plots_errors(
     if not image_path.exists():
         return (
             jsonify(error_message="Cannot return plot because it does not exist."),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return send_file(image_path, mimetype="image/png", max_age=3600)

@@ -12,13 +12,13 @@ and pin the one thing that genuinely did change: an unexpected error now propaga
 instead of being answered with a 404.
 """
 
+from http import HTTPStatus
 from json import dumps
 from pathlib import Path
 
 import pytest
 from flask import Flask
 from pandas import DataFrame
-from starlette.status import HTTP_404_NOT_FOUND
 
 # Import the config package first so the api/preparation/processing chain initialises in
 # order — importing an ``api`` submodule first hits a circular import.
@@ -63,7 +63,7 @@ def test_answers_404_when_the_csv_is_missing(app_context, processed):
 
     assert isinstance(result, tuple)
     _, status = result
-    assert status == HTTP_404_NOT_FOUND
+    assert status == HTTPStatus.NOT_FOUND
 
 
 def test_answers_404_when_the_csv_parses_but_holds_no_rows(app_context, processed):
@@ -75,7 +75,7 @@ def test_answers_404_when_the_csv_parses_but_holds_no_rows(app_context, processe
     result = fetch_dataframe(Path("skopje") / "1000", "pollution")
 
     assert isinstance(result, tuple)
-    assert result[1] == HTTP_404_NOT_FOUND
+    assert result[1] == HTTPStatus.NOT_FOUND
 
 
 def test_an_unexpected_error_propagates_rather_than_becoming_a_404(

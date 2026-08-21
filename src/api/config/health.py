@@ -1,9 +1,10 @@
 from logging import getLogger
 
-from flask import Flask, jsonify, Response
+from flask import Flask, Response, jsonify
 from flask_healthz import Healthz
 
 from definitions import CACHE_TIMEOUTS, URL_PREFIX
+
 from .cache import cache
 
 logger = getLogger(__name__)

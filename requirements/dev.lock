@@ -3,8 +3,6 @@
 #          versions (direct-only requirements make OSV guess oldest-compatible -> false positives).
 # Regenerate when the requirements change:  uv pip compile requirements/dev.txt -o requirements/dev.lock   (or pip-compile).
 #
-anyio==4.14.2
-    # via starlette
 apscheduler==3.11.3
     # via -r requirements/common.txt
 attrs==26.1.0
@@ -77,7 +75,6 @@ haversine==2.9.0
     # via -r requirements/common.txt
 idna==3.18
     # via
-    #   anyio
     #   requests
 iniconfig==2.3.0
     # via pytest
@@ -237,8 +234,6 @@ six==1.17.0
     #   flasgger
     #   python-dateutil
 sqlalchemy==2.0.52
-    # via -r requirements/common.txt
-starlette==1.6.0
     # via -r requirements/common.txt
 statsmodels==0.14.6
     # via -r requirements/common.txt

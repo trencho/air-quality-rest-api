@@ -1,6 +1,7 @@
+from http import HTTPStatus
+
 from flasgger import swag_from
-from flask import Blueprint, jsonify, Response
-from starlette.status import HTTP_404_NOT_FOUND
+from flask import Blueprint, Response, jsonify
 
 from api.config.cache import cache
 from definitions import CACHE_TIMEOUTS
@@ -24,7 +25,7 @@ def fetch_city_sensor(
             jsonify(
                 error_message="Cannot return data because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if sensor_id is None:
@@ -35,7 +36,7 @@ def fetch_city_sensor(
             jsonify(
                 error_message="Cannot return data because the sensor is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return jsonify(sensor)

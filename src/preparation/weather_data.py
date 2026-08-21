@@ -4,7 +4,7 @@ from os import environ
 from time import sleep
 
 from pandas import DataFrame, json_normalize
-from requests import get, RequestException
+from requests import RequestException, get
 
 from definitions import (
     DATA_PATH,

@@ -1,5 +1,5 @@
 from pathlib import Path
-from sqlite3 import connect, Cursor
+from sqlite3 import Cursor, connect
 from typing import Any
 
 

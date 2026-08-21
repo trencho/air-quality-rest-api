@@ -12,7 +12,7 @@ from json import dumps
 import numpy as np
 import pytest
 from flask import Flask
-from pandas import date_range, DataFrame
+from pandas import DataFrame, date_range
 
 # Import the config package first so the api/preparation/processing chain initialises
 # in order — importing a ``processing`` submodule first hits a circular import.

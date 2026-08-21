@@ -3,6 +3,7 @@ from matplotlib import pyplot
 from pandas import DataFrame, read_csv
 
 from definitions import POLLUTANTS, REGRESSION_MODELS, RESULTS_ERRORS_PATH
+
 from .handle_plot import save_plot
 
 ERROR_TYPES = {

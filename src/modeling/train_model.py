@@ -7,7 +7,7 @@ from os import cpu_count, environ
 from pathlib import Path
 from threading import Thread
 
-from pandas import DataFrame, read_csv, Series, to_datetime
+from pandas import DataFrame, Series, read_csv, to_datetime
 from pytz import UTC
 from sklearn.model_selection import RandomizedSearchCV
 
@@ -27,12 +27,13 @@ from processing import (
     backward_elimination,
     current_hour,
     encode_categorical_data,
-    generate_features,
     fetch_summary_dataframe,
+    generate_features,
     value_scaling,
 )
 from utils import BatchOutcome, track_time
 from visualization import draw_errors, draw_predictions
+
 from .process_results import save_errors, save_results
 
 logger = getLogger(__name__)

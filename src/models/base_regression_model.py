@@ -1,5 +1,5 @@
 from pathlib import Path
-from pickle import dumps, HIGHEST_PROTOCOL, load
+from pickle import HIGHEST_PROTOCOL, dumps, load
 
 
 class BaseRegressionModel:

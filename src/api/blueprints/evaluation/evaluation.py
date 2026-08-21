@@ -1,9 +1,9 @@
+from http import HTTPStatus
 from typing import Optional
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, Response
+from flask import Blueprint, Response, jsonify
 from pandas import isna, read_csv
-from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
 from api.config.converters import PollutantType
@@ -61,7 +61,7 @@ def fetch_sensor_evaluation(
             jsonify(
                 error_message="Cannot return forecast quality because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if check_sensor(city_name, sensor_id) is None:
@@ -69,7 +69,7 @@ def fetch_sensor_evaluation(
             jsonify(
                 error_message="Cannot return forecast quality because the sensor is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     results = {}
@@ -101,7 +101,7 @@ def fetch_pollutant_evaluation(
             jsonify(
                 error_message="Cannot return forecast quality because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if check_sensor(city_name, sensor_id) is None:
@@ -109,7 +109,7 @@ def fetch_pollutant_evaluation(
             jsonify(
                 error_message="Cannot return forecast quality because the sensor is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if (
@@ -119,7 +119,7 @@ def fetch_pollutant_evaluation(
             jsonify(
                 error_message="Cannot return forecast quality because no trained model exists for that pollutant."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return jsonify(evaluation)

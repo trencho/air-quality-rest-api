@@ -1,9 +1,9 @@
+from http import HTTPStatus
 from logging import getLogger
 from pathlib import Path
 
-from flask import jsonify, Response
+from flask import Response, jsonify
 from pandas import DataFrame
-from starlette.status import HTTP_404_NOT_FOUND
 
 from api.config.cache import cache
 from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH, DATA_RAW_PATH
@@ -44,7 +44,7 @@ def fetch_dataframe(
         jsonify(
             error_message="Cannot return historical data because the data is missing for that city and sensor."
         ),
-        HTTP_404_NOT_FOUND,
+        HTTPStatus.NOT_FOUND,
     )
 
 
