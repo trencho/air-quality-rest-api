@@ -2,12 +2,13 @@ from os import environ
 
 from flask import Flask
 
-from definitions import ENV_DEV, APP_ENV, ENV_PROD, SKIP_DATA_FETCH
+from definitions import APP_ENV, ENV_DEV, ENV_PROD, SKIP_DATA_FETCH
+
 from .blueprints import init_blueprints
 from .cache import init_cache
 from .converters import init_converters
 from .cors import init_cors
-from .environment import init_environment_variables, init_data, init_system_paths
+from .environment import init_data, init_environment_variables, init_system_paths
 from .garbage_collection import init_gc
 from .health import init_healthcheck
 from .limiter import init_limiter

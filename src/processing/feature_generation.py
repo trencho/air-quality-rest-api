@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from numpy import abs, cos, pi, sin
-from pandas import cut, DataFrame, Series
+from pandas import DataFrame, Series, cut
 from statsmodels.tsa.stattools import pacf
 
 DAYS_IN_MONTH = 30

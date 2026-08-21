@@ -1,9 +1,9 @@
+from http import HTTPStatus
 from json import loads
 from logging import getLogger
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, Response
-from starlette.status import HTTP_404_NOT_FOUND
+from flask import Blueprint, Response, jsonify
 
 from api.config.cache import cache
 from api.config.repository import RepositorySingleton
@@ -34,7 +34,7 @@ def fetch_city_forecast(city_name: str) -> Response | tuple[Response, int]:
             jsonify(
                 error_message="Value cannot be predicted because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return jsonify(return_city_forecast_results(city))
@@ -58,7 +58,7 @@ def fetch_city_coordinates_forecast(
                 error_message="Value cannot be predicted because the coordinates are far away from all "
                 "available cities."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     forecast = return_city_forecast_results(city)
@@ -82,7 +82,7 @@ def fetch_sensor_forecast(
             jsonify(
                 error_message="Value cannot be predicted because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     sensor = check_sensor(city_name, sensor_id)
@@ -91,7 +91,7 @@ def fetch_sensor_forecast(
             jsonify(
                 error_message="Value cannot be predicted because the sensor is not found or inactive."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return jsonify(return_sensor_forecast_results(city, sensor))
@@ -115,7 +115,7 @@ def fetch_sensor_coordinates_forecast(
                 error_message="Value cannot be predicted because the coordinates are far away from all "
                 "available sensors."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if (city := check_city(sensor["cityName"])) is not None:
@@ -127,7 +127,7 @@ def fetch_sensor_coordinates_forecast(
         jsonify(
             error_message="Value cannot be predicted because the sensor is not found or is invalid."
         ),
-        HTTP_404_NOT_FOUND,
+        HTTPStatus.NOT_FOUND,
     )
 
 

@@ -3,7 +3,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
-from pandas import concat, DataFrame, read_csv, to_datetime
+from pandas import DataFrame, concat, read_csv, to_datetime
 
 from api.config.repository import RepositorySingleton
 from definitions import CHUNK_SIZE, COLLECTIONS

@@ -10,10 +10,10 @@ from .feature_selection import backward_elimination
 from .forecast_data import fetch_forecast_result
 from .handle_data import (
     drop_unnecessary_features,
+    fetch_summary_dataframe,
     find_missing_data,
     read_csv_in_chunks,
     rename_features,
-    fetch_summary_dataframe,
     save_dataframe,
     trim_dataframe,
 )

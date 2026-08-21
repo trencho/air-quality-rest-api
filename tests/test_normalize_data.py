@@ -13,13 +13,13 @@ import pytest
 # Import the config package first so the api/preparation/processing chain initialises
 # in order — importing a ``processing`` submodule first hits a circular import.
 import api.config  # noqa: F401
-from utils import BatchOutcome
 from processing.normalize_data import (
     closest_hour,
     current_hour,
     flatten_json,
     next_hour,
 )
+from utils import BatchOutcome
 
 
 @pytest.mark.parametrize(

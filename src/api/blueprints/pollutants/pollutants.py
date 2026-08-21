@@ -1,9 +1,9 @@
+from http import HTTPStatus
 from pathlib import Path
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, Response
+from flask import Blueprint, Response, jsonify
 from pandas import DataFrame
-from starlette.status import HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
 from api.config.cache import cache
@@ -48,7 +48,7 @@ def fetch_city_sensor_pollutants(
             jsonify(
                 error_message="Cannot return available pollutants because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if check_sensor(city_name, sensor_id) is None:
@@ -56,7 +56,7 @@ def fetch_city_sensor_pollutants(
             jsonify(
                 error_message="Cannot return available pollutants because the sensor is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return fetch_measurements(city_name, sensor_id)
@@ -78,7 +78,7 @@ def fetch_coordinates_pollutants(
                 error_message="Cannot return available pollutants because the coordinates are far away from all available "
                 "sensors."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return fetch_measurements(sensor["cityName"], sensor["sensorId"])

@@ -1,11 +1,11 @@
 from datetime import datetime
+from http import HTTPStatus
 from json import loads
 from pathlib import Path
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, Response, request
+from flask import Blueprint, Response, jsonify, request
 from pandas import DataFrame
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.blueprints import fetch_dataframe
 from api.config.cache import cache
@@ -31,7 +31,7 @@ def fetch_city_sensor_history(
             jsonify(
                 error_message="Cannot return historical data because the data type is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     timestamps = retrieve_history_timestamps()
@@ -44,7 +44,7 @@ def fetch_city_sensor_history(
             jsonify(
                 error_message="Cannot return historical data because the city is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     if (sensor := check_sensor(city_name, sensor_id)) is None:
@@ -52,7 +52,7 @@ def fetch_city_sensor_history(
             jsonify(
                 error_message="Cannot return historical data because the sensor is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return return_historical_data(city_name, sensor, data_type, start_time, end_time)
@@ -71,7 +71,7 @@ def fetch_coordinates_history(
             jsonify(
                 error_message="Cannot return historical data because the data type is not found or is invalid."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     timestamps = retrieve_history_timestamps()
@@ -85,7 +85,7 @@ def fetch_coordinates_history(
                 error_message="Cannot return historical data because the coordinates are far away from all available "
                 "sensors."
             ),
-            HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     return return_historical_data(
@@ -106,12 +106,12 @@ def retrieve_history_timestamps() -> tuple[int, int] | tuple[Response, int]:
             jsonify(
                 error_message="Specify end timestamp larger than the current hour's timestamp."
             ),
-            HTTP_400_BAD_REQUEST,
+            HTTPStatus.BAD_REQUEST,
         )
     if end_time > start_time + week_in_seconds:
         return (
             jsonify(error_message="Specify start and end time in one week range."),
-            HTTP_400_BAD_REQUEST,
+            HTTPStatus.BAD_REQUEST,
         )
 
     return start_time, end_time

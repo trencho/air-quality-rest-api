@@ -21,8 +21,8 @@ from pandas import DataFrame, date_range
 # Import the config package first so the api/preparation/processing chain initialises
 # in order — importing a package submodule first can hit a circular import.
 import api.config  # noqa: F401
-from models import make_model
 from modeling import process_results, train_model
+from models import make_model
 from processing.normalize_data import current_hour
 
 _MODELS = {

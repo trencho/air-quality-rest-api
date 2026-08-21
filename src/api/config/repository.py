@@ -8,14 +8,14 @@ from pymongo import ASCENDING, MongoClient
 
 from definitions import (
     APP_ENV,
+    COLLECTIONS,
     ENV_DEV,
     ENV_PROD,
-    COLLECTIONS,
-    MONGODB_CONNECTION,
     MONGO_DATABASE,
-    MONGODB_HOSTNAME,
-    MONGO_USERNAME,
     MONGO_PASSWORD,
+    MONGO_USERNAME,
+    MONGODB_CONNECTION,
+    MONGODB_HOSTNAME,
 )
 
 logger = getLogger(__name__)

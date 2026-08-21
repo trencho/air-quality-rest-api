@@ -7,6 +7,7 @@ from definitions import (
     RESULTS_ERRORS_PATH,
     RESULTS_PREDICTIONS_PATH,
 )
+
 from .handle_plot import save_plot
 
 PLOT_PARAMS = {
