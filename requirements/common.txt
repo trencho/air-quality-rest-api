@@ -5,7 +5,7 @@ Flask-Caching==2.4.1
 Flask-Cors==6.0.5
 flask-healthz==1.0.1
 Flask-Limiter==4.1.1
-gunicorn==26.0.0
+gunicorn==26.1.0
 haversine==2.9.0
 lightgbm==4.7.0
 matplotlib==3.11.1
@@ -13,7 +13,7 @@ numpy==2.5.2
 pandas==3.0.5
 prometheus-flask-exporter==0.23.2
 psutil==7.2.2
-PyGithub==2.9.1
+PyGithub==2.10.0
 pymongo==4.17.0
 pytz==2026.3.post1
 redis==8.1.0
@@ -26,4 +26,4 @@ statsmodels==0.14.6
 urllib3==2.7.0
 waitress==3.0.2
 Werkzeug==3.1.8
-xgboost==3.4.0
+xgboost==3.4.1
