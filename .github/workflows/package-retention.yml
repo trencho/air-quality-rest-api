@@ -277,7 +277,11 @@ jobs:
       # tagged `latest`, and refuses any build that shares a child with a build being kept.
       - name: Prune old tagged builds
         env:
+          # GH_TOKEN is what `gh` reads; GITHUB_TOKEN is what the registry auth line base64-encodes.
+          # Omitting the second failed this step with `unbound variable` on its first real run --
+          # after a suite that could not catch it, because the harness exported GITHUB_TOKEN itself.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGE: ${{ github.event.repository.name }}
           OWNER: ${{ github.repository_owner }}
           KEEP_BUILDS: "20"
