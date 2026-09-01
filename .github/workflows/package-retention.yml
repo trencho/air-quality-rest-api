@@ -241,6 +241,7 @@ jobs:
           {
             echo "deletable=$deletable"
             echo "ignore=$ignore"
+            echo "graph_ok=$graph_ok"
           } >> "$GITHUB_OUTPUT"
 
       # --- Pass 1: genuinely unreferenced untagged versions. ---
@@ -261,20 +262,129 @@ jobs:
         if: steps.graph.outputs.deletable == '0'
         run: echo "pass 1 skipped - nothing is both untagged and unreferenced (see the job summary)"
 
-      # --- Pass 2: old tagged builds. DESTRUCTIVE — enable only after reading the inventory. ---
+      # --- Pass 2: old tagged builds. DESTRUCTIVE. This is the cleanup that actually shrinks a
+      # SHA-tagging repo, because pass 1 correctly deletes nothing there.
       #
-      # `min-versions-to-keep` counts from the newest, so 10 leaves the ten most recent builds as
-      # rollback targets. `ignore-versions` is a regex over the version NAME; for a container that
-      # name is the digest, NOT the tag, so it cannot be used to protect `:latest` — the
-      # keep-newest-N behaviour is what protects it, since `:latest` always points at a recent
-      # build. If your deploy pins an OLD tag, do not enable this without excluding it another way.
+      # WHY THIS IS NOT `actions/delete-package-versions`. That action's `min-versions-to-keep`
+      # counts VERSIONS, and one buildx build is THREE versions (index + platform manifest +
+      # attestation). So "10" keeps about three builds, not ten -- this file claimed otherwise until
+      # 2026-09-01. Worse, a version-count cutoff cannot respect a build boundary: land the cutoff
+      # mid-build and it keeps an index while deleting that index's children, which is exactly the
+      # broken-tag state the 2026-09-01 incident produced. A tag that lists and then fails on pull is
+      # worse than an absent one, so the unit of deletion here is a BUILD, never a version.
       #
-      # Deleting a tagged index leaves its children unreferenced, so pass 1 collects them on the
-      # following run. That ordering is why pass 2 is the real cleanup on a SHA-tagging repo.
-      #
-      # - name: Prune old tagged versions
-      #   uses: actions/delete-package-versions@v5
-      #   with:
-      #     package-name: ${{ github.event.repository.name }}
-      #     package-type: container
-      #     min-versions-to-keep: "10"
+      # Deletes whole builds, oldest first, keeping the newest KEEP_BUILDS. Refuses to touch a build
+      # tagged `latest`, and refuses any build that shares a child with a build being kept.
+      - name: Prune old tagged builds
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE: ${{ github.event.repository.name }}
+          OWNER: ${{ github.repository_owner }}
+          KEEP_BUILDS: "20"
+        run: |
+          set -uo pipefail
+
+          # Pass 2 deletes REACHABLE images, so it runs only when the graph step proved it could see
+          # the whole package. Same rule as pass 1: no graph, no deletion.
+          if [ "${{ steps.graph.outputs.graph_ok }}" != "1" ]; then
+            echo "graph incomplete -- pass 2 skipped (see the job summary)"
+            exit 0
+          fi
+
+          # This step gets its own registry credentials: REG_TOKEN and ACCEPT are shell locals of the
+          # graph step and do not survive into another step's shell.
+          REG_TOKEN=$(printf '%s' "$GITHUB_TOKEN" | base64 -w0)
+          ACCEPT='application/vnd.oci.image.index.v1+json,application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json'
+
+          owner_type=$(gh api "repos/${{ github.repository }}" --jq '.owner.type' 2>/dev/null || echo '')
+          case "$owner_type" in
+            Organization) base="orgs/${OWNER}" ;;
+            User)         base="users/${OWNER}" ;;
+            *) echo "cannot resolve owner type -- pass 2 skipped"; exit 0 ;;
+          esac
+
+          versions=$(gh api "${base}/packages/container/${PACKAGE}/versions" --paginate 2>/dev/null \
+                     | jq -s '[.[][]]') || { echo "packages API unavailable -- pass 2 skipped"; exit 0; }
+
+          # Builds = tagged versions, oldest first. Everything past the newest KEEP_BUILDS is a
+          # candidate; its children come with it, which is what makes the unit a build.
+          builds=$(printf '%s' "$versions" | jq -c --argjson keep "$KEEP_BUILDS" '
+            [ .[] | select(((.metadata.container.tags) // []) | length > 0) ]
+            | sort_by(.created_at)
+            | if length > $keep then .[0:(length-$keep)] else [] end')
+          n=$(printf '%s' "$builds" | jq 'length')
+          if [ "$n" = "0" ]; then
+            echo "pass 2: at or under ${KEEP_BUILDS} builds, nothing to prune"
+            exit 0
+          fi
+
+          # Digests belonging to KEPT builds -- nothing here may be deleted.
+          # Read the kept indexes from one file and write the expanded set to another: appending to
+          # the file you are reading is a loop that may or may not see its own writes.
+          kept_indexes=$(mktemp); kept_digests=$(mktemp)
+          printf '%s' "$versions" | jq -r --argjson keep "$KEEP_BUILDS" '
+            [ .[] | select(((.metadata.container.tags) // []) | length > 0) ]
+            | sort_by(.created_at) | .[-$keep:] | .[].name' > "$kept_indexes"
+          cat "$kept_indexes" > "$kept_digests"
+          while IFS= read -r kd; do
+            [ -n "$kd" ] || continue
+            curl -sf -H "Authorization: Bearer $REG_TOKEN" -H "Accept: $ACCEPT" \
+              "https://ghcr.io/v2/${OWNER}/${PACKAGE}/manifests/${kd}" 2>/dev/null \
+              | jq -r '.manifests[]?.digest // empty' | tr -d '\r' >> "$kept_digests"
+          done < "$kept_indexes"
+          sort -u "$kept_digests" -o "$kept_digests"
+
+          deleted=0
+          for i in $(seq 0 $((n-1))); do
+            b=$(printf '%s' "$builds" | jq -c ".[$i]")
+            bid=$(printf '%s' "$b" | jq -r '.id')
+            bdg=$(printf '%s' "$b" | jq -r '.name')
+            btags=$(printf '%s' "$b" | jq -r '((.metadata.container.tags) // []) | join(",")')
+
+            case ",$btags," in *,latest,*) echo "skip $btags (latest)"; continue ;; esac
+            if grep -qxF "$bdg" "$kept_digests"; then echo "skip $btags (kept build shares it)"; continue; fi
+
+            # `tr -d '\r'` is load-bearing and mutation-proven: a Windows jq emits CRLF, so every
+            # digest ends in \r, matches no version id, and the child is skipped -- deleting the
+            # index and leaving its layers behind, a half-deleted build. Removing it drops 7 of 21
+            # deletions in the suite.
+            #
+            # The `|| [ -n "$k" ]` guard is DEFENSIVE, not load-bearing: `<<<` appends its own
+            # newline, so nothing is dropped today. Removing it kills no test. It is kept for the
+            # day this input becomes a pipe or a file, where a missing final newline does drop the
+            # last line -- but it is documented as belt, not brace, because a comment that
+            # overstates a guard is how the next person mis-ranks what matters.
+            kids=$(curl -sf -H "Authorization: Bearer $REG_TOKEN" -H "Accept: $ACCEPT" \
+                     "https://ghcr.io/v2/${OWNER}/${PACKAGE}/manifests/${bdg}" 2>/dev/null \
+                   | jq -r '.manifests[]?.digest // empty' | tr -d '\r')
+            shared=0
+            while IFS= read -r k || [ -n "$k" ]; do
+              [ -n "$k" ] || continue
+              grep -qxF "$k" "$kept_digests" && shared=1
+            done <<< "$kids"
+            if [ "$shared" = "1" ]; then echo "skip $btags (child shared with a kept build)"; continue; fi
+
+            # Index first: the tag stops resolving before its layers go, never after.
+            gh api -X DELETE "${base}/packages/container/${PACKAGE}/versions/${bid}" </dev/null >/dev/null 2>&1 \
+              && deleted=$((deleted+1)) || { echo "could not delete index for $btags"; continue; }
+            # `gh` inherits the loop's stdin and will swallow the remaining digests, so each delete
+            # reads from /dev/null. Without this only the FIRST child of each build is removed --
+            # leaving exactly the half-deleted build this pass exists to avoid.
+            while IFS= read -r k || [ -n "$k" ]; do
+              [ -n "$k" ] || continue
+              kid=$(printf '%s' "$versions" | jq -r --arg d "$k" '.[] | select(.name==$d) | .id' | tr -d '\r' | head -1)
+              [ -n "$kid" ] || continue
+              gh api -X DELETE "${base}/packages/container/${PACKAGE}/versions/${kid}" </dev/null >/dev/null 2>&1 \
+                && deleted=$((deleted+1)) || echo "could not delete child $k of $btags"
+            done <<< "$kids"
+          done
+
+          {
+            echo
+            echo "## Pass 2 -- old tagged builds"
+            echo
+            echo "- keep newest: **${KEEP_BUILDS}** builds"
+            echo "- builds pruned: **${n}**"
+            echo "- versions deleted: **${deleted}**"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "pass 2: pruned ${n} build(s), ${deleted} version(s)"
