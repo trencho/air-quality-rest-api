@@ -123,9 +123,28 @@ jobs:
           # 1. Every tag, and every digest any tagged index points at. A tag that cannot be
           #    resolved contributes nothing, which is the safe direction only because a failure
           #    to build the graph disables deletion outright (see `graph_ok` below).
+          #    PAGINATE. `/v2/<name>/tags/list` returns at most 100 tags and advertises the rest in
+          #    a `Link: rel="next"` header. Reading only the first page does not fail and does not
+          #    warn -- it silently yields a SHORTER referenced set, so on a package with more than
+          #    100 tags the oldest tags' children look unreferenced and are deleted. That happened
+          #    on 2026-09-01: 106 tags, 100 read, 200 referenced digests instead of 315, and the 10
+          #    children of the 5 unseen indexes were destroyed. Five tags still list and resolve to
+          #    nothing -- the 2026-08-16 failure again, by truncation instead of a false premise.
           graph_ok=1
-          tags=$(curl -sf -H "Authorization: Bearer $REG_TOKEN" "$REG/tags/list" \
-                 | jq -r '.tags[]? // empty') || graph_ok=0
+          : > tags.txt
+          next="/v2/${OWNER}/${PACKAGE}/tags/list?n=100"
+          while [ -n "$next" ]; do
+            hdrs=$(mktemp)
+            page=$(curl -sf -D "$hdrs" -H "Authorization: Bearer $REG_TOKEN" "https://ghcr.io${next}") \
+              || { graph_ok=0; rm -f "$hdrs"; break; }
+            # tr -d '\r': a Windows jq emits CRLF, which would make every tag "t1\r" and every
+            # manifest lookup miss. On a Linux runner this is a no-op; it keeps the local suite
+            # honest rather than green-on-CI and broken here.
+            printf '%s' "$page" | jq -r '.tags[]? // empty' | tr -d '\r' >> tags.txt
+            next=$(tr -d '\r' < "$hdrs" | sed -n 's/^[Ll]ink: *<\([^>]*\)>; *rel="next".*/\1/p' | head -1)
+            rm -f "$hdrs"
+          done
+          tags=$(sort -u tags.txt)
 
           : > referenced.txt
           if [ "$graph_ok" = "1" ]; then
@@ -172,12 +191,28 @@ jobs:
           deletable=$(printf '%s' "$deletable_json" | jq 'length')
           kept=$((untagged_all - deletable))
 
+          # Compare TAG NAMES, which both sides report directly: GitHub lists the tags on every
+          # version, the registry lists the tags it served. Comparing digests instead would need an
+          # extra request per tag -- one more thing that can fail and silently shrink the graph,
+          # which is the very failure being guarded against.
+          api_tag_count=$(printf '%s' "$versions" \
+            | jq '[.[] | ((.metadata.container.tags) // [])[]] | unique | length')
+          reg_tag_count=$(sort -u tags.txt 2>/dev/null | wc -l | tr -d ' ')
+          incomplete_note=""
+          if [ "$api_tag_count" != "$reg_tag_count" ]; then
+            graph_ok=0
+            incomplete_note="GitHub reports ${api_tag_count} tag(s); the registry listing served ${reg_tag_count}"
+          fi
+
           # If the graph could not be built we do not know what is referenced, so nothing is safe.
           if [ "$graph_ok" != "1" ] || [ "$ref_count" = "0" ]; then
             deletable=0
-            graph_note="**graph unavailable — deletion disabled for this run**"
+            graph_note="**graph incomplete or unavailable — deletion disabled for this run**"
+            if [ -n "$incomplete_note" ]; then
+              graph_note="${graph_note}<br>${incomplete_note}"
+            fi
           else
-            graph_note="graph resolved from ${ref_count} referenced digest(s)"
+            graph_note="graph resolved from ${ref_count} referenced digest(s) across ${reg_tag_count} tag(s)"
           fi
 
           {
