@@ -278,8 +278,10 @@ jobs:
       - name: Prune old tagged builds
         env:
           # GH_TOKEN is what `gh` reads; GITHUB_TOKEN is what the registry auth line base64-encodes.
-          # Omitting the second failed this step with `unbound variable` on its first real run --
-          # after a suite that could not catch it, because the harness exported GITHUB_TOKEN itself.
+          # Both are needed, and omitting the second failed this step with `unbound variable` on its
+          # first real run -- after a suite that could not possibly have caught it, because the test
+          # harness exported GITHUB_TOKEN itself. A dependency the test supplies is a dependency the
+          # test cannot check the wiring of.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGE: ${{ github.event.repository.name }}
@@ -339,6 +341,7 @@ jobs:
           sort -u "$kept_digests" -o "$kept_digests"
 
           deleted=0
+          shared_gone=0
           for i in $(seq 0 $((n-1))); do
             b=$(printf '%s' "$builds" | jq -c ".[$i]")
             bid=$(printf '%s' "$b" | jq -r '.id')
@@ -378,8 +381,18 @@ jobs:
               [ -n "$k" ] || continue
               kid=$(printf '%s' "$versions" | jq -r --arg d "$k" '.[] | select(.name==$d) | .id' | tr -d '\r' | head -1)
               [ -n "$kid" ] || continue
-              gh api -X DELETE "${base}/packages/container/${PACKAGE}/versions/${kid}" </dev/null >/dev/null 2>&1 \
-                && deleted=$((deleted+1)) || echo "could not delete child $k of $btags"
+              # Two builds can share a child: identical platform manifests get identical digests, so
+              # an earlier build in this same run may already have removed it. That is NORMAL, and
+              # reporting it as "could not delete" prints failures through a healthy run -- which is
+              # how a log teaches you to stop reading it. Tell already-gone apart from a real error.
+              err=$(gh api -X DELETE "${base}/packages/container/${PACKAGE}/versions/${kid}" </dev/null 2>&1)
+              case $? in
+                0) deleted=$((deleted+1)) ;;
+                *) case "$err" in
+                     *"not found"*|*"Not Found"*) shared_gone=$((shared_gone+1)) ;;
+                     *) echo "could not delete child $k of $btags: ${err%%$'\n'*}" ;;
+                   esac ;;
+              esac
             done <<< "$kids"
           done
 
@@ -390,5 +403,6 @@ jobs:
             echo "- keep newest: **${KEEP_BUILDS}** builds"
             echo "- builds pruned: **${n}**"
             echo "- versions deleted: **${deleted}**"
+            echo "- children already removed with an earlier build (shared manifests): **${shared_gone}**"
           } >> "$GITHUB_STEP_SUMMARY"
           echo "pass 2: pruned ${n} build(s), ${deleted} version(s)"
