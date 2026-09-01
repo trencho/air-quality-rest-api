@@ -361,9 +361,16 @@ jobs:
             # day this input becomes a pipe or a file, where a missing final newline does drop the
             # last line -- but it is documented as belt, not brace, because a comment that
             # overstates a guard is how the next person mis-ranks what matters.
-            kids=$(curl -sf -H "Authorization: Bearer $REG_TOKEN" -H "Accept: $ACCEPT" \
-                     "https://ghcr.io/v2/${OWNER}/${PACKAGE}/manifests/${bdg}" 2>/dev/null \
-                   | jq -r '.manifests[]?.digest // empty' | tr -d '\r')
+            # Guarded for two reasons. Under `bash -e` a bare failing assignment aborts the whole
+            # step mid-prune; and if the children cannot be resolved we must not delete the index,
+            # because that would orphan layers we were unable to name. Both point the same way:
+            # skip this build.
+            if ! kids=$(curl -sf -H "Authorization: Bearer $REG_TOKEN" -H "Accept: $ACCEPT" \
+                          "https://ghcr.io/v2/${OWNER}/${PACKAGE}/manifests/${bdg}" 2>/dev/null \
+                        | jq -r '.manifests[]?.digest // empty' | tr -d '\r'); then
+              echo "skip $btags (could not resolve its children)"
+              continue
+            fi
             shared=0
             while IFS= read -r k || [ -n "$k" ]; do
               [ -n "$k" ] || continue
@@ -385,14 +392,18 @@ jobs:
               # an earlier build in this same run may already have removed it. That is NORMAL, and
               # reporting it as "could not delete" prints failures through a healthy run -- which is
               # how a log teaches you to stop reading it. Tell already-gone apart from a real error.
-              err=$(gh api -X DELETE "${base}/packages/container/${PACKAGE}/versions/${kid}" </dev/null 2>&1)
-              case $? in
-                0) deleted=$((deleted+1)) ;;
-                *) case "$err" in
-                     *"not found"*|*"Not Found"*) shared_gone=$((shared_gone+1)) ;;
-                     *) echo "could not delete child $k of $btags: ${err%%$'\n'*}" ;;
-                   esac ;;
-              esac
+              # GitHub runs every `run:` body as `bash -e`. A BARE `err=$(cmd)` whose command fails
+              # therefore aborts the step before the next line can inspect it -- which killed a real
+              # run mid-prune. An assignment used as an `if` CONDITION is exempt from -e, so this
+              # shape is what lets the already-gone case be handled instead of being fatal.
+              if err=$(gh api -X DELETE "${base}/packages/container/${PACKAGE}/versions/${kid}" </dev/null 2>&1); then
+                deleted=$((deleted+1))
+              else
+                case "$err" in
+                  *"not found"*|*"Not Found"*) shared_gone=$((shared_gone+1)) ;;
+                  *) echo "could not delete child $k of $btags: ${err%%$'\n'*}" ;;
+                esac
+              fi
             done <<< "$kids"
           done
 
