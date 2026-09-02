@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   pull_request:
@@ -9,13 +9,20 @@ on:
 permissions:
   contents: read
 
+# A newer push supersedes an in-flight run for the same ref. Never on master: the
+# deploy calls this workflow via `workflow_call`, and cancelling there would cancel
+# the tests the deploy is gated on.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v7

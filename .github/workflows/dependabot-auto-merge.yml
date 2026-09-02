@@ -1,11 +1,11 @@
-# Self-gating Dependabot auto-merge. Waits for the CI `test` job (test.yml) to pass, then merges
+# Self-gating Dependabot auto-merge. Waits for the CI `build` job (ci.yml) to pass, then merges
 # Dependabot PRs directly - EVERY update type, majors included (workbench 0.1.18); only a
 # pre-release target is held. No branch-protection or repo settings
 # required — the workflow's GITHUB_TOKEN merges once the named check is green. (This repo is public,
 # so native `gh pr merge --auto` is also available; the self-gated variant is used to avoid enabling
 # branch protection on a personal project.)
 #
-# `test` is the gate: test.yml runs on pull_request and exposes a job named `test`.
+# `build` is the gate: ci.yml runs on pull_request and exposes a job named `build`.
 name: Dependabot auto-merge
 
 on: pull_request
@@ -100,7 +100,7 @@ jobs:
           # and time out instead of merging. One per line so a name containing spaces (e.g.
           # "build + test (JDK 25)") is not split apart by word-splitting.
           REQUIRED_CHECKS: |
-            test
+            build
         run: |
           set -euo pipefail
 
