@@ -40,11 +40,6 @@ logger = getLogger(__name__)
 LOCK_FILE = ".lock"
 
 
-def previous_value_overwrite(dataframe: DataFrame) -> DataFrame:
-    dataframe = dataframe.shift(periods=-1, axis=0)
-    return dataframe.drop(dataframe.tail(1).index)
-
-
 def split_dataframe(
     dataframe: DataFrame, target: str, selected_features: list = None
 ) -> tuple[DataFrame, Series]:
@@ -52,7 +47,15 @@ def split_dataframe(
     x = value_scaling(x)
     y = dataframe[target]
 
-    x = previous_value_overwrite(x)
+    # Take the target from the NEXT row, and drop the final row of both: it has no next value.
+    # This used to shift X FORWARD instead, via a helper called `previous_value_overwrite`, which
+    # paired features from t+1 with a target at t. Because `lag_1` at t+1 is by definition the
+    # value at t, the target became a column of X: measured on a random walk through this very
+    # pipeline, the leaked column correlated with y at r = 1.000000, against 0.996887 for the same
+    # column honestly aligned. Every error in results/errors/ was near-zero by construction, the
+    # best model was selected on that error, and the served forecast collapsed to persistence.
+    y = y.shift(-1)
+    x = x.drop(x.tail(1).index)
     y = y.drop(y.tail(1).index)
 
     selected_features = (

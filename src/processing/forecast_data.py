@@ -94,52 +94,6 @@ def load_regression_model(
 
 
 @cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
-def direct_forecast(
-    y: Series,
-    model: BaseRegressionModel,
-    lags: int = FORECAST_STEPS,
-    n_steps: int = FORECAST_STEPS,
-    step: str = FORECAST_PERIOD,
-) -> Series:
-    """Multistep direct forecasting using a machine learning model to forecast each time period ahead
-
-    Parameters
-    ----------
-    y: pd.Series holding the input time-series to forecast
-    model: A model for iterative training
-    lags: List of lags used for training the model
-    n_steps: Number of time periods in the forecasting horizon
-    step: The period of forecasting
-
-    Returns
-    -------
-    forecast_values: pd.Series with forecasted values indexed by forecast horizon dates
-    """
-
-    def one_step_features(date, step: int):
-        tmp = y[y.index <= date]
-        features = generate_features(tmp, lags)
-        target = y[y.index >= features.index[0] + timedelta(hours=step)]
-        assert len(features.index) == len(target.index)
-        return features, target
-
-    forecast_values = []
-    forecast_range = date_range(
-        y.index[-1] + timedelta(hours=1), periods=n_steps, freq=step
-    )
-    forecast_features, _ = one_step_features(y.index[-1], 0)
-
-    for s in range(1, n_steps + 1):
-        last_date = y.index[-1] - timedelta(hours=s)
-        features, target = one_step_features(last_date, s)
-        model.train(features, target)
-        predictions = model.predict(forecast_features)
-        forecast_values.append(predictions[-1])
-
-    return Series(forecast_values, forecast_range)
-
-
-@cache.memoize(timeout=CACHE_TIMEOUTS["1h"])
 def recursive_forecast(
     city_name: str,
     sensor_id: str,
@@ -174,23 +128,37 @@ def recursive_forecast(
     dataframe = fetch_summary_dataframe(
         DATA_PROCESSED_PATH / city_name / sensor_id, index_col="time"
     )
+    dataframe = dataframe.loc[datetime.now() - timedelta(weeks=52) : datetime.now()]
+    # Check AFTER the window is applied, not before. The guard used to sit above this slice,
+    # so a frame whose rows all fall outside the window reached the loop empty -- and the loop
+    # then built its own series out of the placeholder it was seeding, forecasting from data
+    # that does not exist. An empty window is "nothing to forecast", the same as an empty file.
     if len(dataframe.index) == 0:
         return Series(dtype="float64")
 
-    dataframe = dataframe.loc[datetime.now() - timedelta(weeks=52) : datetime.now()]
     target = dataframe[pollutant].tail(lags * 2 + 1)
 
     forecasted_values = []
     for date in forecast_range:
-        # Build target time series using previously forecast value
-        new_point = forecasted_values[-1] if len(forecasted_values) > 0 else 0.0
-        target = concat([target, Series(new_point, [date])])
-
-        timestamp = int((date - timedelta(hours=1)).timestamp())
+        # Predict the value AT `date` from the features at the hour BEFORE it, which is the
+        # pairing the model is trained on: x(t) -> y(t+1).
+        #
+        # This loop used to append a placeholder row AT `date` first and compute the lag
+        # features there, one step out of step with training, and it seeded that placeholder
+        # with 0.0 on the first iteration - a value the series never takes - so the opening
+        # forecast was made from a fabricated lag. That is why the old code then dropped its
+        # own first result. With the pairing corrected, that hour is a real forecast and is
+        # kept, so this returns n_steps values rather than n_steps - 1.
+        #
+        # The exogenous half was already aligned this way: the weather lookup below has always
+        # used `date - 1h`. Only the target side was wrong.
+        previous_hour = date - timedelta(hours=1)
+        timestamp = int(previous_hour.timestamp())
         try:
             data = forecast_sensor(city_name, sensor_id, timestamp)
-            features = DataFrame(data, index=[date])
+            features = DataFrame(data, index=[previous_hour])
             features = concat([dataframe, features])
+            features = features[~features.index.duplicated(keep="last")]
             features = features.join(generate_features(target, lags), how="inner")
             features = features[model_features]
             encode_categorical_data(features)
@@ -213,8 +181,8 @@ def recursive_forecast(
                 f"Could not forecast {pollutant} for {city_name} - {sensor_id} at {date}",
             )
             forecasted_values.append(nan)
-        target.update(Series(forecasted_values[-1], [target.index[-1]]))
+        # Feed the prediction back in at `date`, so the next step's lags can see it.
+        target = concat([target, Series(forecasted_values[-1], [date])])
         target = target.tail(lags * 2 + 1)
 
-    forecast_results = Series(forecasted_values, forecast_range)
-    return forecast_results.drop(forecast_results.index[0])
+    return Series(forecasted_values, forecast_range)

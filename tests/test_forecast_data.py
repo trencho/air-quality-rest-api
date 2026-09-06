@@ -93,7 +93,9 @@ def test_recursive_forecast_logs_each_step_it_could_not_predict(
         )
 
     # Still a full-length series of NaN: the loop runs to the end of the horizon.
-    assert len(result.index) == 2
+    # n_steps values, not n_steps - 1: the loop no longer fabricates its opening row, so the
+    # first hour is a real forecast and is no longer dropped.
+    assert len(result.index) == 3
     assert bool(result.isnull().all())
     # One record per failed step, each naming the sensor and the hour, and each carrying
     # the original traceback rather than just the fact that something went wrong.

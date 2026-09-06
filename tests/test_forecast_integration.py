@@ -51,7 +51,13 @@ def forecast_env(tmp_path, monkeypatch):
 
     n = 400
     index = date_range(end=current_hour(), periods=n, freq="h")
-    seconds = (index.astype("int64") // 10**9).astype("int64")
+    # Epoch seconds, derived by asking for seconds rather than by dividing nanoseconds.
+    # `astype("int64") // 10**9` assumed a datetime64[ns] index; pandas 3 builds date_range at
+    # MICROSECOND resolution, so that expression was 1000x too small and every fixture timestamp
+    # landed in January 1970. The 52-week window in recursive_forecast then discarded the whole
+    # frame, and the forecast loop ran against a series it had fabricated from its own seed --
+    # so this suite exercised a synthetic path and still passed on "not None".
+    seconds = index.astype("datetime64[s]").astype("int64")
     rng = np.random.RandomState(1)
     temperature = 10 + 5 * rng.rand(n)
     # Positive, hourly-seasonal target so predictions stay in a sane, positive range.
@@ -79,7 +85,9 @@ def test_forecast_city_sensor_produces_finite_forecast(app_context, forecast_env
     result = forecast_data.forecast_city_sensor("skopje", "1000", "pm2_5")
 
     assert isinstance(result, Series)
-    assert len(result) == 24  # 25 horizon steps minus the dropped first
+    # 25 horizon steps, all kept: the opening forecast is no longer seeded with a
+    # fabricated 0.0, so there is nothing to discard.
+    assert len(result) == 25
     assert isinstance(result.index, DatetimeIndex)
     assert result.index[1] - result.index[0] == Timedelta(hours=1)
     # Real predictions flowed through the pipeline (not the all-NaN degenerate path),
@@ -98,7 +106,7 @@ def test_fetch_forecast_result_aggregates_by_timestamp(app_context, forecast_env
         {"cityName": "skopje", "countryCode": "MK"}, {"sensorId": "1000"}
     )
 
-    assert len(result) == 24
+    assert len(result) == 25
     entry = result[sorted(result)[0]]
     assert {"dateTime", "time", "pm2_5"} <= set(entry)
     assert entry["pm2_5"] is not None
