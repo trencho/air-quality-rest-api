@@ -33,7 +33,7 @@ def _random_walk_frame(rows: int = 400, pollutant: str = "pm10") -> DataFrame:
 
 def test_no_feature_carries_the_target():
     frame = _random_walk_frame()
-    x, y = split_dataframe(frame, "pm10")
+    x, y, _ = split_dataframe(frame, "pm10")
 
     worst_column, worst_r = None, -1.0
     for column in x.columns:

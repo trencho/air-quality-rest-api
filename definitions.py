@@ -98,6 +98,12 @@ COUNTRIES = {
 }
 
 # Pollutant types and mappings
+# Version of the on-disk model artefact set (model + selected_features + scaler + manifest).
+# Bumping this retires every previously trained artefact: the forecast loader refuses a
+# directory whose manifest carries a different schema, so the scheduler retrains it rather
+# than serving numbers produced by an older pipeline.
+PIPELINE_SCHEMA = 1
+
 POLLUTANTS = {
     "aqi": "AQI",
     "co": "CO",

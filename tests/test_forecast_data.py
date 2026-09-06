@@ -8,6 +8,7 @@ the ``@cache.memoize`` decorator.
 """
 
 from json import dumps
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -18,8 +19,11 @@ from pandas import DataFrame, date_range
 # in order — importing a ``processing`` submodule first hits a circular import.
 import api.config  # noqa: F401
 from api.config.cache import cache
+from definitions import PIPELINE_SCHEMA
+from modeling.train_model import save_pipeline
 from models import make_model
 from processing import forecast_data
+from processing.feature_scaling import fit_scaler
 
 
 @pytest.fixture
@@ -44,12 +48,14 @@ def test_load_regression_model_roundtrips_lightgbm(app_context, tmp_path, monkey
     model.set_params(verbose=-1)
     model.train(x, y)
     model.save(model_dir)
-    (model_dir / "selected_features.json").write_text(dumps(["a", "b", "c"]))
+    _, scaler = fit_scaler(DataFrame(x, columns=["a", "b", "c"]))
+    save_pipeline(model_dir, ["a", "b", "c"], scaler)
 
     result = forecast_data.load_regression_model("skopje", "1000", "pm2_5")
     assert result is not None
-    loaded_model, features = result
+    loaded_model, features, loaded_scaler = result
     assert features == ["a", "b", "c"]
+    assert loaded_scaler is not None
     predictions = loaded_model.predict(x)  # must not raise NotFittedError
     assert len(predictions) == len(y)
 
@@ -89,7 +95,13 @@ def test_recursive_forecast_logs_each_step_it_could_not_predict(
 
     with caplog.at_level("ERROR", logger=forecast_data.__name__):
         result = forecast_data.recursive_forecast(
-            "skopje", "1000", "pm2_5", model=None, model_features=[], n_steps=3
+            "skopje",
+            "1000",
+            "pm2_5",
+            model=None,
+            model_features=[],
+            scaler=None,
+            n_steps=3,
         )
 
     # Still a full-length series of NaN: the loop runs to the end of the horizon.
@@ -103,3 +115,41 @@ def test_recursive_forecast_logs_each_step_it_could_not_predict(
     assert all("skopje" in record.message for record in caplog.records)
     assert all("1000" in record.message for record in caplog.records)
     assert all(record.exc_info is not None for record in caplog.records)
+
+
+def test_a_model_without_a_manifest_is_refused(app_context, tmp_path, monkeypatch):
+    """Every artefact trained before the scaler was persisted is retired by this check.
+
+    It matters more here than it looks: the cluster this deploys to has been unreachable since
+    2026-08-26, so purging models/ by hand is not currently possible. The loader refusing them is
+    what makes the old artefacts stop being served.
+    """
+    monkeypatch.setattr(forecast_data, "MODELS_PATH", tmp_path)
+    model_dir = tmp_path / "skopje" / "1000" / "pm2_5"
+    model_dir.mkdir(parents=True)
+    (model_dir / "LightGBMRegressionModel.mdl").write_bytes(b"not read")
+    (model_dir / "selected_features.json").write_text(dumps(["a"]))
+
+    assert forecast_data.load_regression_model("skopje", "1000", "pm2_5") is None
+
+
+def test_a_scaler_is_never_loaded_as_the_model(app_context, tmp_path, monkeypatch):
+    """The loader globs *.mdl and takes files[0], so the scaler must not use that suffix."""
+    monkeypatch.setattr(forecast_data, "MODELS_PATH", tmp_path)
+    model_dir = tmp_path / "skopje" / "1000" / "pm2_5"
+    model_dir.mkdir(parents=True)
+    _, scaler = fit_scaler(DataFrame({"a": [1.0, 2.0]}))
+    save_pipeline(model_dir, ["a"], scaler)
+
+    assert not list(model_dir.glob("scaler*.mdl"))
+    assert (model_dir / "scaler.pkl").exists()
+
+
+def test_disagreeing_artefacts_are_refused():
+    class Scaler:
+        feature_names_in_ = np.array(["a", "b"])
+
+    manifest = {"schema": PIPELINE_SCHEMA, "features": ["a", "b"]}
+
+    with pytest.raises(forecast_data.ModelArtifactMismatch, match="feature list"):
+        forecast_data.verify_pipeline(Path("d"), manifest, object(), ["a"], Scaler())

@@ -5,6 +5,8 @@ from logging import getLogger
 from math import inf
 from os import cpu_count, environ
 from pathlib import Path
+from pickle import HIGHEST_PROTOCOL
+from pickle import dump as pickle_dump
 from threading import Thread
 
 from pandas import DataFrame, Series, read_csv, to_datetime
@@ -16,6 +18,7 @@ from definitions import (
     DATA_PROCESSED_PATH,
     ENV_DEV,
     MODELS_PATH,
+    PIPELINE_SCHEMA,
     POLLUTANTS,
     REGRESSION_MODELS,
     RESULTS_ERRORS_PATH,
@@ -24,12 +27,13 @@ from definitions import (
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
 from processing import (
+    apply_scaler,
     backward_elimination,
     current_hour,
     encode_categorical_data,
     fetch_summary_dataframe,
+    fit_scaler,
     generate_features,
-    value_scaling,
 )
 from utils import BatchOutcome, track_time
 from visualization import draw_errors, draw_predictions
@@ -41,10 +45,20 @@ LOCK_FILE = ".lock"
 
 
 def split_dataframe(
-    dataframe: DataFrame, target: str, selected_features: list = None
-) -> tuple[DataFrame, Series]:
+    dataframe: DataFrame,
+    target: str,
+    selected_features: list = None,
+    scaler=None,
+) -> tuple[DataFrame, Series, object]:
     x = dataframe.drop(columns=POLLUTANTS, errors="ignore")
-    x = value_scaling(x)
+    # Fit only when no scaler is handed in. The caller fits ONCE, on the training split, and
+    # passes it back for the validation split and on to inference. This used to scale the whole
+    # frame here, before the 75/25 split below, so the validation rows' statistics went into the
+    # scaler the model was fitted under.
+    if scaler is None:
+        x, scaler = fit_scaler(x)
+    else:
+        x = apply_scaler(x, scaler)
     y = dataframe[target]
 
     # Take the target from the NEXT row, and drop the final row of both: it has no next value.
@@ -63,12 +77,38 @@ def split_dataframe(
     )
     x = x[selected_features]
 
-    return x, y
+    return x, y, scaler
 
 
-def save_selected_features(data_path: Path, selected_features: list) -> None:
+def save_pipeline(data_path: Path, selected_features: list, scaler) -> None:
+    """Write the feature list, the fitted scaler, and a manifest tying them to the model.
+
+    The artefacts under a pollutant's model directory only mean anything together, and nothing
+    used to check they agreed: a model saved with one feature list and a features file from a
+    different run loaded happily and served numbers computed from mismatched columns.
+
+    The manifest also makes every artefact produced before this change self-invalidating. It has
+    no pipeline.json, so the loader refuses it and the scheduler retrains - which matters here
+    more than in most repos, because the cluster this deploys to has been unreachable since
+    2026-08-26 and a manual purge is not currently possible.
+    """
     create_path(data_path)
     (data_path / "selected_features.json").write_text(dumps(selected_features))
+    with open(data_path / "scaler.pkl", "wb") as out_file:
+        pickle_dump(scaler, out_file, HIGHEST_PROTOCOL)
+    (data_path / "pipeline.json").write_text(
+        dumps(
+            {
+                "schema": PIPELINE_SCHEMA,
+                "created": datetime.now(UTC).isoformat(),
+                "features": list(selected_features),
+                "scaler": {
+                    "file": "scaler.pkl",
+                    "n_features_in": int(getattr(scaler, "n_features_in_", 0)),
+                },
+            }
+        )
+    )
 
 
 def read_model(data_path: Path, model_name: str, error_type: str) -> tuple:
@@ -154,11 +194,16 @@ def generate_regression_model(
     encode_categorical_data(dataframe)
     validation_split = len(dataframe.index) * 3 // 4
 
-    x, y = split_dataframe(dataframe, pollutant)
-    selected_features = x.columns.values.tolist()
+    # Split BEFORE fitting the scaler. This used to scale the whole frame and slice afterwards,
+    # which put the validation quarter's statistics into the scaler the model was fitted under.
+    train_frame = dataframe.iloc[:validation_split]
+    test_frame = dataframe.iloc[validation_split:]
 
-    x_train, y_train = x.iloc[:validation_split], y.iloc[:validation_split]
-    x_test, y_test = x.iloc[validation_split:], y.iloc[validation_split:]
+    x_train, y_train, scaler = split_dataframe(train_frame, pollutant)
+    selected_features = x_train.columns.values.tolist()
+    x_test, y_test, _ = split_dataframe(
+        test_frame, pollutant, selected_features, scaler=scaler
+    )
 
     best_model_error = inf
     best_model = None
@@ -205,8 +250,8 @@ def generate_regression_model(
     if best_model is None:
         return
 
-    save_selected_features(
-        MODELS_PATH / city_name / sensor_id / pollutant, selected_features
+    save_pipeline(
+        MODELS_PATH / city_name / sensor_id / pollutant, selected_features, scaler
     )
     try:
         best_model = setup_model(

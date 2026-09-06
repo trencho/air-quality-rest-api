@@ -11,8 +11,6 @@ defined for future steps from the datetime index alone — so the recursion yiel
 predictions without needing future weather rows (which a static fixture can't provide).
 """
 
-from json import dumps
-
 import numpy as np
 import pytest
 from flask import Flask
@@ -22,9 +20,11 @@ from pandas import DataFrame, DatetimeIndex, Series, Timedelta, date_range
 # in order — importing a ``processing`` submodule first hits a circular import.
 import api.config  # noqa: F401
 from api.config.cache import cache
+from modeling.train_model import save_pipeline
 from models import make_model
 from processing import forecast_data
 from processing.feature_generation import generate_features
+from processing.feature_scaling import fit_scaler
 from processing.normalize_data import current_hour
 
 _TIME_FEATURES = ["hour_cos", "hour_sin", "month_cos", "month_sin"]
@@ -74,7 +74,11 @@ def forecast_env(tmp_path, monkeypatch):
     model = make_model("LinearRegressionModel")
     model.train(features, target.loc[features.index])
     model.save(model_dir)
-    (model_dir / "selected_features.json").write_text(dumps(_TIME_FEATURES))
+    # The scaler is fitted on the same features the model was trained on, and saved beside it
+    # with the manifest that ties the three together. Without pipeline.json the loader refuses
+    # the directory, which is the behaviour that retires every pre-scaler artefact.
+    _, scaler = fit_scaler(features)
+    save_pipeline(model_dir, _TIME_FEATURES, scaler)
 
     monkeypatch.setattr(forecast_data, "DATA_PROCESSED_PATH", processed)
     monkeypatch.setattr(forecast_data, "MODELS_PATH", models_path)
