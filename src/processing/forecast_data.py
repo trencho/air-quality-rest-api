@@ -7,7 +7,7 @@ from typing import Optional
 
 from pandas import DataFrame, Series, concat, date_range
 
-from api.config.cache import cache
+from caching import cache
 from definitions import (
     CACHE_TIMEOUTS,
     DATA_PROCESSED_PATH,
@@ -17,7 +17,6 @@ from definitions import (
 )
 from models import make_model
 from models.base_regression_model import BaseRegressionModel
-from preparation import location_timezone
 
 from .feature_generation import encode_categorical_data, generate_features
 from .feature_scaling import apply_scaler
@@ -25,6 +24,20 @@ from .handle_data import fetch_summary_dataframe, read_csv_in_chunks
 from .normalize_data import current_hour, next_hour
 
 logger = getLogger(__name__)
+
+
+def _location_timezone():
+    """Deferred import, and the deferral is the point.
+
+    `preparation.weather_data` imports from `processing`, and this module is imported by
+    `processing/__init__`, so a module-level `from preparation import location_timezone` closes a
+    cycle between two sibling packages. Importing it at call time breaks that, which is what makes
+    `modeling` and `processing` importable - and therefore testable - without booting Flask.
+    """
+    from preparation import location_timezone
+
+    return location_timezone
+
 
 FORECAST_PERIOD = "1h"
 FORECAST_STEPS = 25
@@ -44,7 +57,7 @@ def fetch_forecast_result(city: dict, sensor: dict) -> dict:
             timestamp = int(index.timestamp())
             timestamp_dict = forecast_result.get(timestamp, {})
             date_time = datetime.fromtimestamp(
-                timestamp, location_timezone(city["countryCode"])
+                timestamp, _location_timezone()(city["countryCode"])
             )
             timestamp_dict.update(
                 {

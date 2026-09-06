@@ -10,7 +10,7 @@ from numpy import where
 from pytz import country_timezones, timezone
 from requests import get
 
-from api.config.cache import cache
+from caching import cache
 from definitions import CACHE_TIMEOUTS, COUNTRIES, DATA_RAW_PATH, ENABLED_COUNTRIES
 
 logger = getLogger(__name__)

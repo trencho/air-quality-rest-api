@@ -6,7 +6,6 @@ from flasgger import swag_from
 from flask import Blueprint, Response, jsonify
 
 from api.config.cache import cache
-from api.config.repository import RepositorySingleton
 from definitions import CACHE_TIMEOUTS, DATA_PROCESSED_PATH
 from preparation import (
     calculate_nearest_city,
@@ -16,6 +15,7 @@ from preparation import (
     read_sensors,
 )
 from processing import current_hour, next_hour
+from repository import RepositorySingleton
 
 logger = getLogger(__name__)
 

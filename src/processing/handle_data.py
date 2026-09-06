@@ -5,8 +5,8 @@ from typing import Optional
 
 from pandas import DataFrame, concat, read_csv, to_datetime
 
-from api.config.repository import RepositorySingleton
 from definitions import CHUNK_SIZE, COLLECTIONS
+from repository import RepositorySingleton
 
 logger = getLogger(__name__)
 repository = RepositorySingleton.get_instance().get_repository()
