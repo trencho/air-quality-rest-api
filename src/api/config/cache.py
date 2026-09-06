@@ -2,11 +2,9 @@ from atexit import register
 from os import environ
 
 from flask import Flask
-from flask_caching import Cache
 
+from caching import cache
 from definitions import REDIS_URL
-
-cache = Cache()
 
 
 def _cache_config() -> dict:

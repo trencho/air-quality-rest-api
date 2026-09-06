@@ -10,7 +10,7 @@ every collection (cities/countries/sensors/weather/pollution) as dicts and feeds
 
 import pytest
 
-from api.config.repository import InMemoryRepository
+from repository import InMemoryRepository
 
 
 @pytest.fixture

@@ -11,7 +11,6 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from sqlalchemy import create_engine
 
-from api.blueprints import fetch_city_data
 from definitions import (
     COLLECTIONS,
     DATA_EXTERNAL_PATH,
@@ -27,6 +26,7 @@ from modeling import train_regression_model
 from preparation import (
     api_is_available,
     fetch_cities,
+    fetch_city_data,
     fetch_countries,
     fetch_sensors,
     read_cities,
@@ -39,12 +39,12 @@ from processing import (
     read_csv_in_chunks,
     save_dataframe,
 )
+from repository import RepositorySingleton
 from utils import BatchTally, track_time
 
 from .cache import cache
 from .dump import generate_sql_dump
 from .git import append_commit_files, create_archive, update_git_files
-from .repository import RepositorySingleton
 
 logger = getLogger(__name__)
 

@@ -17,9 +17,9 @@ from definitions import (
 )
 from preparation import read_cities, read_sensors
 from processing import find_missing_data, read_csv_in_chunks, save_dataframe
+from repository import RepositorySingleton
 from utils import BatchOutcome, BatchTally
 
-from .repository import RepositorySingleton
 from .schedule import fetch_locations
 
 logger = getLogger(__name__)
