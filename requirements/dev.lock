@@ -162,7 +162,7 @@ patsy==1.0.3
     # via statsmodels
 pillow==12.3.0
     # via matplotlib
-platformdirs==4.11.6
+platformdirs==4.11.7
     # via black
 pluggy==1.6.0
     # via pytest
@@ -184,7 +184,7 @@ pygments==2.21.0
     # via pytest
 pyjwt==2.13.0
     # via pygithub
-pymongo==4.17.0
+pymongo==4.18.0
     # via -r requirements/common.txt
 pynacl==1.6.2
     # via pygithub
@@ -220,7 +220,7 @@ rpds-py==2026.6.3
     # via
     #   jsonschema
     #   referencing
-ruff==0.16.5
+ruff==0.16.6
     # via -r requirements/dev.txt
 scikit-learn==1.9.0
     # via -r requirements/common.txt
