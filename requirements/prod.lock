@@ -145,7 +145,7 @@ pygithub==2.10.0
     # via -r requirements/common.txt
 pyjwt==2.13.0
     # via pygithub
-pymongo==4.17.0
+pymongo==4.18.0
     # via -r requirements/common.txt
 pynacl==1.6.2
     # via pygithub
