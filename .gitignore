@@ -186,3 +186,8 @@ kubernetes/secrets/
 # material belongs in a secret, never in a tracked file.
 *.ovpn
 !.github/workflows/client.ovpn
+
+# Compiled dependency trees. security-scan.yml compiles these in the job and uploads them as a run
+# artifact. A committed copy is a derived file only a human can refresh, which is what failed every
+# Dependabot pip PR and, in between, let the scan read transitives pip would not install.
+requirements/*.lock
