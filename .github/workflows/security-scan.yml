@@ -56,8 +56,16 @@ jobs:
         #   could not see any of it: it compared the DECLARED pins, and the transitives are the whole
         #   reason the files exist.
         #
-        # Both shapes hide an advisory rather than invent one, which is the direction that costs
-        # something. Compiling in the job makes the drift unrepresentable.
+        #   On the wrong platform, which is the worst of the three. The locks were last compiled on
+        #   Windows. Measured against the first ubuntu compile: they carried `tzdata` (and `colorama`
+        #   in dev), which no runner installs, and they were MISSING `nvidia-nccl-cu13`, which
+        #   xgboost pulls on Linux and which common.txt therefore ships into the production image.
+        #   OSV had never seen that package at all. A phantom entry costs a false positive; an
+        #   absent one means a real shipped dependency was never scanned.
+        #
+        # All three shapes hide an advisory rather than invent one, which is the direction that costs
+        # something. Compiling in the job, on the platform that runs the code, makes all three
+        # unrepresentable.
         #
         # prod.txt and dev.txt each chain in common.txt via `-r`, so compiling them reproduces the
         # same two trees the locks held. --python-version pins resolution to the version the tests
