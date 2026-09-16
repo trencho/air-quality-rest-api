@@ -38,10 +38,11 @@ known_first_party = [
 #                   this codebase only ever passes a URL string
 #
 # NOT ignored, deliberately: `psutil`. It is declared in requirements/common.txt (production)
-# and referenced nowhere in the codebase; prod.lock shows it arriving solely `via
+# and referenced nowhere in the codebase; the compiled prod tree shows it arriving solely `via
 # -r requirements/common.txt`, so nothing else needs it there. Its only real use is as the
-# pytest-xdist[psutil] extra in dev.txt, which pulls it in on its own. Removing it correctly
-# means recompiling prod.lock, so the finding is left visible rather than silenced.
+# pytest-xdist[psutil] extra in dev.txt, which pulls it in on its own. The finding is left
+# visible rather than silenced. (The trees are no longer committed; security-scan.yml compiles
+# them and uploads them as a run artifact, so read one from there to re-check this.)
 DEP002 = [
     "gunicorn", "black", "ruff", "pytest", "pytest-xdist", "Flask-Testing",
     "pandas-stubs", "scipy-stubs", "py-unused-deps", "redis",
