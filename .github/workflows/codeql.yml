@@ -1,0 +1,56 @@
+# CodeQL static analysis.
+#
+# Committed as a workflow rather than switched on through GitHub's "default
+# setup", so the configuration is reviewable in the tree and travels with a
+# fork. Free on public repositories; the fleet's three private repos cannot run
+# it without paid GitHub Advanced Security, which is why they have no copy.
+#
+# Unlike aqua-engineering, this does NOT set `queries: security-and-quality`.
+# That suite adds maintainability findings on top of the security ones, which is
+# affordable on a small codebase and noise on an established one. The default
+# security suite is what is actionable here; widen it deliberately if wanted.
+name: CodeQL
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Weekly, so a newly published advisory is found without waiting for a push.
+    # Minute staggered per repo so the fleet's runs do not land together.
+    - cron: '03 5 * * 2'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, actions]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
