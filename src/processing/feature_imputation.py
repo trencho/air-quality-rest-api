@@ -26,6 +26,12 @@ def weighted_hamming(data: DataFrame):
     categories_dist = []
 
     for category in data:
+        # EVERY level is kept, deliberately: no ``drop_first=True`` here or at the two
+        # calls in ``distance_matrix``. The dummy-variable trap is a property of a design
+        # matrix carrying an intercept, and none of these encodings is one -- they feed a
+        # distance, where a level is a PRESENCE to be matched rather than a coefficient to
+        # be identified. Dropping a reference level turns "both rows are city A" from a
+        # match into a mutual absence, which these metrics cannot see.
         x = get_dummies(data[category])
         x_mean = x * x.mean()
         x_dot = x_mean.dot(x.transpose())
@@ -109,7 +115,15 @@ def distance_matrix(
         for x in data:
             data[x] = data[x].fillna(data[x].mode()[0])
 
-    # "Dummifies" categorical variables in place
+    # "Dummifies" categorical variables in place.
+    #
+    # No ``drop_first=True``, and that is a decision rather than an oversight. These columns
+    # go to ``cdist`` with a set metric (jaccard by default), which counts PRESENCES; a
+    # dropped reference level is an absence, and two rows sharing it no longer register as
+    # sharing anything. Measured 2026-09-17 on three rows over two categorical attributes:
+    # the current encoding gives 0.667 between rows sharing one attribute and 1.0 between
+    # rows sharing none, while ``drop_first=True`` collapses all three pairs to 1.0. That
+    # degenerate matrix feeds ``knn_impute``, which would then choose neighbours arbitrarily.
     if not is_all_numeric and not (
         categorical_distance == "hamming" or categorical_distance == "weighted-hamming"
     ):
