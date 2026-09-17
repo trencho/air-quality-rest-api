@@ -66,6 +66,32 @@ def test_distance_matrix_separates_two_clusters(numeric_frame):
     assert values[5, 4] < values[5, 1]
 
 
+def test_categorical_encoding_keeps_every_level():
+    """Rows sharing a category must be closer than rows sharing none.
+
+    This pins the absence of ``drop_first=True`` on the ``get_dummies`` calls, which looks
+    like a missing best practice and is not one. The dummy-variable trap is a property of a
+    design matrix carrying an intercept; these encodings feed ``cdist`` with a set metric,
+    which counts PRESENCES. A dropped reference level becomes a mutual absence, and these
+    metrics cannot see it.
+
+    Measured 2026-09-17 on exactly this frame: as written, a pair sharing one attribute sits
+    at 0.667 and a pair sharing none at 1.0. With ``drop_first=True`` all three pairs
+    collapse to 1.0 -- a uniformly maximal matrix, from which ``knn_impute`` picks
+    neighbours arbitrarily. That is a silent failure: no error, no warning, just imputed
+    values drawn from whichever rows happen to sort first.
+    """
+    frame = DataFrame({"city": ["A", "A", "B"], "kind": ["X", "Y", "X"]})
+    values = distance_matrix(frame).to_numpy()
+
+    shares_city = values[0, 1]
+    shares_kind = values[0, 2]
+    shares_nothing = values[1, 2]
+
+    assert shares_city < shares_nothing
+    assert shares_kind < shares_nothing
+
+
 def test_distance_matrix_rejects_an_unsupported_numeric_metric(numeric_frame):
     # Returns None rather than raising, so a caller that does not check gets a silent
     # nothing. Pinned deliberately: this is the behaviour a broad `except` upstream
