@@ -49,10 +49,10 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Log in to GHCR
-        uses: docker/login-action@v4
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -61,7 +61,7 @@ jobs:
       # Two tags: :latest for the Deployment to track, and the commit SHA so a
       # specific build can be identified and rolled back to.
       - name: Build and push
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: docker/Dockerfile
@@ -248,7 +248,7 @@ jobs:
           key: apt-openvpn-${{ runner.os }}-${{ steps.runner_image.outputs.id }}
 
       - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@v3
+        uses: kota65535/github-openvpn-connect-action@cd2ed8a90cc7b060dc4e001143e811b5f7ea0af5 # v3.1.0
         with:
           config_file: ${{ env.OPENVPN_CONFIG }}
           echo_config: false
@@ -260,7 +260,7 @@ jobs:
         id: remote_deploy
         # Failure is handled by the retry step below rather than failing the job here.
         continue-on-error: true
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
@@ -298,7 +298,7 @@ jobs:
       # the job if it fails too.
       - name: SSH commands for checkout/update git repo, build and deploy (retry)
         if: steps.remote_deploy.outcome == 'failure'
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ env.SERVER_HOST }}
           username: ${{ env.SSH_USERNAME }}
