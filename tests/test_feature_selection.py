@@ -11,7 +11,11 @@ from pandas import DataFrame, Series
 # Import the config package first so the api/preparation/processing chain initialises
 # in order — importing a ``processing`` submodule first hits a circular import.
 import api.config  # noqa: F401
-from processing.feature_selection import backward_elimination, get_p_values
+from processing.feature_selection import (
+    backward_elimination,
+    estimable_features,
+    get_p_values,
+)
 
 
 @pytest.fixture(scope="module")
@@ -97,3 +101,54 @@ def test_p_values_are_selected_by_name_not_position(features):
     assert list(p_values.index) == ["noise", "signal"]
     assert p_values["signal"] < 0.05
     assert "const" not in p_values.index
+
+
+def test_nested_indicators_collapse_to_one(features):
+    """``isYearStart`` implies ``isQuarterStart`` implies ``isMonthStart``.
+
+    Over a window containing no month-start except 1 January the three are the *same column*.
+    Found 2026-09-17 by taking the SVD of a real design matrix: rank 1 of 3, which was exactly
+    the residual rank deficiency of 2 left after constant columns were excluded. Only the
+    first survives, and elimination then judges it on its merits.
+    """
+    same = np.zeros(200)
+    same[:23] = 1.0
+    x = DataFrame(
+        {
+            "signal": features["signal"],
+            "isMonthStart": same,
+            "isQuarterStart": same.copy(),
+            "isYearStart": same.copy(),
+        }
+    )
+    assert estimable_features(x) == ["signal", "isMonthStart"]
+
+
+def test_an_exact_linear_combination_is_dropped(features):
+    """``c = a + b`` has no unique coefficient, and elimination keeps all three without this."""
+    x = DataFrame(
+        {
+            "a": features["signal"],
+            "b": features["noise"],
+            "c": features["signal"] + features["noise"],
+        }
+    )
+    assert estimable_features(x) == ["a", "b"]
+
+
+def test_merely_correlated_features_are_both_kept(features):
+    """The guard against over-correcting, and the reason columns are scaled first.
+
+    ``matrix_rank`` takes its tolerance from the largest singular value, so on a frame mixing
+    pollutant lags with cyclic encodings in [-1, 1] an unscaled test can call a
+    small-magnitude column dependent purely for being small. These two correlate at ~0.999
+    and are genuinely distinct; dropping either would be a regression.
+    """
+    near = features["signal"] + 1e-3 * features["eps"]
+    x = DataFrame({"signal": features["signal"], "near": near})
+    assert estimable_features(x) == ["signal", "near"]
+
+    scaled = DataFrame(
+        {"big": features["signal"] * 1e6, "small": features["noise"] * 1e-6}
+    )
+    assert estimable_features(scaled) == ["big", "small"]

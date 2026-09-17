@@ -1,3 +1,5 @@
+from numpy import column_stack, isfinite, ones
+from numpy.linalg import matrix_rank
 from pandas import DataFrame, Series
 from statsmodels.api import OLS, add_constant
 
@@ -15,30 +17,59 @@ def get_p_values(x: DataFrame, y: Series, features: list) -> Series:
     return model.pvalues.reindex(features)
 
 
+def estimable_features(x: DataFrame) -> list:
+    """Columns whose coefficients OLS can actually identify, in the caller's order.
+
+    A column that is an exact linear combination of the intercept and the columns before it
+    has no unique coefficient, and elimination cannot remove it: statsmodels falls back to a
+    pseudo-inverse, hands every collinear column ``p ~ 0``, and those columns are therefore
+    never the argmax. The loop drops REAL features instead, to keep making progress.
+
+    Two shapes of this were measured on the real training calls on 2026-09-17, and they are
+    the same defect at different ranks:
+
+    * **Constant columns.** A block of time features (``month_*``, ``quarter_*``, ``season_*``,
+      ``days_in_month_*``, ``isLeapYear`` ...) never varies across a window shorter than the
+      period it encodes. Fifteen such columns are mutually proportional and proportional to
+      the intercept, collapsing that block to rank 1: the matrix was deficient by 14 in all 23
+      calls, and elimination kept 12 of 12 and 14 of 14 of them.
+    * **Nested indicators.** ``isYearStart`` implies ``isQuarterStart`` implies
+      ``isMonthStart``. Over a window containing no month-start except 1 January the three are
+      *identical* -- rank 1 of 3, found by taking the SVD of a real design matrix -- which was
+      exactly the residual deficiency of 2 left after the constants were handled.
+
+    The seed column is the intercept ``add_constant`` prepends later, so a constant column is
+    just the rank-1 case of the same test rather than a rule of its own.
+
+    Columns are scaled before the rank test. ``matrix_rank`` takes its tolerance from the
+    largest singular value, and these features differ in scale by orders of magnitude
+    (pollutant lags against cyclic encodings in [-1, 1]), so without scaling a small-magnitude
+    column can be judged dependent purely for being small.
+
+    Where columns alias, the FIRST in the frame's order is kept and the rest dropped. That is
+    arbitrary but deterministic; nothing here can say which of an identical set is the
+    meaningful one.
+    """
+    kept = []
+    basis = ones((len(x), 1))
+    for name in x.columns:
+        column = x[name].to_numpy(dtype=float).reshape(-1, 1)
+        if not isfinite(column).all():
+            continue
+        largest = abs(column).max()
+        if largest == 0:
+            continue
+        candidate = column_stack([basis, column / largest])
+        if matrix_rank(candidate) > basis.shape[1]:
+            kept.append(name)
+            basis = candidate
+    return kept
+
+
 def backward_elimination(
     x: DataFrame, y: Series, significance_level: float = 0.05
 ) -> list:
-    # Zero-variance columns are excluded before the loop, never by it.
-    #
-    # They are not a hypothetical. A block of time features (`month_*`, `quarter_*`,
-    # `season_*`, `days_in_month_*`, `isLeapYear`, `isMonthEnd`, `isQuarter*`, `isYear*`) is
-    # constant across any training window shorter than the period it encodes, and constant
-    # columns are all proportional to one another and to the intercept. Measured 2026-09-17 on
-    # a 12-to-17-day window: fifteen such columns collapsed that block to rank 1, leaving the
-    # matrix rank-deficient by 14 in all 23 calls the suite makes.
-    #
-    # The loop cannot recover from that on its own. Collinear columns score p ~ 0, so they are
-    # never the argmax and are never the ones removed -- it drops REAL features instead to keep
-    # making progress. Both measured calls kept every constant they were given (12 of 12, then
-    # 14 of 14) and eliminated 16 informative features to do it. The selection is then written
-    # to selected_features.json and read back by the forecast path, where a column that was
-    # constant during training is not constant any more.
-    #
-    # After this change the same two calls keep NO constant columns, and the design matrix is
-    # rank-deficient by 2 rather than 14. Those two are exact dependencies among the VARYING
-    # time features and are not addressed here; see
-    # reports/feature-selection-rank-deficiency-2026-09-17.md.
-    features = [name for name in x.columns if x[name].nunique(dropna=False) > 1]
+    features = estimable_features(x)
     while len(features) > 0:
         p_values = get_p_values(x, y, features)
         # Pandas max/idxmax rather than the builtin: both skip NaN, which is what an
