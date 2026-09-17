@@ -169,10 +169,32 @@ jobs:
                 host=$(printf '%s' "$hold" | awk '{print $2}')
                 peer=$(printf '%s' "$hold" | awk '{print $4}')
                 want=$(printf '%s' "$hold" | awk '{print $5}' | tr -d '>=')
-                range=$(npm view "$host@latest" "peerDependencies.$peer" 2>/dev/null || true)
+                # Pad `want` into a real version before comparing. Every hold we ship writes a bare
+                # MAJOR (`>=7`), and for those `$want.0.0` was right -- but a minor-bearing one
+                # (`>=7.1`) became `7.1.0.0`, which is not a version at all. `semver -r` then exits
+                # non-zero and the test below read that as "still blocked". A false negative on a
+                # LIFT condition is the worst direction to fail in: the hold outlives its reason and
+                # nothing ever says so.
+                case "$want" in
+                  *.*.*) probe="$want" ;;
+                  *.*)   probe="$want.0" ;;
+                  *)     probe="$want.0.0" ;;
+                esac
+                # Branch on the EXIT STATUS, not on emptiness. `npm view` answers exit 0 with empty
+                # output when the field genuinely is not there, and non-zero when the lookup itself
+                # failed -- two different conclusions an empty string cannot tell apart. Saying
+                # "peer dropped" because the registry was unreachable sends a reader hunting for a
+                # peerDependency that is still exactly where it was.
+                if range=$(npm view "$host@latest" "peerDependencies.$peer" 2>/dev/null); then
+                  looked_up=yes
+                else
+                  looked_up=no; range=""
+                fi
                 now="\`$host\` peers \`$peer@${range:-none}\`"
-                if [ -n "$range" ] && npx --yes semver@7 -r "$range" "$want.0.0" >/dev/null 2>&1; then
+                if [ -n "$range" ] && npx --yes semver@7 -r "$range" "$probe" >/dev/null 2>&1; then
                   clear="**YES — lift it**"
+                elif [ "$looked_up" = no ]; then
+                  clear="could not check"
                 elif [ -z "$range" ]; then
                   clear="peer dropped; check by hand"
                 else
