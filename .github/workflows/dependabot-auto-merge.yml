@@ -88,8 +88,43 @@ jobs:
         run: |
           gh pr comment "$PR_URL" --body "Held: this bump targets a **pre-release** version (\`$OFFENDER\`). Every other update type auto-merges; pre-releases need a human to confirm it is intended."
 
+      # Actions bumps REWRITE A WORKFLOW FILE, and the workflows here can read the production
+      # deploy secrets. SHA pinning is the control that makes a third-party action safe, and a
+      # Dependabot bump rewrites the pin itself -- so auto-merging one accepts whatever SHA
+      # upstream published, with no human in the loop.
+      #
+      # The VALUE is `github_actions`, with an UNDERSCORE. `dependabot.yml` spells the same
+      # ecosystem `github-actions` with a hyphen, and a guard matching the hyphen holds nothing
+      # while looking exactly like a working gate. Read off a real run's
+      # `outputs.package-ecosystem:` log line, not assumed.
+      - name: Hold a workflow-modifying bump for a human
+        id: workflow_hold
+        env:
+          ECOSYSTEM: ${{ steps.meta.outputs.package-ecosystem }}
+        run: |
+          set -euo pipefail
+          held=false
+          if [ "${ECOSYSTEM:-}" = "github_actions" ]; then
+            held=true
+          fi
+          echo "held=$held" >> "$GITHUB_OUTPUT"
+          if [ "$held" = true ]; then
+            echo "github_actions bump - a workflow change needs a human, not auto-merging."
+          fi
+
+      # Said on the PR, not only in the log. A hold nobody is told about is indistinguishable from
+      # a gate that silently stopped working.
+      - name: Explain a held workflow bump
+        if: ${{ steps.workflow_hold.outputs.held == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr comment "$PR_URL" --body \
+            "Held: this bump modifies a **workflow file**, and the workflows here can read the production deploy secrets. SHA pinning is what makes a third-party action safe, and this bump rewrites the pin itself, so merging it accepts whatever SHA upstream published. Review the diff and merge manually."
+
       - name: Wait for CI, then merge
-        if: ${{ steps.prerelease.outputs.held == 'false' }}
+        if: ${{ steps.prerelease.outputs.held == 'false' && steps.workflow_hold.outputs.held == 'false' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
