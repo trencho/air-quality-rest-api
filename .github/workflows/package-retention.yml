@@ -191,6 +191,14 @@ jobs:
           deletable=$(printf '%s' "$deletable_json" | jq 'length')
           kept=$((untagged_all - deletable))
 
+          # COMPLETENESS GUARD. Every step above can succeed and still describe only PART of the
+          # package: a truncated tag listing raises no error, returns valid JSON, and simply names
+          # fewer parents. Deleting on a partial graph is how this job destroys things, so the
+          # registry's view and GitHub's view must agree before anything is removed. GitHub says how
+          # many versions carry a tag; `parents.txt` says how many tagged parents we actually opened.
+          # If those disagree, some parent was never read and its children are wrongly unreferenced.
+          # This is the guard that would have stopped 2026-09-01, and it is deliberately a COUNT
+          # comparison rather than a "did pagination work" check, so it also catches the next cause.
           # Compare TAG NAMES, which both sides report directly: GitHub lists the tags on every
           # version, the registry lists the tags it served. Comparing digests instead would need an
           # extra request per tag -- one more thing that can fail and silently shrink the graph,
