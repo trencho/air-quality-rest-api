@@ -36,9 +36,10 @@
 #     the schedule. The inventory is read-only and always runs first.
 #   - Pass 1 (untagged) now skips itself entirely when the graph is unavailable or when nothing is
 #     safely deletable. It fails toward keeping: no graph, no deletion.
-#   - Pass 2 (prune old tagged builds) ships COMMENTED OUT. It deletes real, addressable images —
-#     but it is the correct pass, because deleting a tagged index makes its children unreferenced
-#     and pass 1 can then collect them on the following month.
+#   - Pass 2 (prune old tagged builds) is LIVE, keeping the newest KEEP_BUILDS tagged builds. It
+#     deletes real, addressable images - but it is the correct pass, because deleting a tagged
+#     index makes its children unreferenced and pass 1 can then collect them the following month.
+#     It groups by build and deletes an index with its children, so a cutoff cannot land mid-build.
 #   - `package-name` must name the package, not the repo, when they differ (a monorepo publishing
 #     several images needs one job per package).
 #   - GITHUB_TOKEN can only delete a package that is LINKED to this repository. An unlinked
@@ -47,8 +48,8 @@
 # Canonical shape (keep identical across repos so parity is checkable):
 #   file:    package-retention.yml
 #   name:    Package retention
-#   job id:  prune
-#   trigger: monthly schedule + workflow_dispatch
+#   job ids: gate (first-week guard), prune (the deletion pass)
+#   trigger: weekly schedule gated to the first week + workflow_dispatch
 name: Package retention
 
 on:
