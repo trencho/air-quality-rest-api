@@ -14,6 +14,10 @@ permissions:
   contents: write
   pull-requests: write
   checks: read
+  # `gh workflow run` after the merge needs this. Without it the dispatch gets a 403, the
+  # step warns and exits 0, and the bump merges without ever reaching the live site -- the
+  # exact failure the dispatch was added to fix, wearing a green check.
+  actions: write
 
 jobs:
   auto-merge:
@@ -136,6 +140,21 @@ jobs:
           # "build + test (JDK 25)") is not split apart by word-splitting.
           REQUIRED_CHECKS: |
             build
+          # THE WORKFLOW TO DISPATCH AFTER A SUCCESSFUL MERGE, and why one is needed at all.
+          #
+          # `gh pr merge` below pushes with GITHUB_TOKEN, and a push made with GITHUB_TOKEN raises
+          # NO workflow events. This file already invokes that anti-recursion rule for branch
+          # updates further down; the same rule applies to the merge push, and it was never
+          # followed through. The result is silent: master moves, and build-deploy.yml listens on `push: master`, so nothing builds, nothing pushes an image and nothing deploys. The bump reads as merged-and-green while production still runs the old image.
+          #
+          # Measured across this repo's whole history on 2026-09-19: every Dependabot PR merged by
+          # `app/github-actions` raised no deploy, and every one merged by a human did. Same repo,
+          # same deploy workflow, the only difference being who pressed merge.
+          #
+          # workflow_dispatch via the API is NOT suppressed -- only the push event is -- so the
+          # dispatched run behaves like any other. Set to empty to opt out.
+          DISPATCH_WORKFLOW: build-deploy.yml
+          DISPATCH_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           set -euo pipefail
 
@@ -174,6 +193,18 @@ jobs:
             if [ "$pending" -eq 1 ]; then echo "waiting for required checks..."; sleep 20; continue; fi
             echo "all required checks green — merging."
             if gh pr merge "$PR_URL" --squash --delete-branch; then
+              # The merge landed. Now make something actually run on the new head -- see
+              # DISPATCH_WORKFLOW above for why nothing does on its own.
+              if [ -n "${DISPATCH_WORKFLOW:-}" ]; then
+                if gh workflow run "$DISPATCH_WORKFLOW" --ref "$DISPATCH_REF"; then
+                  echo "dispatched $DISPATCH_WORKFLOW on $DISPATCH_REF so the merge actually ships."
+                else
+                  # Loud on purpose, and NOT a failure: the merge succeeded and re-running this
+                  # job would not undo it. A silent skip here would restore exactly the defect
+                  # this dispatch exists to fix.
+                  echo "::warning::merged, but could not dispatch $DISPATCH_WORKFLOW on $DISPATCH_REF."
+                fi
+              fi
               exit 0
             fi
             # The merge can be refused because the branch fell behind DURING the wait above. The
