@@ -16,8 +16,8 @@
 # Canonical shape (keep identical across repos so parity is checkable):
 #   file:    dependency-cleanup.yml
 #   name:    Dependency cleanup
-#   job id:  cleanup
-#   trigger: monthly schedule + workflow_dispatch
+#   job ids: gate (first-week guard), cleanup (the report)
+#   trigger: weekly schedule gated to the first week + workflow_dispatch
 name: Dependency cleanup
 
 on:
