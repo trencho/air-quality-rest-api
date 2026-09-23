@@ -2,20 +2,20 @@
 
 A Flask REST API that collects air-quality and weather data per city/sensor, trains machine-learning
 regression models on it, and serves **current readings, history, pollutant metrics, and multi-model
-forecasts** — with interactive Swagger docs and prediction/error plots. It covers the pulse.eco
+forecasts**: with interactive Swagger docs and prediction/error plots. It covers the pulse.eco
 sensor network across all 15 supported countries by default (North Macedonia, Serbia, Bulgaria,
 Greece, Romania, Switzerland, and more); narrow the coverage with the `ENABLED_COUNTRIES` env var.
 
 ## Feature overview
 
-- **Locations** — list countries and cities, and the sensors within a city (by id or nearest to a
+- **Locations**: list countries and cities, and the sensors within a city (by id or nearest to a
   coordinate).
-- **History** — time-series weather or pollution readings for a city/sensor or a coordinate.
-- **Pollutants** — the latest per-pollutant values (`AQI, CO, NH3, NO, NO2, O3, PM2.5, PM10, SO2`)
+- **History**: time-series weather or pollution readings for a city/sensor or a coordinate.
+- **Pollutants**: the latest per-pollutant values (`AQI, CO, NH3, NO, NO2, O3, PM2.5, PM10, SO2`)
   for a city/sensor or coordinate.
-- **Forecasts** — model-driven pollutant predictions for a city, a specific sensor, or a coordinate.
-- **Plots** — rendered prediction and error plots per city/sensor/pollutant.
-- **Ops** — OpenAPI/Swagger UI, liveness/readiness health checks, CORS, in-process caching, and (in
+- **Forecasts**: model-driven pollutant predictions for a city, a specific sensor, or a coordinate.
+- **Plots**: rendered prediction and error plots per city/sensor/pollutant.
+- **Ops**: OpenAPI/Swagger UI, liveness/readiness health checks, CORS, in-process caching, and (in
   prod) an APScheduler pipeline that fetches data, trains models, and publishes forecasts on a cron.
 
 ## Tech stack
@@ -71,18 +71,18 @@ tests/                     # pytest (Flask-Testing) endpoint tests
 
 ## Architecture
 
-- **App factory** — `src/api/config/__init__.py:create_app()` composes small `init_*` functions
+- **App factory**: `src/api/config/__init__.py:create_app()` composes small `init_*` functions
   (logger, GC, system paths, converters, blueprints, cache, CORS, health, swagger, data).
-- **Repository** — `config/repository.py` exposes a `Repository` interface with two implementations
+- **Repository**: `config/repository.py` exposes a `Repository` interface with two implementations
   selected by `APP_ENV`: `RegularRepository` (MongoDB) in prod, `InMemoryRepository` in dev/tests.
-- **Scheduler** (prod only) — APScheduler cron jobs fetch hourly data, dump/back up data to a Git
+- **Scheduler** (prod only): APScheduler cron jobs fetch hourly data, dump/back up data to a Git
   repo, train models, and publish forecasts; the job store is SQLite via SQLAlchemy.
-- **Data pipeline** — `preparation` (fetch) → `processing` (clean/feature-engineer) → `modeling`
+- **Data pipeline**: `preparation` (fetch) → `processing` (clean/feature-engineer) → `modeling`
   (train/evaluate) → forecasts + `visualization` plots.
 
 ## Environment configuration
 
-Selected by **`APP_ENV`** (`development` — default — or `production`). In production the app validates
+Selected by **`APP_ENV`** (`development`, default, or `production`). In production the app validates
 the required variables at startup and exits if any are missing.
 
 | Variable                                                              | Purpose                                             |
@@ -106,7 +106,7 @@ SKIP_DATA_FETCH=1 python src/api/app.py                 # http://127.0.0.1:5000 
 ```
 
 Dev uses the in-memory repository (no MongoDB required). `APP_ENV` defaults to `development`.
-`create_app()` fetches upstream location data from pulse.eco on startup — set `SKIP_DATA_FETCH=1`
+`create_app()` fetches upstream location data from pulse.eco on startup: set `SKIP_DATA_FETCH=1`
 to run offline. Data-dependent endpoints (history/pollutants/forecast/plots) return 404 until
 `data/processed/<city>/<sensor>/*.csv` exist (in production the scheduler generates these; `data/`
 is gitignored, so nothing is seeded by default locally).
@@ -155,12 +155,12 @@ Before touching that pipeline:
 
 - **A merge to `master` dispatches a production deploy.** Know the cluster's state first.
 - **The deploy can also be dispatched by hand** from the Actions tab (`workflow_dispatch`). That is
-  the recovery path when a deploy failed for an infrastructure reason rather than a code one —
+  the recovery path when a deploy failed for an infrastructure reason rather than a code one:
   re-running it needs no commit.
-- **`.github/workflows/client.ovpn` must not be deleted.** Nothing in the tree references it —
+- **`.github/workflows/client.ovpn` must not be deleted.** Nothing in the tree references it:
   the `OPENVPN_CONFIG` secret holds its *path*. The workflow now fails fast and names the file
   if it goes missing, because the VPN action's own error masks the path as `***`.
 
 MongoDB is pinned to **`mongo:4.4`**, deliberately not to a patch version and deliberately not
 newer: this node's CPU has no AVX, which MongoDB 5.0+ requires, and the floating `4.4` tag is
-what is already running — pinning tighter would roll the database on the next apply.
+what is already running: pinning tighter would roll the database on the next apply.
