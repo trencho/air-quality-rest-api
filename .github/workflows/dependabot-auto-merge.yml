@@ -131,6 +131,9 @@ jobs:
         if: ${{ steps.prerelease.outputs.held == 'false' && steps.workflow_hold.outputs.held == 'false' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The post-merge `gh workflow run` below has no checkout to take the repository from.
+          # Without GH_REPO it fails with "not a git repository", warns, and the job still passes.
+          GH_REPO: ${{ github.repository }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           REPO: ${{ github.repository }}
           SHA: ${{ github.event.pull_request.head.sha }}
