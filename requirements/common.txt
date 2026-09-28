@@ -14,13 +14,13 @@ pandas==3.0.6
 prometheus-flask-exporter==0.23.2
 psutil==7.2.2
 PyGithub==2.10.0
-pymongo==4.18.1
-pytz==2026.3.post1
+pymongo==4.18.2
+pytz==2026.4
 redis==8.1.0
 requests==2.34.2
 scikit-learn==1.9.1
 scipy==1.18.1
-SQLAlchemy==2.0.54
+SQLAlchemy==2.1.0
 seaborn==0.13.2
 statsmodels==0.15.0
 urllib3==2.8.0
