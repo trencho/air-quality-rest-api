@@ -1,5 +1,6 @@
-# Dependabot version updates. Grouping minor+patch keeps majors in their own PR (excluded from
-# auto-merge). Dependabot applies `ignore` retroactively — landing this auto-closes offending open PRs.
+# Dependabot version updates. Grouping minor+patch keeps majors in their own PR, so a breaking
+# major fails CI alone. Every update type auto-merges once CI passes (ci.yml, job `auto-merge`).
+# Dependabot applies `ignore` retroactively: landing this auto-closes offending open PRs.
 version: 2
 updates:
   # Python deps. The requirements files live under /requirements (common/dev/prod, chained via -r).
@@ -42,7 +43,7 @@ updates:
     commit-message:
       prefix: chore
     # No update-type restriction: majors, minors and patches all flow, and the guard that matters
-    # for images -- blocking a RELEASE-CANDIDATE tag -- lives in dependabot-auto-merge.yml instead.
+    # for images -- blocking a RELEASE-CANDIDATE tag -- lives in ci.yml's auto-merge job instead.
     # It has to: `docker` matches TAGS, which carry no release-channel metadata, so
     # `python:3.14.6-slim` -> `python:3.15.0rc1-slim` scores an ordinary MINOR, and
     # `ignore.versions` takes version RANGES rather than globs (dependabot-core#15154), so

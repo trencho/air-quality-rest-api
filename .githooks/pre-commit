@@ -1,0 +1,92 @@
+#!/bin/sh
+# Pre-commit hook: `ruff check --fix` (import hygiene, per pyproject.toml), then Black, on the Python
+# files staged for this commit. CI runs `black --check` and `ruff check`; this catches the same
+# problems before the push instead of minutes after it.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+#
+# A file staged whole is rewritten and re-added. A file that also has unstaged edits is only
+# CHECKED: rewriting and re-adding it would sweep the unstaged hunks into the commit. The check reads
+# the STAGED content (`git show :<path>` piped to the tool's stdin), so an unstaged line can neither
+# fail nor pass it. Fix what it reports and stage that, or format the file and stage it whole.
+#
+# Ruff runs first and Black last, because Black is the formatter CI enforces and it has the final
+# say on layout.
+#
+# Uses .venv/bin/<tool> when the project has one, else the tool on PATH; RUFF=<path> and
+# BLACK=<path> override both. `git commit --no-verify` skips the hook. Tests stay in CI.
+set -eu
+
+pick() { # pick <OVERRIDE value> <tool name>
+  if [ -n "$1" ]; then
+    printf '%s\n' "$1"
+  elif [ -x ".venv/bin/$2" ]; then
+    printf '%s\n' ".venv/bin/$2"
+  else
+    printf '%s\n' "$2"
+  fi
+}
+ruff=$(pick "${RUFF:-}" ruff)
+black=$(pick "${BLACK:-}" black)
+for tool in "$ruff" "$black"; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "pre-commit: $tool not found; install the dev dependencies first (pip install -r requirements/dev.txt)" >&2
+    exit 1
+  fi
+done
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+# -z gives raw names: without it git quotes any path with a non-ASCII byte, and the quoted form
+# names no file. The sets below are built one name per line, so a name containing a newline cannot
+# be represented; refuse it rather than format the wrong file.
+git diff --cached -z --name-only --diff-filter=ACMR -- '*.py' '*.pyi' >"$tmp/staged0"
+git diff -z --name-only -- '*.py' '*.pyi' >"$tmp/partial0"
+if [ "$(tr -cd '\n' <"$tmp/staged0" | wc -c)" -ne 0 ]; then
+  echo "pre-commit: a staged path contains a newline; format it by hand and commit with --no-verify" >&2
+  exit 1
+fi
+tr '\0' '\n' <"$tmp/staged0" >"$tmp/staged"
+tr '\0' '\n' <"$tmp/partial0" >"$tmp/partial"
+[ -s "$tmp/staged" ] || exit 0
+
+# Explicit for the common case of no unstaged edits: `grep -f` with an empty pattern file matches
+# nothing on some greps and everything on others.
+if [ -s "$tmp/partial" ]; then
+  grep -vxF -f "$tmp/partial" "$tmp/staged" >"$tmp/rewrite" || true
+  grep -xF -f "$tmp/partial" "$tmp/staged" >"$tmp/check" || true
+else
+  cp "$tmp/staged" "$tmp/rewrite"
+  : >"$tmp/check"
+fi
+
+# run <file list> <command...>: the command with every listed path appended, NUL-separated so a
+# space in a name stays inside one argument. Nothing runs for an empty list.
+run() {
+  list=$1
+  shift
+  [ -s "$list" ] || return 0
+  tr '\n' '\0' <"$list" | xargs -0 "$@"
+}
+
+status=0
+run "$tmp/rewrite" "$ruff" check --fix --quiet -- || status=1
+run "$tmp/rewrite" "$black" --quiet -- || status=1
+# Re-add even after a failure, so what the tools did fix is in the index.
+run "$tmp/rewrite" git add --
+
+# Each partially staged file is checked as the index holds it.
+while IFS= read -r f; do
+  git show ":$f" >"$tmp/blob"
+  if ! "$black" --check --quiet --stdin-filename "$f" - <"$tmp/blob" >/dev/null; then
+    echo "pre-commit: $f has unstaged edits, so it was not rewritten, and its staged content is not Black-formatted" >&2
+    status=1
+  fi
+  "$ruff" check --no-fix --quiet --stdin-filename "$f" - <"$tmp/blob" || status=1
+done <"$tmp/check"
+
+if [ "$status" -ne 0 ]; then
+  echo "pre-commit: fix the problems above, or commit with --no-verify" >&2
+fi
+exit "$status"

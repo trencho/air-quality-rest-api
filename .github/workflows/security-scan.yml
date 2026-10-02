@@ -10,9 +10,19 @@ name: Security scan
 on:
   schedule:
     - cron: "03 7 * * 1" # weekly, Monday 07:03 UTC - fleet slot (minutes staggered per repo)
-  push:
-    branches: [master]
+  # No `push`. A push to master is a squash of the tree the `pull_request` run checked minutes
+  # earlier, and this scan uploads no SARIF, so a master run re-answers a question already answered.
+  # The gap that accepts: a dependency change pushed straight to master, bypassing a PR, waits for the
+  # weekly run. Dependencies here arrive through Dependabot PRs, and Dependabot's alerts cover that.
+  #
+  # `pull_request` runs only when something the scan READS changes: the requirements files it
+  # compiles, OSV's config, or this file. Any other PR would re-scan the tree master already has,
+  # which the weekly schedule covers.
   pull_request:
+    paths:
+      - requirements/*.txt
+      - osv-scanner.toml
+      - .github/workflows/security-scan.yml
   workflow_dispatch:
 
 permissions:
