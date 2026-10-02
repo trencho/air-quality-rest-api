@@ -139,6 +139,13 @@ black src tests definitions.py           # format
 black --check src tests definitions.py   # verify (this is what CI runs)
 ```
 
+A pre-commit hook runs Ruff's import fixes and Black on the Python files you stage. Enable it once
+per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Deployment
 
 Production runs as a **Docker Compose** stack (Flask image + MongoDB) or on **Kubernetes**

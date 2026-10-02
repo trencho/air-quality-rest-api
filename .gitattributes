@@ -10,3 +10,6 @@
 # continuations -- an artifact that made a real deploy script look broken when it was not.
 * text=auto
 *.sh text eol=lf
+
+# The pre-commit hook is a sh script; a CRLF copy does not run.
+.githooks/* text eol=lf
