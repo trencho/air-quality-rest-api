@@ -7,8 +7,11 @@
 #      nothing re-testing it becomes a permanent freeze — TypeScript 7 and ESLint 10 sat in this
 #      fleet's ignore blocks for a month with nothing looking at them.
 #   3. Update the PACKAGE MANAGER itself — the `packageManager` field is unsupported
-#      (dependabot-core#4830, open since 2022) and Maven wrapper support is merged but
-#      flag-gated off (#14812). Gradle wrapper IS supported and needs no help here.
+#      (dependabot-core#4830, open since 2022). Gradle wrapper IS supported and needs no help here.
+#      Maven: since about 2026-10-06 Dependabot bumps the `distributionUrl` in
+#      maven-wrapper.properties too (dependabot-core#14812, no opt-in: crowdtune-backend #252
+#      moved apache-maven 3.9.16 -> 3.10.0 inside its ordinary maven group). The check below
+#      stays as a backstop and reports nothing while the distribution is current.
 #
 # REPORTS ONLY. It opens or updates one issue per month and never edits code, never removes a
 # dependency, and never lifts a hold. Acting on it is a human's (or a review session's) call.
@@ -344,7 +347,7 @@ jobs:
               echo "- Maven wrapper: \`$have\` — could not resolve a stable release from Central." >> report.md
             elif [ "$have" != "$latest" ]; then
               echo "- Maven wrapper: **$have** -> newest **stable** **$latest**. Update with \`./mvnw wrapper:wrapper -Dmaven=$latest\`." >> report.md
-              echo "  (Dependabot support merged 2026-08-11 but is flag-gated off — adopt it when it ships and drop this check.)" >> report.md
+              echo "  (Dependabot's maven ecosystem bumps the wrapper since ~2026-10-06; a lag means that ecosystem is missing or held.)" >> report.md
               echo "maven wrapper behind: $have -> $latest" >> actionable.txt
             else
               echo "- Maven wrapper: \`$have\` is the newest stable release." >> report.md
